@@ -11,3 +11,4 @@ Format: `Datum | Abschnitt-2-Thema (Finanzwissen) | Abschnitt-3-Thema (Geld & Ve
 | 2026-09-18 | Realzins / Realrendite (Gold-Zins-Zusammenhang)             | Sparquote |
 | 2026-09-19 | Sektorrotation (Dow vs. Nasdaq)                             | Lifestyle-Inflation |
 | 2026-09-20 | Perpetual Futures / Funding Rate                            | Budgetierungsmethoden |
+| 2026-09-21 | ETF Creation/Redemption-Mechanismus                         | Langfristiges Vermögensdenken |
