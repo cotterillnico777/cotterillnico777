@@ -13,3 +13,4 @@ Format: `Datum | Abschnitt-2-Thema (Finanzwissen) | Abschnitt-3-Thema (Geld & Ve
 | 2026-09-20 | Perpetual Futures / Funding Rate                            | Budgetierungsmethoden |
 | 2026-09-21 | ETF Creation/Redemption-Mechanismus                         | Langfristiges Vermögensdenken |
 | 2026-09-22 | Schiefe Renditeverteilungen (Median vs. Mittelwert)         | Konsumverhalten |
+| 2026-09-23 | Geopolitische Risikoprämie (Ölpreis)                        | Mental Accounting |
