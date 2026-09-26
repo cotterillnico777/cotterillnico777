@@ -1,0 +1,37 @@
+# Konfiguration des Trading-Bots
+# Alle Beträge in der Quote-Währung des Markts (bei BTC/USDT also USDT).
+
+symbol: BTC/USDT
+timeframe: 1h          # 1m, 5m, 15m, 1h, 4h, 1d ...
+
+exchange:
+  id: binance          # jeder von ccxt unterstützte Name: kraken, bybit, coinbase, ...
+  sandbox: false       # true = Testnet der Börse (falls vorhanden)
+
+strategy:
+  name: ma_crossover   # ma_crossover | rsi_reversion | bollinger_breakout
+  params:
+    fast: 20
+    slow: 50
+    kind: ema
+
+risk:
+  position_fraction: 0.25   # max. 25 % des freien Guthabens pro Einstieg
+  max_order_value: 100      # harte Obergrenze pro Kauf
+  min_order_value: 10       # darunter wird nicht gekauft
+  stop_loss_pct: 0.05       # 5 % Stop-Loss, 0 = aus
+  max_daily_loss: 50        # ab diesem Tagesverlust keine neuen Käufe
+
+backtest:
+  initial_balance: 1000
+  fee: 0.001
+  slippage: 0.0005
+  days: 365
+
+runtime:
+  mode: paper               # paper | live  (live zusätzlich nur mit --live)
+  paper_balance: 1000
+  poll_seconds: 60
+  state_file: state/bot_state.json
+  kill_switch_file: STOP    # Datei anlegen = Not-Aus für neue Käufe
+  log_file: state/bot.log
