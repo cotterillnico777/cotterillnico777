@@ -19,6 +19,8 @@ class Strategy(ABC):
 
     name: str = "base"
     default_params: dict[str, Any] = {}
+    # Werte, die der Optimierer ausprobiert (geordnet, damit Nachbarn Sinn ergeben)
+    param_grid: dict[str, list[Any]] = {}
 
     def __init__(self, **params: Any) -> None:
         unknown = set(params) - set(self.default_params)

@@ -14,6 +14,11 @@ class RSIReversion(Strategy):
 
     name = "rsi_reversion"
     default_params = {"period": 14, "oversold": 30, "overbought": 70}
+    param_grid = {
+        "period": [7, 14, 21],
+        "oversold": [20, 25, 30, 35],
+        "overbought": [65, 70, 75, 80],
+    }
 
     def validate(self) -> None:
         if not 0 < self.params["oversold"] < self.params["overbought"] < 100:

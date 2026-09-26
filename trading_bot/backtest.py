@@ -78,12 +78,19 @@ def run_backtest(
     risk: RiskConfig,
     bt: BacktestConfig,
     timeframe: str,
+    signals: pd.Series | None = None,
 ) -> BacktestResult:
-    if len(df) <= strategy.warmup + 1:
-        raise ValueError(
-            f"Zu wenige Kerzen ({len(df)}) für {strategy} (Warmup {strategy.warmup})"
-        )
-    signals = strategy.generate_signals(df).reindex(df.index).fillna(0).astype(int)
+    """``signals`` kann vorberechnet übergeben werden (z. B. auf einer längeren
+    Historie, damit Indikatoren am Fensteranfang schon eingeschwungen sind)."""
+    if signals is None:
+        if len(df) <= strategy.warmup + 1:
+            raise ValueError(
+                f"Zu wenige Kerzen ({len(df)}) für {strategy} (Warmup {strategy.warmup})"
+            )
+        signals = strategy.generate_signals(df)
+    elif len(df) < 2:
+        raise ValueError("Mindestens 2 Kerzen nötig")
+    signals = signals.reindex(df.index).fillna(0).astype(int)
 
     cash = bt.initial_balance
     amount = 0.0
@@ -96,6 +103,7 @@ def run_backtest(
     in_market = 0
 
     opens, lows, closes = df["open"].values, df["low"].values, df["close"].values
+    sig = signals.values
     for i, ts in enumerate(df.index):
         # 1. Stop-Loss innerhalb der Kerze
         if open_trade is not None and stop is not None and lows[i] <= stop:
@@ -109,7 +117,7 @@ def run_backtest(
 
         # 2. Signal der vorherigen Kerze zum Open ausführen
         if i > 0:
-            target = signals.iloc[i - 1]
+            target = sig[i - 1]
             if target == 0:
                 wait_for_reset = False
             if target == 1 and open_trade is None and not wait_for_reset:

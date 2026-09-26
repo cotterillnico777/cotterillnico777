@@ -13,6 +13,11 @@ class MACrossover(Strategy):
 
     name = "ma_crossover"
     default_params = {"fast": 20, "slow": 50, "kind": "ema"}
+    param_grid = {
+        "fast": [5, 10, 20, 30, 50],
+        "slow": [50, 100, 150, 200],
+        "kind": ["ema", "sma"],
+    }
 
     def validate(self) -> None:
         if self.params["fast"] >= self.params["slow"]:

@@ -28,6 +28,14 @@ backtest:
   slippage: 0.0005
   days: 365
 
+optimize:
+  train_days: 180           # auf 180 Tagen Parameter wählen ...
+  test_days: 60             # ... und auf den nächsten 60 ungesehenen Tagen prüfen
+  metric: sharpe            # sharpe | return | calmar
+  min_trades: 5             # weniger Trades im Trainingsfenster = ungültig
+  symbols: [ETH/USDT, SOL/USDT]   # zusätzliche Märkte zum Gegenprüfen
+  grids: {}                 # eigene Raster, z. B. {ma_crossover: {fast: [10, 20, 30]}}
+
 runtime:
   mode: paper               # paper | live  (live zusätzlich nur mit --live)
   paper_balance: 1000

@@ -26,6 +26,7 @@ python -m trading_bot backtest                        # Strategie aus config.yam
 python -m trading_bot backtest --all --days 730       # alle Strategien vergleichen
 python -m trading_bot backtest -s rsi_reversion --trades
 python -m trading_bot backtest --csv kerzen.csv       # eigene Daten (timestamp,open,high,low,close,volume)
+python -m trading_bot optimize --all --days 730       # Walk-Forward-Optimierung (siehe unten)
 python -m trading_bot run                             # Paper-Trading (Spielgeld)
 python -m trading_bot status                          # Position, PnL, letzte Trades
 python -m trading_bot -c andere.yaml run              # andere Konfigurationsdatei
@@ -54,6 +55,7 @@ Alle Strategien sind **long-only** (Spot, kein Hebel, kein Short).
        """Kurzbeschreibung."""
        name = "meine_strategie"
        default_params = {"period": 10}
+       param_grid = {"period": [5, 10, 20, 40]}   # für `optimize`
 
        @property
        def warmup(self) -> int:
@@ -67,6 +69,46 @@ Alle Strategien sind **long-only** (Spot, kein Hebel, kein Short).
 2. In `trading_bot/strategies/__init__.py` zur Liste in `STRATEGIES` hinzufügen.
 3. `pytest` ausführen. Der Test `test_strategies_have_no_lookahead` prüft
    automatisch, dass die Strategie nicht in die Zukunft schaut.
+
+## Parameter optimieren (Walk-Forward)
+
+Ein normaler Backtest mit den „besten“ Parametern ist fast immer zu optimistisch:
+Die Parameter wurden ja genau auf diesen Daten ausgesucht. `optimize` prüft
+deshalb ehrlich:
+
+1. **Rollierende Fenster:** Parameter werden auf `train_days` ausgewählt und auf den
+   folgenden `test_days` getestet, die der Optimierer nie gesehen hat. Dann rückt das
+   Fenster weiter. Nur diese Testergebnisse (Out-of-Sample, **OOS**) zählen.
+2. **Robuste Auswahl:** Gewählt wird nicht der einzelne Spitzenwert, sondern die
+   Kombination, deren Nachbarn im Raster ebenfalls gut sind (z. B. `fast=20` nur,
+   wenn auch `fast=10` und `fast=30` gut abschneiden).
+3. **Mehrere Märkte:** Mit `optimize.symbols` oder `--symbols BTC/USDT,ETH/USDT,SOL/USDT`
+   läuft alles pro Markt. Am Ende steht eine Parameter-Empfehlung, die über alle
+   Märkte im Schnitt am robustesten ist.
+
+```bash
+python -m trading_bot optimize -s ma_crossover --days 730
+python -m trading_bot optimize --all --days 730 --symbols BTC/USDT,ETH/USDT,SOL/USDT
+python -m trading_bot optimize --all --full-stake       # 100 % Einsatz, fair gegen Buy & Hold
+python -m trading_bot optimize --all --out ergebnisse/  # Fenster und Kapitalkurven als CSV
+```
+
+**So liest du das Ergebnis:**
+
+| Spalte          | Bedeutung                                                              |
+|-----------------|------------------------------------------------------------------------|
+| `OOS %`         | Rendite nur auf ungesehenen Daten, **die wichtigste Zahl**             |
+| `Standard %`    | Dieselben Testfenster mit den Standardparametern ohne Optimierung      |
+| `Buy&Hold %`    | Einfach kaufen und halten im selben Zeitraum                           |
+| `Fenster +`     | Anteil der Testfenster mit Gewinn, je höher, desto stabiler            |
+| `Score Train → Test` | Großer Abstand bedeutet Overfitting                               |
+
+Eine Strategie ist erst interessant, wenn `OOS %` auf **mehreren Märkten** positiv
+ist und über `Standard %` liegt. Ist das nicht der Fall, ist Nichtstun (oder Buy &
+Hold) die bessere Wahl, und das ist ein wertvolles Ergebnis.
+
+Das Suchraster jeder Strategie steht in `param_grid` in der Strategie-Datei und kann
+in `config.yaml` unter `optimize.grids` überschrieben werden.
 
 ## Wie der Bot handelt
 

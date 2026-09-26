@@ -45,6 +45,22 @@ class BacktestConfig:
 
 
 @dataclass
+class OptimizeConfig:
+    # Rollierende Fenster: auf train_days optimieren, auf den folgenden
+    # test_days (ungesehen) prüfen, dann um test_days weiterschieben
+    train_days: int = 180
+    test_days: int = 60
+    # Zielgröße: sharpe | return | calmar (Rendite / max. Drawdown)
+    metric: str = "sharpe"
+    # Kombinationen mit weniger Trades im Trainingsfenster gelten als ungültig
+    min_trades: int = 5
+    # Zusätzliche Märkte für den Vergleich (leer = nur symbol)
+    symbols: list[str] = field(default_factory=list)
+    # Eigene Raster pro Strategie, z. B. {ma_crossover: {fast: [10, 20]}}
+    grids: dict[str, dict[str, list[Any]]] = field(default_factory=dict)
+
+
+@dataclass
 class RuntimeConfig:
     # "paper" (Spielgeld) oder "live" (echtes Geld)
     mode: str = "paper"
@@ -64,6 +80,7 @@ class Config:
     strategy: StrategyConfig = field(default_factory=StrategyConfig)
     risk: RiskConfig = field(default_factory=RiskConfig)
     backtest: BacktestConfig = field(default_factory=BacktestConfig)
+    optimize: OptimizeConfig = field(default_factory=OptimizeConfig)
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
 
     def validate(self) -> None:
@@ -80,6 +97,11 @@ class Config:
             raise ValueError("risk.max_daily_loss muss > 0 sein")
         if self.runtime.mode not in ("paper", "live"):
             raise ValueError("runtime.mode muss 'paper' oder 'live' sein")
+        o = self.optimize
+        if o.train_days <= 0 or o.test_days <= 0:
+            raise ValueError("optimize.train_days und test_days müssen > 0 sein")
+        if o.metric not in ("sharpe", "return", "calmar"):
+            raise ValueError("optimize.metric muss sharpe, return oder calmar sein")
         if "/" not in self.symbol:
             raise ValueError("symbol im Format BASE/QUOTE angeben, z. B. BTC/USDT")
 

@@ -14,6 +14,7 @@ class BollingerBreakout(Strategy):
 
     name = "bollinger_breakout"
     default_params = {"period": 20, "num_std": 2.0}
+    param_grid = {"period": [10, 20, 30, 50], "num_std": [1.5, 2.0, 2.5, 3.0]}
 
     def validate(self) -> None:
         if self.params["period"] < 2 or self.params["num_std"] <= 0:

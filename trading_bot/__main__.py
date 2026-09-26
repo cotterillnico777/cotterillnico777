@@ -85,6 +85,108 @@ def cmd_backtest(args, cfg: Config) -> int:
     return 0
 
 
+def _load_datasets(args, cfg: Config) -> dict:
+    from .data import load_csv, load_history
+
+    if args.csv:
+        return {Path(p).stem: load_csv(p) for p in args.csv}
+    from .broker import create_exchange
+
+    symbols = args.symbols.split(",") if args.symbols else [cfg.symbol, *cfg.optimize.symbols]
+    ex = create_exchange(cfg.exchange.id)
+    days = args.days or cfg.backtest.days
+    return {
+        s.strip(): load_history(ex, s.strip(), cfg.timeframe, days)
+        for s in dict.fromkeys(symbols)
+    }
+
+
+def cmd_optimize(args, cfg: Config) -> int:
+    import pandas as pd
+
+    from .optimize import recommend, walk_forward
+
+    if args.train_days:
+        cfg.optimize.train_days = args.train_days
+    if args.test_days:
+        cfg.optimize.test_days = args.test_days
+    if args.metric:
+        cfg.optimize.metric = args.metric
+    if args.full_stake:
+        cfg.risk.position_fraction = 1.0
+        cfg.risk.max_order_value = float("inf")
+    datasets = _load_datasets(args, cfg)
+    names = sorted(STRATEGIES) if args.all else [args.strategy or cfg.strategy.name]
+    o = cfg.optimize
+    print(
+        f"Walk-Forward: {o.train_days} Tage optimieren -> {o.test_days} Tage ungesehen testen, "
+        f"Ziel '{o.metric}', min. {o.min_trades} Trades pro Trainingsfenster\n"
+        f"Märkte: {', '.join(datasets)} | Timeframe {cfg.timeframe}"
+    )
+    pd.set_option("display.width", 200)
+    overview = []
+    for name in names:
+        for market, df in datasets.items():
+            wf = walk_forward(df, name, cfg, market)
+            s = wf.summary
+            print(f"\n=== {name} | {market} ===")
+            print(wf.fold_table().to_string(index=False))
+            print(
+                f"Out-of-Sample gesamt: {s['oos_return_pct']:+.2f} %  "
+                f"(Standardparameter {s['default_return_pct']:+.2f} %, "
+                f"Buy & Hold {s['buy_hold_pct']:+.2f} %)\n"
+                f"Sharpe OOS {s['oos_sharpe']:.2f}, max. Drawdown {s['oos_max_dd_pct']:.2f} %, "
+                f"profitable Fenster {s['profitable_folds_pct']:.0f} %, "
+                f"Score Train Ø {s['avg_train_score']:.2f} -> Test Ø {s['avg_test_score']:.2f}"
+            )
+            overview.append(
+                {
+                    "Strategie": name,
+                    "Markt": market,
+                    "OOS %": round(s["oos_return_pct"], 2),
+                    "Standard %": round(s["default_return_pct"], 2),
+                    "Buy&Hold %": round(s["buy_hold_pct"], 1),
+                    "Sharpe": round(s["oos_sharpe"], 2),
+                    "MaxDD %": round(s["oos_max_dd_pct"], 2),
+                    "Fenster +": f"{s['profitable_folds_pct']:.0f} %",
+                    "Trades": s["trades"],
+                }
+            )
+            if args.out:
+                out = Path(args.out)
+                out.mkdir(parents=True, exist_ok=True)
+                tag = f"{name}_{market.replace('/', '-')}"
+                wf.fold_table().to_csv(out / f"folds_{tag}.csv", index=False)
+                wf.equity.to_csv(out / f"equity_{tag}.csv")
+
+    print("\n=== Übersicht (nur ungesehene Testfenster) ===")
+    print(pd.DataFrame(overview).to_string(index=False))
+    stake = min(cfg.risk.position_fraction, cfg.risk.max_order_value / cfg.backtest.initial_balance)
+    if stake < 1:
+        print(
+            f"Hinweis: Pro Trade werden höchstens ~{stake:.0%} des Kapitals eingesetzt "
+            f"(risk.position_fraction / max_order_value), Buy & Hold rechnet mit 100 %. "
+            f"Für einen fairen Vergleich mit Buy & Hold: --full-stake."
+        )
+
+    print("\n=== Empfehlung: robusteste Parameter über alle Märkte (ganzer Zeitraum) ===")
+    for name in names:
+        best, top = recommend(datasets, name, cfg)
+        print(f"\n{name}:")
+        print(top.to_string(index=False))
+        if best:
+            params = "\n".join(f"      {k}: {v}" for k, v in best.items())
+            print(f"  -> für config.yaml:\n  strategy:\n    name: {name}\n    params:\n{params}")
+    print(
+        "\nSo liest du das: Zählt nur 'OOS %'. Liegt es nicht klar über 0 und über "
+        "'Standard %', bringt die Optimierung nichts. Liegt es unter Buy & Hold, wäre "
+        "einfaches Halten besser gewesen. 'Score Train' deutlich über 'Score Test' "
+        "bedeutet Overfitting. Die Empfehlung ist in-sample und nur zusammen mit "
+        "einem guten OOS-Ergebnis aussagekräftig."
+    )
+    return 0
+
+
 def cmd_run(args, cfg: Config) -> int:
     from .bot import BotState, TradingBot
     from .broker import LiveBroker, PaperBroker, create_exchange
@@ -176,6 +278,22 @@ def build_parser() -> argparse.ArgumentParser:
     bt.add_argument("--csv", help="Kerzen aus CSV statt von der Börse")
     bt.add_argument("--trades", action="store_true", help="Einzelne Trades auflisten")
 
+    op = sub.add_parser("optimize", help="Parameter-Scan mit Walk-Forward-Test")
+    op.add_argument("-s", "--strategy", choices=sorted(STRATEGIES))
+    op.add_argument("--all", action="store_true", help="Alle Strategien")
+    op.add_argument("--days", type=int, help="Anzahl Tage Historie")
+    op.add_argument("--symbols", help="Kommagetrennt, z. B. BTC/USDT,ETH/USDT,SOL/USDT")
+    op.add_argument("--csv", action="append", help="Kerzen aus CSV (mehrfach möglich)")
+    op.add_argument("--train-days", type=int)
+    op.add_argument("--test-days", type=int)
+    op.add_argument("--metric", choices=["sharpe", "return", "calmar"])
+    op.add_argument("--out", help="Ordner für CSV-Ergebnisse")
+    op.add_argument(
+        "--full-stake",
+        action="store_true",
+        help="Jeden Trade mit 100 %% des Kapitals rechnen (vergleichbar mit Buy & Hold)",
+    )
+
     run = sub.add_parser("run", help="Bot starten (Paper oder Live)")
     run.add_argument("-s", "--strategy", choices=sorted(STRATEGIES))
     run.add_argument("--live", action="store_true", help="Echtgeld (zusätzlich zu mode: live)")
@@ -198,6 +316,7 @@ def main(argv: list[str] | None = None) -> int:
     handler = {
         "strategies": cmd_strategies,
         "backtest": cmd_backtest,
+        "optimize": cmd_optimize,
         "run": cmd_run,
         "status": cmd_status,
     }[args.command]
