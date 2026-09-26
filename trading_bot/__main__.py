@@ -71,6 +71,7 @@ def cmd_backtest(args, cfg: Config) -> int:
         _full_stake(cfg)
     _apply_trend_flag(args, cfg)
     names = sorted(STRATEGIES) if args.all else [args.strategy or cfg.strategy.name]
+    print(f"Markt: {cfg.symbol} | Zeitrahmen: {cfg.timeframe} | {len(df)} Kerzen ab {df.index[0]:%Y-%m-%d}")
     if args.compare_filter:
         return _compare_filter(df, names, cfg)
     if args.compare_stops:
@@ -421,6 +422,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     bt = sub.add_parser("backtest", help="Strategie auf historischen Daten testen")
     bt.add_argument("-s", "--strategy", choices=sorted(STRATEGIES))
+    bt.add_argument("--symbol", help="Markt statt symbol aus der Konfiguration, z. B. ETH/USDT")
+    bt.add_argument("-t", "--timeframe", help="Zeitrahmen statt aus der Konfiguration, z. B. 4h")
     bt.add_argument("--all", action="store_true", help="Alle Strategien vergleichen")
     bt.add_argument("--days", type=int, help="Anzahl Tage Historie")
     bt.add_argument("--csv", help="Kerzen aus CSV statt von der Börse")
@@ -449,6 +452,7 @@ def build_parser() -> argparse.ArgumentParser:
     op.add_argument("--metric", choices=["sharpe", "return", "calmar"])
     op.add_argument("--out", help="Ordner für CSV-Ergebnisse")
     op.add_argument("--trend-filter", choices=["on", "off"], help="Trendfilter ein/aus")
+    op.add_argument("-t", "--timeframe", help="Zeitrahmen statt aus der Konfiguration, z. B. 4h")
     op.add_argument(
         "--full-stake",
         action="store_true",
@@ -473,6 +477,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Konfiguration {args.config} nicht gefunden", file=sys.stderr)
         return 2
     cfg = load_config(cfg_path)
+    if getattr(args, "symbol", None):
+        cfg.symbol = args.symbol
+    if getattr(args, "timeframe", None):
+        cfg.timeframe = args.timeframe
+    cfg.validate()
     setup_logging(cfg.runtime.log_file if args.command == "run" else None, args.verbose)
     handler = {
         "strategies": cmd_strategies,

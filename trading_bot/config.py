@@ -152,6 +152,10 @@ class Config:
             raise ValueError("optimize.train_days und test_days müssen > 0 sein")
         if o.metric not in ("sharpe", "return", "calmar"):
             raise ValueError("optimize.metric muss sharpe, return oder calmar sein")
+        from .backtest import TIMEFRAME_SECONDS
+
+        if self.timeframe[-1:] not in TIMEFRAME_SECONDS or not self.timeframe[:-1].isdigit():
+            raise ValueError("timeframe z. B. 15m, 1h, 4h oder 1d")
         if "/" not in self.symbol:
             raise ValueError("symbol im Format BASE/QUOTE angeben, z. B. BTC/USDT")
 
