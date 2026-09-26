@@ -70,6 +70,32 @@ Alle Strategien sind **long-only** (Spot, kein Hebel, kein Short).
 3. `pytest` ausführen. Der Test `test_strategies_have_no_lookahead` prüft
    automatisch, dass die Strategie nicht in die Zukunft schaut.
 
+## Stop-Loss und Positionsgröße
+
+| Einstellung                | Wirkung                                                                 |
+|----------------------------|-------------------------------------------------------------------------|
+| `stop_mode: pct`           | Stop fest `stop_loss_pct` unter dem Einstieg                            |
+| `stop_mode: atr`           | Stop `atr_multiplier` × ATR unter dem Einstieg. Die ATR ist die typische Schwankung einer Kerze: in unruhigen Phasen weiter weg, in ruhigen enger |
+| `trailing_stop: true`      | Der Stop zieht mit dem höchsten Kurs seit Einstieg nach oben (nie nach unten) und sichert so Gewinne |
+| `sizing: risk`             | Positionsgröße so, dass ein Stop-Treffer `risk_per_trade` (z. B. 1 %) des Guthabens kostet. Bei hoher Volatilität kleinere Position, bei niedriger größere |
+
+`position_fraction` und `max_order_value` gelten immer als Obergrenze.
+
+Welche Variante zu einer Strategie passt, zeigt der Vergleich:
+
+```bash
+python -m trading_bot backtest --all --compare-stops --full-stake
+```
+
+Faustregel: Trendfolge (`ma_crossover`, `bollinger_breakout`) profitiert oft von
+einem ATR-Trailing-Stop. Mean Reversion (`rsi_reversion`) kauft bewusst in fallende
+Kurse, dort schaden enge Stops oft. Stops erzeugen allein keinen Gewinn. Sie
+begrenzen Verluste und machen das Risiko pro Trade planbar. Die gewählte Variante
+danach mit `optimize` auf ungesehenen Daten prüfen.
+
+Im Live-Betrieb wird der Trailing-Stop wie im Backtest bei jeder abgeschlossenen
+Kerze nachgezogen. Geprüft wird der Stop bei jedem Durchlauf (`poll_seconds`).
+
 ## Parameter optimieren (Walk-Forward)
 
 Ein normaler Backtest mit den „besten“ Parametern ist fast immer zu optimistisch:
@@ -144,8 +170,8 @@ in `config.yaml` unter `optimize.grids` überschrieben werden.
 | Mechanismus            | Einstellung                   | Wirkung                                                      |
 |------------------------|-------------------------------|--------------------------------------------------------------|
 | Doppelte Freigabe      | `mode: live` + `--live`       | Ohne beides kein Echtgeld                                    |
-| Ordergröße             | `position_fraction`, `max_order_value` | Obergrenze pro Kauf                                 |
-| Stop-Loss              | `stop_loss_pct`               | Verkauf bei X % unter Einstieg                               |
+| Ordergröße             | `position_fraction`, `max_order_value`, `sizing` | Obergrenze pro Kauf, optional risikobasiert |
+| Stop-Loss              | `stop_mode`, `stop_loss_pct`, `trailing_stop` | Verkauf unter festem, ATR- oder Trailing-Stop |
 | Tagesverlustlimit      | `max_daily_loss`              | Keine neuen Käufe mehr an diesem Tag (UTC)                   |
 | Not-Aus                | Datei `STOP` anlegen          | Sofort keine neuen Käufe (`touch STOP`, zum Lösen `rm STOP`) |
 | Fremde Bestände        | automatisch                   | Der Bot verkauft nur, was er selbst gekauft hat              |

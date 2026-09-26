@@ -66,7 +66,11 @@ def cmd_backtest(args, cfg: Config) -> int:
         ex = create_exchange(cfg.exchange.id)
         df = load_history(ex, cfg.symbol, cfg.timeframe, args.days or cfg.backtest.days)
 
+    if args.full_stake:
+        _full_stake(cfg)
     names = sorted(STRATEGIES) if args.all else [args.strategy or cfg.strategy.name]
+    if args.compare_stops:
+        return _compare_stops(df, names, cfg)
     for name in names:
         strategy = _strategy_from(cfg, name)
         result = run_backtest(df, strategy, cfg.risk, cfg.backtest, cfg.timeframe)
@@ -81,6 +85,64 @@ def cmd_backtest(args, cfg: Config) -> int:
     print(
         "\nHinweis: Vergangene Ergebnisse garantieren keine zukünftigen Gewinne. "
         "Positionsgröße laut risk.position_fraction / max_order_value."
+    )
+    return 0
+
+
+def _full_stake(cfg: Config) -> None:
+    """Jeden Trade mit dem ganzen Kapital rechnen (fair gegen Buy & Hold)."""
+    cfg.risk.position_fraction = 1.0
+    cfg.risk.max_order_value = float("inf")
+
+
+def stop_variants(cfg: Config) -> dict:
+    """Risiko-Varianten für den Vergleich, abgeleitet aus der aktuellen Konfiguration."""
+    from dataclasses import replace
+
+    base = cfg.risk
+    pct = base.stop_loss_pct or 0.05
+    return {
+        "Ohne Stop": replace(base, stop_mode="pct", stop_loss_pct=0, trailing_stop=False, sizing="fixed"),
+        f"Fester Stop {pct:.0%}": replace(base, stop_mode="pct", stop_loss_pct=pct, trailing_stop=False, sizing="fixed"),
+        f"Trailing {pct:.0%}": replace(base, stop_mode="pct", stop_loss_pct=pct, trailing_stop=True, sizing="fixed"),
+        f"ATR-Stop {base.atr_multiplier:g}x": replace(base, stop_mode="atr", trailing_stop=False, sizing="fixed"),
+        f"ATR-Trailing {base.atr_multiplier:g}x": replace(base, stop_mode="atr", trailing_stop=True, sizing="fixed"),
+        f"ATR-Trailing + {base.risk_per_trade:.1%} Risiko": replace(
+            base, stop_mode="atr", trailing_stop=True, sizing="risk"
+        ),
+    }
+
+
+def _compare_stops(df, names: list[str], cfg: Config) -> int:
+    import pandas as pd
+
+    from .backtest import run_backtest
+
+    for name in names:
+        strategy = _strategy_from(cfg, name)
+        rows = []
+        for label, risk in stop_variants(cfg).items():
+            m = run_backtest(df, strategy, risk, cfg.backtest, cfg.timeframe).metrics
+            rows.append(
+                {
+                    "Variante": label,
+                    "Rendite %": round(m["total_return_pct"], 2),
+                    "MaxDD %": round(m["max_drawdown_pct"], 2),
+                    "Rendite/DD": round(m["total_return_pct"] / max(abs(m["max_drawdown_pct"]), 0.01), 2),
+                    "Sharpe": round(m["sharpe"], 2),
+                    "Trades": int(m["trades"]),
+                    "Treffer %": round(m["win_rate_pct"], 1),
+                    "Stops (davon +)": f"{int(m['stops'])} ({int(m['stops_in_profit'])})",
+                }
+            )
+        print(f"\n=== {strategy} | {cfg.symbol} {cfg.timeframe} | Stop-Varianten ===")
+        print(pd.DataFrame(rows).to_string(index=False))
+    print(
+        "\nSo liest du das: Wichtiger als die Rendite sind 'Rendite/DD' und 'Sharpe', "
+        "also Ertrag pro eingegangenem Risiko. 'Stops (davon +)' zeigt, wie oft der "
+        "Trailing-Stop einen Gewinn gesichert hat. Die Varianten mit Risiko-Sizing "
+        "setzen pro Trade oft weniger Kapital ein, daher dort vor allem Sharpe vergleichen. "
+        "Die gewählte Variante danach mit 'optimize' auf ungesehenen Daten prüfen."
     )
     return 0
 
@@ -113,8 +175,7 @@ def cmd_optimize(args, cfg: Config) -> int:
     if args.metric:
         cfg.optimize.metric = args.metric
     if args.full_stake:
-        cfg.risk.position_fraction = 1.0
-        cfg.risk.max_order_value = float("inf")
+        _full_stake(cfg)
     datasets = _load_datasets(args, cfg)
     names = sorted(STRATEGIES) if args.all else [args.strategy or cfg.strategy.name]
     o = cfg.optimize
@@ -277,6 +338,14 @@ def build_parser() -> argparse.ArgumentParser:
     bt.add_argument("--days", type=int, help="Anzahl Tage Historie")
     bt.add_argument("--csv", help="Kerzen aus CSV statt von der Börse")
     bt.add_argument("--trades", action="store_true", help="Einzelne Trades auflisten")
+    bt.add_argument(
+        "--compare-stops",
+        action="store_true",
+        help="Stop-Varianten vergleichen (fest, Trailing, ATR, Risiko-Sizing)",
+    )
+    bt.add_argument(
+        "--full-stake", action="store_true", help="Jeden Trade mit 100 %% des Kapitals rechnen"
+    )
 
     op = sub.add_parser("optimize", help="Parameter-Scan mit Walk-Forward-Test")
     op.add_argument("-s", "--strategy", choices=sorted(STRATEGIES))

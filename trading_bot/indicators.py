@@ -28,6 +28,20 @@ def rsi(series: pd.Series, period: int = 14) -> pd.Series:
     return out.where(avg_gain.notna())
 
 
+def atr(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    """Average True Range nach Wilder: typische Schwankungsbreite einer Kerze."""
+    prev_close = df["close"].shift(1)
+    true_range = pd.concat(
+        [
+            df["high"] - df["low"],
+            (df["high"] - prev_close).abs(),
+            (df["low"] - prev_close).abs(),
+        ],
+        axis=1,
+    ).max(axis=1)
+    return true_range.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+
+
 def bollinger_bands(
     series: pd.Series, period: int = 20, num_std: float = 2.0
 ) -> tuple[pd.Series, pd.Series, pd.Series]:

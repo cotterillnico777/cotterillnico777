@@ -14,7 +14,8 @@ import pandas as pd
 from .broker import Broker, Fill
 from .config import Config
 from .data import candles_to_frame
-from .risk import RiskManager, entry_order_value, stop_price
+from .indicators import atr
+from .risk import RiskManager, entry_order_value, stop_price, trail_stop
 from .strategies import Strategy
 
 log = logging.getLogger(__name__)
@@ -27,6 +28,8 @@ class Position:
     cost: float  # insgesamt ausgegebene Quote-Währung inkl. Gebühr
     entry_time: str
     stop: float | None = None
+    # Höchster Kurs seit Einstieg (für den Trailing-Stop)
+    highest: float = 0.0
 
 
 @dataclass
@@ -115,9 +118,9 @@ class TradingBot:
         self.state.trades.append(entry)
         self.state.trades = self.state.trades[-500:]
 
-    def _buy(self, price: float) -> None:
+    def _buy(self, price: float, atr_value: float | None = None) -> None:
         _, quote_free = self.broker.balances()
-        value = entry_order_value(quote_free, self.cfg.risk)
+        value = entry_order_value(quote_free, self.cfg.risk, price, atr_value)
         decision = self.risk.check_entry(value, self.state.realized_pnl_today)
         if not decision.allowed:
             log.warning("Kauf blockiert: %s", decision.reason)
@@ -128,7 +131,8 @@ class TradingBot:
             entry_price=fill.price,
             cost=-fill.quote_delta,
             entry_time=self.clock().isoformat(),
-            stop=stop_price(fill.price, self.cfg.risk),
+            stop=stop_price(fill.price, self.cfg.risk, atr_value),
+            highest=fill.price,
         )
         self._record(fill, "entry")
         log.info(
@@ -186,6 +190,20 @@ class TradingBot:
                 pos.cost *= base_free / pos.amount
                 pos.amount = base_free
 
+    def _trail(self, candles: pd.DataFrame, atr_value: float | None) -> None:
+        """Trailing-Stop mit dem Hoch der gerade abgeschlossenen Kerze nachziehen.
+
+        Wie im Backtest einmal pro Kerze, damit sich Live und Backtest gleich verhalten.
+        """
+        pos = self.state.position
+        if pos is None or not self.cfg.risk.trailing_stop or pos.stop is None:
+            return
+        pos.highest = max(pos.highest or pos.entry_price, float(candles["high"].iloc[-1]))
+        new_stop = trail_stop(pos.stop, pos.highest, self.cfg.risk, atr_value)
+        if new_stop is not None and new_stop > pos.stop:
+            log.info("Trailing-Stop %.4f -> %.4f (Hoch %.4f)", pos.stop, new_stop, pos.highest)
+            pos.stop = new_stop
+
     # ------------------------------------------------------------------ loop
     def tick(self) -> None:
         """Ein Durchlauf: Stop-Loss prüfen, bei neuer Kerze Signal auswerten."""
@@ -207,6 +225,13 @@ class TradingBot:
             return
         self.state.last_candle = last_ts
 
+        atr_value = (
+            float(atr(candles, self.cfg.risk.atr_period).iloc[-1])
+            if self.cfg.risk.needs_atr
+            else None
+        )
+        self._trail(candles, atr_value)
+
         signal = int(self.strategy.generate_signals(candles).iloc[-1])
         log.info("Neue Kerze %s, Schluss %.4f, Signal %d", last_ts, candles["close"].iloc[-1], signal)
 
@@ -218,7 +243,7 @@ class TradingBot:
             if self.state.wait_for_reset:
                 log.info("Warte nach Stop-Loss auf neues Einstiegssignal")
             else:
-                self._buy(price)
+                self._buy(price, atr_value)
 
     def save(self) -> None:
         self.state.paper = self.broker.state()

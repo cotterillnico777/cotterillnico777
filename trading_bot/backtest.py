@@ -11,10 +11,12 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 
 from .config import BacktestConfig, RiskConfig
-from .risk import entry_order_value, stop_price
+from .indicators import atr
+from .risk import entry_order_value, stop_price, trail_stop
 from .strategies import Strategy
 
 TIMEFRAME_SECONDS = {"m": 60, "h": 3600, "d": 86400, "w": 604800}
@@ -66,7 +68,7 @@ class BacktestResult:
             f"Anzahl Trades:        {int(m['trades'])}",
             f"Trefferquote:         {m['win_rate_pct']:.1f} %",
             f"Ø Rendite pro Trade:  {m['avg_trade_pct']:+.2f} %",
-            f"Stop-Loss ausgelöst:  {int(m['stops'])}",
+            f"Stop ausgelöst:       {int(m['stops'])} (davon mit Gewinn: {int(m['stops_in_profit'])})",
             f"Zeit im Markt:        {m['exposure_pct']:.1f} %",
         ]
         return "\n".join(lines)
@@ -79,6 +81,7 @@ def run_backtest(
     bt: BacktestConfig,
     timeframe: str,
     signals: pd.Series | None = None,
+    atr_series: pd.Series | None = None,
 ) -> BacktestResult:
     """``signals`` kann vorberechnet übergeben werden (z. B. auf einer längeren
     Historie, damit Indikatoren am Fensteranfang schon eingeschwungen sind)."""
@@ -92,50 +95,64 @@ def run_backtest(
         raise ValueError("Mindestens 2 Kerzen nötig")
     signals = signals.reindex(df.index).fillna(0).astype(int)
 
+    if atr_series is None and risk.needs_atr:
+        atr_series = atr(df, risk.atr_period)
+    atr_v = (
+        atr_series.reindex(df.index).values if atr_series is not None else np.full(len(df), np.nan)
+    )
+
     cash = bt.initial_balance
     amount = 0.0
     open_trade: Trade | None = None
     stop: float | None = None
+    highest = 0.0
     # Nach einem Stop-Loss erst wieder einsteigen, wenn das Signal zwischendurch flat war
     wait_for_reset = False
     trades: list[Trade] = []
     equity = []
     in_market = 0
 
-    opens, lows, closes = df["open"].values, df["low"].values, df["close"].values
+    opens, highs = df["open"].values, df["high"].values
+    lows, closes = df["low"].values, df["close"].values
     sig = signals.values
-    for i, ts in enumerate(df.index):
-        # 1. Stop-Loss innerhalb der Kerze
-        if open_trade is not None and stop is not None and lows[i] <= stop:
-            price = min(opens[i], stop) * (1 - bt.slippage)
-            proceeds = amount * price * (1 - bt.fee)
-            cash += proceeds
-            open_trade.exit_time, open_trade.exit_price = ts, price
-            open_trade.proceeds, open_trade.exit_reason = proceeds, "stop_loss"
-            trades.append(open_trade)
-            open_trade, amount, stop, wait_for_reset = None, 0.0, None, True
 
-        # 2. Signal der vorherigen Kerze zum Open ausführen
+    def close_trade(ts, price, reason):
+        nonlocal cash, open_trade, amount, stop
+        proceeds = amount * price * (1 - bt.fee)
+        cash += proceeds
+        open_trade.exit_time, open_trade.exit_price = ts, price
+        open_trade.proceeds, open_trade.exit_reason = proceeds, reason
+        trades.append(open_trade)
+        open_trade, amount, stop = None, 0.0, None
+
+    for i, ts in enumerate(df.index):
+        # 1. Signal der vorherigen Kerze zum Eröffnungskurs ausführen
         if i > 0:
             target = sig[i - 1]
             if target == 0:
                 wait_for_reset = False
             if target == 1 and open_trade is None and not wait_for_reset:
-                value = entry_order_value(cash, risk)
+                prev_atr = atr_v[i - 1]  # ATR der letzten abgeschlossenen Kerze
+                value = entry_order_value(cash, risk, opens[i], prev_atr)
                 if value > 0:
                     price = opens[i] * (1 + bt.slippage)
                     amount = value * (1 - bt.fee) / price
                     cash -= value
                     open_trade = Trade(ts, price, amount, value)
-                    stop = stop_price(price, risk)
+                    stop = stop_price(price, risk, prev_atr)
+                    highest = price
             elif target == 0 and open_trade is not None:
-                price = opens[i] * (1 - bt.slippage)
-                proceeds = amount * price * (1 - bt.fee)
-                cash += proceeds
-                open_trade.exit_time, open_trade.exit_price = ts, price
-                open_trade.proceeds, open_trade.exit_reason = proceeds, "signal"
-                trades.append(open_trade)
-                open_trade, amount, stop = None, 0.0, None
+                close_trade(ts, opens[i] * (1 - bt.slippage), "signal")
+
+        # 2. Stop-Loss innerhalb der Kerze (Gap unter den Stop: Ausführung zum Open)
+        if open_trade is not None and stop is not None and lows[i] <= stop:
+            close_trade(ts, min(opens[i], stop) * (1 - bt.slippage), "stop_loss")
+            wait_for_reset = True
+
+        # 3. Trailing-Stop mit dem Hoch dieser Kerze nachziehen (gilt ab nächster Kerze)
+        if open_trade is not None and risk.trailing_stop:
+            highest = max(highest, highs[i])
+            stop = trail_stop(stop, highest, risk, atr_v[i])
 
         if open_trade is not None:
             in_market += 1
@@ -174,5 +191,6 @@ def _metrics(df, equity, trades, bt, timeframe, in_market, open_trade) -> dict:
         "win_rate_pct": len(wins) / len(trades) * 100 if trades else 0.0,
         "avg_trade_pct": sum(t.return_pct for t in trades) / len(trades) if trades else 0.0,
         "stops": sum(1 for t in trades if t.exit_reason == "stop_loss"),
+        "stops_in_profit": sum(1 for t in trades if t.exit_reason == "stop_loss" and t.pnl > 0),
         "exposure_pct": in_market / len(df) * 100,
     }

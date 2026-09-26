@@ -30,10 +30,30 @@ class RiskConfig:
     max_order_value: float = 100.0
     # Orders unter diesem Wert werden nicht gesendet (Börsen-Mindestgröße)
     min_order_value: float = 10.0
-    # Stop-Loss relativ zum Einstiegspreis (0.05 = 5 %), 0 = aus
+    # Stop-Abstand: "pct" = fester Prozentsatz, "atr" = Vielfaches der
+    # Average True Range (passt sich der aktuellen Schwankungsbreite an)
+    stop_mode: str = "pct"
+    # Stop-Loss relativ zum Einstiegspreis (0.05 = 5 %), 0 = aus (nur stop_mode: pct)
     stop_loss_pct: float = 0.05
+    atr_period: int = 14
+    # Stop = Einstieg - atr_multiplier × ATR (nur stop_mode: atr)
+    atr_multiplier: float = 2.5
+    # Trailing-Stop: Stop zieht mit dem höchsten Kurs seit Einstieg nach oben
+    trailing_stop: bool = False
+    # Positionsgröße: "fixed" = position_fraction vom Guthaben,
+    # "risk" = so groß, dass ein Stop-Treffer risk_per_trade vom Guthaben kostet
+    sizing: str = "fixed"
+    risk_per_trade: float = 0.01
     # Tagesverlust in Quote-Währung, ab dem keine neuen Käufe mehr erfolgen
     max_daily_loss: float = 50.0
+
+    @property
+    def stops_enabled(self) -> bool:
+        return self.stop_mode == "atr" or self.stop_loss_pct > 0
+
+    @property
+    def needs_atr(self) -> bool:
+        return self.stop_mode == "atr"
 
 
 @dataclass
@@ -93,6 +113,19 @@ class Config:
             raise ValueError("risk.min_order_value darf nicht größer als max_order_value sein")
         if not 0 <= r.stop_loss_pct < 1:
             raise ValueError("risk.stop_loss_pct muss in [0, 1) liegen")
+        if r.stop_mode not in ("pct", "atr"):
+            raise ValueError("risk.stop_mode muss 'pct' oder 'atr' sein")
+        if r.stop_mode == "atr" and (r.atr_period < 1 or r.atr_multiplier <= 0):
+            raise ValueError("risk.atr_period >= 1 und atr_multiplier > 0 nötig")
+        if r.sizing not in ("fixed", "risk"):
+            raise ValueError("risk.sizing muss 'fixed' oder 'risk' sein")
+        if r.sizing == "risk":
+            if not 0 < r.risk_per_trade <= 0.1:
+                raise ValueError("risk.risk_per_trade muss in (0, 0.1] liegen (max. 10 %)")
+            if not r.stops_enabled:
+                raise ValueError("risk.sizing: risk braucht einen Stop-Loss")
+        if r.trailing_stop and not r.stops_enabled:
+            raise ValueError("risk.trailing_stop braucht einen Stop-Loss")
         if r.max_daily_loss <= 0:
             raise ValueError("risk.max_daily_loss muss > 0 sein")
         if self.runtime.mode not in ("paper", "live"):

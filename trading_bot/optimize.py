@@ -23,6 +23,7 @@ import pandas as pd
 
 from .backtest import periods_per_year, run_backtest
 from .config import Config
+from .indicators import atr
 from .strategies import STRATEGIES, create_strategy
 
 GridIndex = tuple[int, ...]
@@ -83,14 +84,24 @@ def score(metrics: dict[str, float], metric: str) -> float:
 
 
 def evaluate(
-    df: pd.DataFrame, cands: list[Candidate], cfg: Config, name: str
+    df: pd.DataFrame,
+    cands: list[Candidate],
+    cfg: Config,
+    name: str,
+    atr_series: pd.Series | None = None,
 ) -> pd.DataFrame:
     """Jede Kombination auf ``df`` backtesten. Eine Zeile pro Kombination."""
     strat = create_strategy(name)  # nur für run_backtest-Signatur
     rows = []
     for c in cands:
         res = run_backtest(
-            df, strat, cfg.risk, cfg.backtest, cfg.timeframe, signals=c.signals.loc[df.index]
+            df,
+            strat,
+            cfg.risk,
+            cfg.backtest,
+            cfg.timeframe,
+            signals=c.signals.loc[df.index],
+            atr_series=atr_series,
         )
         m = res.metrics
         valid = m["trades"] >= cfg.optimize.min_trades
@@ -216,6 +227,8 @@ def walk_forward(
     cands = precompute(df, name, strategy_grid(name, cfg))
     default_signals = create_strategy(name).generate_signals(df)
     strat = create_strategy(name)
+    # ATR wie die Signale einmal auf der ganzen Historie berechnen
+    atr_full = atr(df, cfg.risk.atr_period) if cfg.risk.needs_atr else None
     wins = windows(df.index, o.train_days, o.test_days)
     if not wins:
         raise ValueError(
@@ -231,7 +244,7 @@ def walk_forward(
         test = df[(df.index >= test_start) & (df.index < test_end)]
         if len(train) < 2 or len(test) < 2:
             continue
-        rows = evaluate(train, cands, cfg, name)
+        rows = evaluate(train, cands, cfg, name, atr_full)
         best = best_row(rows)
         if best is None:
             # Keine Kombination erfüllt min_trades: in diesem Fenster nicht handeln
@@ -240,10 +253,9 @@ def walk_forward(
         else:
             params, train_score = best["params"], float(best["score"])
             sig = next(c.signals for c in cands if c.idx == best["idx"])
-        res = run_backtest(test, strat, cfg.risk, cfg.backtest, cfg.timeframe, signals=sig)
-        base = run_backtest(
-            test, strat, cfg.risk, cfg.backtest, cfg.timeframe, signals=default_signals
-        )
+        common = (test, strat, cfg.risk, cfg.backtest, cfg.timeframe)
+        res = run_backtest(*common, signals=sig, atr_series=atr_full)
+        base = run_backtest(*common, signals=default_signals, atr_series=atr_full)
         m = res.metrics
         folds.append(
             Fold(

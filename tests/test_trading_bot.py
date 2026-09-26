@@ -360,3 +360,118 @@ def test_evaluate_skips_invalid_combos_and_recommend_returns_params():
     best, top = recommend({"A": df, "B": make_df(random_walk(24 * 30, seed=7))}, "ma_crossover", cfg)
     assert best in [c.params for c in cands]
     assert len(top) == 2
+
+
+# ------------------------------------------------- trailing / ATR / sizing
+from trading_bot.indicators import atr as atr_indicator  # noqa: E402
+from trading_bot.risk import stop_price, trail_stop  # noqa: E402
+
+
+def test_atr_constant_range():
+    df = make_df(np.full(50, 100.0))
+    df["high"], df["low"] = 101.0, 99.0
+    assert atr_indicator(df, 14).iloc[-1] == pytest.approx(2.0)
+    assert atr_indicator(df, 14).iloc[:13].isna().all()
+
+
+def test_trail_stop_only_moves_up():
+    r = RiskConfig(stop_loss_pct=0.1, trailing_stop=True)
+    assert stop_price(100, r) == pytest.approx(90)
+    assert trail_stop(90, 120, r) == pytest.approx(108)
+    assert trail_stop(108, 110, r) == pytest.approx(108)  # nie nach unten
+    r_atr = RiskConfig(stop_mode="atr", atr_multiplier=2, trailing_stop=True)
+    assert stop_price(100, r_atr, atr=3) == pytest.approx(94)
+    assert trail_stop(94, 110, r_atr, atr=3) == pytest.approx(104)
+    assert trail_stop(94, 110, RiskConfig(stop_loss_pct=0.1)) == 94  # Trailing aus
+
+
+def test_risk_based_sizing():
+    r = RiskConfig(
+        sizing="risk", risk_per_trade=0.01, stop_mode="atr", atr_multiplier=2,
+        position_fraction=1.0, max_order_value=1e9, min_order_value=0,
+    )
+    # 1 % von 1000 = 10 Risiko; Stopabstand 2×2.5 = 5 bei Preis 100 -> 2 Stück = 200
+    assert entry_order_value(1000, r, price=100, atr=2.5) == pytest.approx(200)
+    # Doppelte Volatilität -> halbe Position
+    assert entry_order_value(1000, r, price=100, atr=5) == pytest.approx(100)
+    # Obergrenzen gelten weiter
+    capped = RiskConfig(**{**r.__dict__, "max_order_value": 50})
+    assert entry_order_value(1000, capped, price=100, atr=2.5) == 50
+    # Ohne ATR kein Stop -> keine Order
+    assert entry_order_value(1000, r, price=100, atr=float("nan")) == 0
+
+
+def test_config_validation_for_new_risk_options(tmp_path):
+    p = tmp_path / "c.yaml"
+    p.write_text("risk:\n  sizing: risk\n  stop_loss_pct: 0\n")
+    with pytest.raises(ValueError, match="Stop-Loss"):
+        load_config(p)
+    p.write_text("risk:\n  trailing_stop: true\n  stop_loss_pct: 0\n")
+    with pytest.raises(ValueError):
+        load_config(p)
+    p.write_text("risk:\n  stop_mode: atr\n  trailing_stop: true\n  sizing: risk\n")
+    assert load_config(p).risk.needs_atr
+
+
+def test_backtest_trailing_stop_locks_in_profit():
+    # Anstieg auf 150, dann Absturz auf 140: fester Stop (bei ~96) greift nicht,
+    # Trailing-Stop (5 % unter dem Hoch) sichert den Gewinn noch in der Absturzkerze
+    closes = np.concatenate([np.linspace(100, 150, 60), np.full(10, 140.0)])
+    df = make_df(closes)
+    strat = create_strategy("ma_crossover", {"fast": 3, "slow": 10})
+    bt = BacktestConfig(fee=0.0, slippage=0.0)
+    base = dict(position_fraction=1.0, max_order_value=1e9, stop_loss_pct=0.05)
+    fixed = run_backtest(df, strat, RiskConfig(**base), bt, "1h")
+    trail = run_backtest(df, strat, RiskConfig(**base, trailing_stop=True), bt, "1h")
+    stop_trades = [t for t in trail.trades if t.exit_reason == "stop_loss"]
+    assert stop_trades and stop_trades[0].pnl > 0
+    assert stop_trades[0].exit_price >= 150 * 0.95 * 0.99
+    assert trail.metrics["final"] >= fixed.metrics["final"]
+
+
+def test_backtest_is_prefix_consistent_with_atr_trailing():
+    """Kein Blick in die Zukunft: Kapitalkurve eines verkürzten Datensatzes = Anfang der vollen."""
+    df = make_df(random_walk(800, seed=9))
+    risk = RiskConfig(
+        stop_mode="atr", atr_multiplier=2, trailing_stop=True, sizing="risk",
+        position_fraction=1.0, max_order_value=1e9,
+    )
+    strat = create_strategy("ma_crossover", {"fast": 5, "slow": 20})
+    bt = BacktestConfig(fee=0.001, slippage=0.0005)
+    full = run_backtest(df, strat, risk, bt, "1h")
+    part = run_backtest(df.iloc[:500], strat, risk, bt, "1h")
+    pd.testing.assert_series_equal(part.equity, full.equity.iloc[:500])
+    assert full.metrics["trades"] > 0
+
+
+def test_bot_trailing_stop_follows_candles(tmp_path):
+    closes = list(np.linspace(100, 150, 40))
+    bot, ex, _ = make_bot(tmp_path, closes, stop_loss_pct=0.05, trailing_stop=True)
+    stops = []
+    for i in range(len(closes)):
+        ex.now_index = i
+        bot.tick()
+        if bot.state.position is not None:
+            stops.append(bot.state.position.stop)
+    assert len(stops) > 3
+    assert all(b >= a for a, b in zip(stops, stops[1:]))  # nur nach oben
+    assert stops[-1] > stops[0]
+    pos = bot.state.position
+    assert pos.stop == pytest.approx(pos.highest * 0.95)
+
+
+def test_bot_atr_risk_sizing(tmp_path):
+    closes = list(np.linspace(100, 150, 40))
+    bot, ex, broker = make_bot(
+        tmp_path, closes, stop_mode="atr", atr_multiplier=2, sizing="risk",
+        risk_per_trade=0.01, position_fraction=1.0, max_order_value=1e9,
+    )
+    for i in range(len(closes)):
+        ex.now_index = i
+        bot.tick()
+        if bot.state.position is not None:
+            break
+    pos = bot.state.position
+    assert pos is not None
+    # Verlust bis zum Stop ~ 1 % des Startguthabens
+    assert pos.amount * (pos.entry_price - pos.stop) == pytest.approx(10, rel=0.05)

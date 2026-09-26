@@ -19,8 +19,18 @@ risk:
   position_fraction: 0.25   # max. 25 % des freien Guthabens pro Einstieg
   max_order_value: 100      # harte Obergrenze pro Kauf
   min_order_value: 10       # darunter wird nicht gekauft
-  stop_loss_pct: 0.05       # 5 % Stop-Loss, 0 = aus
   max_daily_loss: 50        # ab diesem Tagesverlust keine neuen Käufe
+
+  # Stop-Loss: "pct" = fester Abstand, "atr" = passt sich der Schwankungsbreite an
+  stop_mode: pct
+  stop_loss_pct: 0.05       # 5 % unter Einstieg (stop_mode: pct), 0 = aus
+  atr_period: 14
+  atr_multiplier: 2.5       # Stop = Einstieg - 2,5 × ATR (stop_mode: atr)
+  trailing_stop: false      # true = Stop zieht mit dem Höchstkurs nach oben
+
+  # Positionsgröße: "fixed" = position_fraction, "risk" = Verlust bei Stop = risk_per_trade
+  sizing: fixed
+  risk_per_trade: 0.01      # 1 % des Guthabens pro Trade riskieren (sizing: risk)
 
 backtest:
   initial_balance: 1000
