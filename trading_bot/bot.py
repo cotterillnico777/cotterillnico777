@@ -15,6 +15,7 @@ from .broker import Broker, Fill
 from .config import Config
 from .data import candles_to_frame
 from .indicators import atr
+from .trend import condition_from_htf
 from .risk import RiskManager, entry_order_value, stop_price, trail_stop
 from .strategies import Strategy
 
@@ -190,6 +191,28 @@ class TradingBot:
                 pos.cost *= base_free / pos.amount
                 pos.amount = base_free
 
+    def _trend_ok(self, candles: pd.DataFrame) -> bool:
+        """Trendbedingung aus abgeschlossenen Kerzen des höheren Zeitrahmens."""
+        tf_cfg = self.cfg.trend_filter
+        htf_ms = self.ex.parse_timeframe(tf_cfg.timeframe) * 1000
+        # EMA braucht mehr Vorlauf zum Einschwingen als SMA
+        limit = tf_cfg.period * (3 if tf_cfg.kind == "ema" else 1) + 5
+        rows = self.ex.fetch_ohlcv(self.cfg.symbol, tf_cfg.timeframe, limit=limit)
+        now_ms = self.clock().timestamp() * 1000
+        rows = [r for r in rows if r[0] + htf_ms <= now_ms]
+        if len(rows) < tf_cfg.period:
+            log.warning(
+                "Trendfilter: nur %d von %d %s-Kerzen verfügbar, kein Kauf",
+                len(rows),
+                tf_cfg.period,
+                tf_cfg.timeframe,
+            )
+            return False
+        cond = condition_from_htf(
+            candles_to_frame(rows), self.cfg.timeframe, candles.index, tf_cfg
+        )
+        return bool(cond.iloc[-1])
+
     def _trail(self, candles: pd.DataFrame, atr_value: float | None) -> None:
         """Trailing-Stop mit dem Hoch der gerade abgeschlossenen Kerze nachziehen.
 
@@ -233,7 +256,17 @@ class TradingBot:
         self._trail(candles, atr_value)
 
         signal = int(self.strategy.generate_signals(candles).iloc[-1])
-        log.info("Neue Kerze %s, Schluss %.4f, Signal %d", last_ts, candles["close"].iloc[-1], signal)
+        tf_cfg = self.cfg.trend_filter
+        trend_ok = self._trend_ok(candles) if tf_cfg.enabled else True
+        if tf_cfg.enabled and tf_cfg.mode == "exit" and not trend_ok:
+            signal = 0
+        log.info(
+            "Neue Kerze %s, Schluss %.4f, Signal %d%s",
+            last_ts,
+            candles["close"].iloc[-1],
+            signal,
+            f", Trend {'auf' if trend_ok else 'ab'}" if tf_cfg.enabled else "",
+        )
 
         if signal == 0:
             self.state.wait_for_reset = False
@@ -242,6 +275,8 @@ class TradingBot:
         elif self.state.position is None:
             if self.state.wait_for_reset:
                 log.info("Warte nach Stop-Loss auf neues Einstiegssignal")
+            elif not trend_ok:
+                log.info("Trendfilter: kein Aufwärtstrend auf %s, kein Kauf", tf_cfg.timeframe)
             else:
                 self._buy(price, atr_value)
 

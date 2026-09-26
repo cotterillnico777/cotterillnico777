@@ -161,7 +161,7 @@ class FakeExchange:
         self.price_override = None
 
     def parse_timeframe(self, tf):
-        return 3600
+        return {"1h": 3600, "4h": 4 * 3600, "1d": 86400}[tf]
 
     def fetch_ohlcv(self, symbol, timeframe, limit=100):
         rows = []
@@ -169,6 +169,14 @@ class FakeExchange:
             c = self.closes[i]
             o = self.closes[i - 1] if i else c
             rows.append([self.start_ms + i * HOUR_MS, o, max(o, c), min(o, c), c, 1.0])
+        if timeframe != "1h":
+            # Höheren Zeitrahmen wie eine Börse liefern (inkl. laufender Kerze)
+            df = pd.DataFrame(rows, columns=["ts", "open", "high", "low", "close", "volume"])
+            df["ts"] = pd.to_datetime(df["ts"], unit="ms", utc=True)
+            agg = df.set_index("ts").resample(timeframe.replace("d", "D"), label="left", closed="left").agg(
+                {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+            ).dropna()
+            rows = [[int(t.timestamp() * 1000), *r] for t, r in zip(agg.index, agg.values.tolist())]
         return rows[-limit:]
 
     def fetch_ticker(self, symbol):
@@ -475,3 +483,106 @@ def test_bot_atr_risk_sizing(tmp_path):
     assert pos is not None
     # Verlust bis zum Stop ~ 1 % des Startguthabens
     assert pos.amount * (pos.entry_price - pos.stop) == pytest.approx(10, rel=0.05)
+
+
+# --------------------------------------------------------------- trendfilter
+from trading_bot import trend  # noqa: E402
+from trading_bot.config import TrendFilterConfig  # noqa: E402
+from trading_bot.data import candles_to_frame  # noqa: E402
+
+
+def step_df(levels, hours_per_level=24, start="2024-01-01"):
+    closes = np.repeat(np.asarray(levels, dtype=float), hours_per_level)
+    return make_df(closes, start=start)
+
+
+def test_trend_condition_uses_only_closed_daily_candles():
+    df = step_df([100, 100, 100, 200, 200, 200])
+    cond = trend.condition(df, "1h", TrendFilterConfig(enabled=True, period=2))
+    # Tag 4 (Schluss 200 > SMA2 = 150) gilt ab der 23-Uhr-Kerze, deren Schluss der Tagesschluss ist
+    assert cond.idxmax() == pd.Timestamp("2024-01-04 23:00", tz="UTC")
+    assert not cond[: pd.Timestamp("2024-01-04 22:00", tz="UTC")].any()
+
+
+def test_trend_apply_entry_vs_exit():
+    sig = pd.Series([0, 1, 1, 1, 1, 0, 1, 1])
+    ok = pd.Series([1, 0, 1, 0, 0, 0, 0, 1]).astype(bool)
+    # exit: nur investiert, solange beides passt
+    assert trend.apply(sig, ok, "exit").tolist() == [0, 0, 1, 0, 0, 0, 0, 1]
+    # entry: Einstieg erst bei Trend, dann halten bis Signal 0
+    assert trend.apply(sig, ok, "entry").tolist() == [0, 0, 1, 1, 1, 0, 0, 1]
+
+
+def test_trend_filtered_signals_have_no_lookahead():
+    df = make_df(random_walk(24 * 40, seed=21))
+    cfg = TrendFilterConfig(enabled=True, period=5, kind="ema")
+    strat = create_strategy("rsi_reversion")
+    full = trend.strategy_signals(strat, df, "1h", cfg)
+    for cut in (24 * 10 + 7, 24 * 25 + 23, 24 * 33):
+        part = trend.strategy_signals(strat, df.iloc[:cut], "1h", cfg)
+        pd.testing.assert_series_equal(part, full.iloc[:cut], check_names=False)
+
+
+def test_live_and_backtest_trend_condition_agree():
+    df = make_df(random_walk(24 * 30, seed=22))
+    cfg = TrendFilterConfig(enabled=True, period=4, timeframe="1d")
+    backtest_cond = trend.condition(df, "1h", cfg)
+    start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    ex = FakeExchange(df["close"].tolist(), start)
+    ex.now_index = len(df) - 1
+    rows = ex.fetch_ohlcv("X", "1d", limit=1000)
+    now_ms = (start + timedelta(hours=len(df))).timestamp() * 1000
+    rows = [r for r in rows if r[0] + 86_400_000 <= now_ms]  # nur abgeschlossene Tage
+    live_cond = trend.condition_from_htf(candles_to_frame(rows), "1h", df.index, cfg)
+    pd.testing.assert_series_equal(live_cond, backtest_cond, check_names=False)
+
+
+def test_trend_filter_config_validation(tmp_path):
+    p = tmp_path / "c.yaml"
+    p.write_text("trend_filter:\n  mode: sometimes\n")
+    with pytest.raises(ValueError):
+        load_config(p)
+    p.write_text("trend_filter:\n  enabled: true\n  timeframe: 1d\n  period: 50\n")
+    assert load_config(p).trend_filter.period == 50
+
+
+def make_trend_bot(tmp_path, closes, mode="entry"):
+    bot, ex, broker = make_bot(tmp_path, closes, stop_loss_pct=0)
+    bot.cfg.trend_filter = TrendFilterConfig(enabled=True, timeframe="1d", period=3, mode=mode)
+    return bot, ex, broker
+
+
+def run_ticks(bot, ex, upto):
+    for i in range(upto):
+        ex.now_index = i
+        bot.tick()
+
+
+def test_bot_trend_filter_blocks_entry_in_downtrend(tmp_path):
+    # 5 Tage fallend, dann ein kurzer stündlicher Anstieg: MA-Signal 1, Tagestrend aber ab
+    # Tag 6 schließt bei ~111,6 und damit unter SMA3 (120, 110, 111,6) = 113,9
+    closes = list(np.repeat([150, 140, 130, 120, 110], 24)) + list(np.linspace(110, 112, 30))
+    bot, ex, _ = make_trend_bot(tmp_path, closes)
+    run_ticks(bot, ex, len(closes))
+    assert bot.state.position is None
+    assert not bot.state.trades
+
+
+def test_bot_trend_filter_allows_entry_in_uptrend(tmp_path):
+    closes = list(np.repeat([100, 110, 120, 130, 140], 24)) + list(np.linspace(140, 150, 30))
+    bot, ex, _ = make_trend_bot(tmp_path, closes)
+    run_ticks(bot, ex, len(closes))
+    assert bot.state.position is not None
+
+
+def test_bot_trend_filter_exit_mode_sells_on_trend_break(tmp_path):
+    up = list(np.repeat([100, 110, 120, 130, 140], 24)) + list(np.linspace(140, 150, 24))
+    # Danach Tagesschlüsse deutlich unter dem 3-Tage-Durchschnitt, stündlich aber leicht steigend
+    down = list(np.linspace(90, 92, 48))
+    closes = up + down
+    bot, ex, _ = make_trend_bot(tmp_path, closes, mode="exit")
+    run_ticks(bot, ex, len(up))
+    assert bot.state.position is not None
+    run_ticks(bot, ex, len(closes))
+    sells = [t for t in bot.state.trades if t["side"] == "sell"]
+    assert sells  # spätestens nach dem ersten Tagesschluss unter dem Durchschnitt verkauft

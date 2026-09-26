@@ -27,6 +27,7 @@ python -m trading_bot backtest --all --days 730       # alle Strategien vergleic
 python -m trading_bot backtest -s rsi_reversion --trades
 python -m trading_bot backtest --csv kerzen.csv       # eigene Daten (timestamp,open,high,low,close,volume)
 python -m trading_bot optimize --all --days 730       # Walk-Forward-Optimierung (siehe unten)
+python -m trading_bot backtest --all --compare-filter   # mit und ohne Trendfilter
 python -m trading_bot run                             # Paper-Trading (Spielgeld)
 python -m trading_bot status                          # Position, PnL, letzte Trades
 python -m trading_bot -c andere.yaml run              # andere Konfigurationsdatei
@@ -95,6 +96,36 @@ danach mit `optimize` auf ungesehenen Daten prüfen.
 
 Im Live-Betrieb wird der Trailing-Stop wie im Backtest bei jeder abgeschlossenen
 Kerze nachgezogen. Geprüft wird der Stop bei jedem Durchlauf (`poll_seconds`).
+
+## Trendfilter
+
+Der Filter funktioniert mit jeder Strategie. Gekauft wird nur, wenn der
+**höhere Zeitrahmen** im Aufwärtstrend ist, standardmäßig also wenn der
+Tagesschluss über dem 200-Tage-Durchschnitt liegt. So vermeidet der Bot
+Käufe in längeren Abwärtsphasen, in denen die meisten Long-Strategien Geld verlieren.
+
+```yaml
+trend_filter:
+  enabled: true
+  timeframe: 1d     # z. B. 4h, 1d, 1w
+  period: 200
+  kind: sma         # sma | ema
+  mode: entry       # entry = nur Käufe filtern | exit = auch verkaufen, wenn der Trend kippt
+```
+
+```bash
+python -m trading_bot backtest --all --compare-filter --full-stake --days 900
+python -m trading_bot optimize --all --days 900 --trend-filter on
+python -m trading_bot optimize --all --days 900 --trend-filter off
+```
+
+- Es zählen nur **abgeschlossene** Kerzen des höheren Zeitrahmens. Die Tageskerze
+  von heute wirkt erst ab der letzten Stundenkerze des Tages.
+- Der Filter braucht Vorlauf, bei `period: 200` auf `1d` also 200 Tage. Davor kauft
+  der Bot nicht. `--compare-filter` vergleicht deshalb nur den Zeitraum danach.
+  Wähle `--days` groß genug, z. B. 900.
+- Im Live-Betrieb lädt der Bot die Tageskerzen direkt von der Börse. Ein Test
+  stellt sicher, dass Live und Backtest zur gleichen Entscheidung kommen.
 
 ## Parameter optimieren (Walk-Forward)
 

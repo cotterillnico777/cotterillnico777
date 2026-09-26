@@ -23,6 +23,7 @@ import pandas as pd
 
 from .backtest import periods_per_year, run_backtest
 from .config import Config
+from . import trend
 from .indicators import atr
 from .strategies import STRATEGIES, create_strategy
 
@@ -54,19 +55,27 @@ class Candidate:
     signals: pd.Series
 
 
-def precompute(df: pd.DataFrame, name: str, grid: dict[str, list[Any]]) -> list[Candidate]:
+def precompute(
+    df: pd.DataFrame, name: str, grid: dict[str, list[Any]], cfg: Config | None = None
+) -> list[Candidate]:
     """Signale jeder gültigen Kombination einmal auf der ganzen Historie berechnen.
 
     Das ist erlaubt, weil Strategien keinen Blick in die Zukunft haben dürfen
     (per Test abgesichert). Fenster schneiden die Signale dann nur aus.
+    Ist in ``cfg`` der Trendfilter aktiv, wird er gleich mit angewendet.
     """
+    tf_cfg = cfg.trend_filter if cfg is not None and cfg.trend_filter.enabled else None
+    trend_ok = trend.condition(df, cfg.timeframe, tf_cfg) if tf_cfg else None
     cands = []
     for idx, params in grid_combos(grid):
         try:
             strat = create_strategy(name, params)
         except ValueError:
             continue  # z. B. fast >= slow
-        cands.append(Candidate(idx, params, strat.generate_signals(df)))
+        sig = strat.generate_signals(df)
+        if trend_ok is not None:
+            sig = trend.apply(sig, trend_ok, tf_cfg.mode)
+        cands.append(Candidate(idx, params, sig))
     if not cands:
         raise ValueError(f"Keine gültige Parameterkombination für {name}")
     return cands
@@ -224,8 +233,10 @@ def walk_forward(
     df: pd.DataFrame, name: str, cfg: Config, market: str = ""
 ) -> WalkForwardResult:
     o = cfg.optimize
-    cands = precompute(df, name, strategy_grid(name, cfg))
-    default_signals = create_strategy(name).generate_signals(df)
+    cands = precompute(df, name, strategy_grid(name, cfg), cfg)
+    default_signals = trend.strategy_signals(
+        create_strategy(name), df, cfg.timeframe, cfg.trend_filter
+    )
     strat = create_strategy(name)
     # ATR wie die Signale einmal auf der ganzen Historie berechnen
     atr_full = atr(df, cfg.risk.atr_period) if cfg.risk.needs_atr else None
@@ -317,7 +328,7 @@ def recommend(
     grid = strategy_grid(name, cfg)
     per_market = []
     for market, df in datasets.items():
-        rows = evaluate(df, precompute(df, name, grid), cfg, name)
+        rows = evaluate(df, precompute(df, name, grid, cfg), cfg, name)
         per_market.append(rows.set_index("idx")[["params", "robust", "return_pct"]].add_suffix(f"|{market}"))
     table = pd.concat(per_market, axis=1)
     robust_cols = [c for c in table.columns if c.startswith("robust|")]

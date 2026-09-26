@@ -57,6 +57,17 @@ class RiskConfig:
 
 
 @dataclass
+class TrendFilterConfig:
+    # Nur kaufen, wenn der höhere Zeitrahmen im Aufwärtstrend ist
+    enabled: bool = False
+    timeframe: str = "1d"
+    period: int = 200
+    kind: str = "sma"  # sma | ema
+    # "entry" = nur Einstiege filtern, "exit" = zusätzlich verkaufen, wenn der Trend kippt
+    mode: str = "entry"
+
+
+@dataclass
 class BacktestConfig:
     initial_balance: float = 1000.0
     fee: float = 0.001  # 0,1 % pro Trade
@@ -99,6 +110,7 @@ class Config:
     exchange: ExchangeConfig = field(default_factory=ExchangeConfig)
     strategy: StrategyConfig = field(default_factory=StrategyConfig)
     risk: RiskConfig = field(default_factory=RiskConfig)
+    trend_filter: TrendFilterConfig = field(default_factory=TrendFilterConfig)
     backtest: BacktestConfig = field(default_factory=BacktestConfig)
     optimize: OptimizeConfig = field(default_factory=OptimizeConfig)
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
@@ -130,6 +142,11 @@ class Config:
             raise ValueError("risk.max_daily_loss muss > 0 sein")
         if self.runtime.mode not in ("paper", "live"):
             raise ValueError("runtime.mode muss 'paper' oder 'live' sein")
+        t = self.trend_filter
+        if t.kind not in ("sma", "ema") or t.mode not in ("entry", "exit") or t.period < 2:
+            raise ValueError("trend_filter: kind sma|ema, mode entry|exit, period >= 2")
+        if t.enabled and t.timeframe[-1] not in "mhdw":
+            raise ValueError("trend_filter.timeframe z. B. 4h, 1d oder 1w")
         o = self.optimize
         if o.train_days <= 0 or o.test_days <= 0:
             raise ValueError("optimize.train_days und test_days müssen > 0 sein")

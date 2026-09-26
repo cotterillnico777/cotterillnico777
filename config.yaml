@@ -32,6 +32,13 @@ risk:
   sizing: fixed
   risk_per_trade: 0.01      # 1 % des Guthabens pro Trade riskieren (sizing: risk)
 
+trend_filter:
+  enabled: false            # true = nur im Aufwärtstrend des höheren Zeitrahmens kaufen
+  timeframe: 1d             # Tageskerzen
+  period: 200               # Schluss über dem 200-Tage-Durchschnitt = Aufwärtstrend
+  kind: sma                 # sma | ema
+  mode: entry               # entry = nur Käufe filtern, exit = auch verkaufen, wenn der Trend kippt
+
 backtest:
   initial_balance: 1000
   fee: 0.001

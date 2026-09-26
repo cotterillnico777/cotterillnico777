@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .config import Config, load_config
 from .strategies import STRATEGIES, create_strategy
+from .trend import strategy_signals
 
 LIVE_CONFIRMATION = "ECHTGELD"
 
@@ -68,12 +69,17 @@ def cmd_backtest(args, cfg: Config) -> int:
 
     if args.full_stake:
         _full_stake(cfg)
+    _apply_trend_flag(args, cfg)
     names = sorted(STRATEGIES) if args.all else [args.strategy or cfg.strategy.name]
+    if args.compare_filter:
+        return _compare_filter(df, names, cfg)
     if args.compare_stops:
         return _compare_stops(df, names, cfg)
+    print(f"Trendfilter: {_trend_label(cfg)}")
     for name in names:
         strategy = _strategy_from(cfg, name)
-        result = run_backtest(df, strategy, cfg.risk, cfg.backtest, cfg.timeframe)
+        signals = strategy_signals(strategy, df, cfg.timeframe, cfg.trend_filter)
+        result = run_backtest(df, strategy, cfg.risk, cfg.backtest, cfg.timeframe, signals=signals)
         print(f"\n=== {strategy} | {cfg.symbol} {cfg.timeframe} ===")
         print(result.summary())
         if args.trades:
@@ -87,6 +93,84 @@ def cmd_backtest(args, cfg: Config) -> int:
         "Positionsgröße laut risk.position_fraction / max_order_value."
     )
     return 0
+
+
+def _apply_trend_flag(args, cfg: Config) -> None:
+    if getattr(args, "trend_filter", None):
+        cfg.trend_filter.enabled = args.trend_filter == "on"
+
+
+def _trend_label(cfg: Config) -> str:
+    t = cfg.trend_filter
+    if not t.enabled:
+        return "aus"
+    what = "nur Einstiege" if t.mode == "entry" else "Einstiege und Ausstiege"
+    return f"{t.kind.upper()}({t.period}) auf {t.timeframe}, filtert {what}"
+
+
+def _compare_filter(df, names: list[str], cfg: Config) -> int:
+    import pandas as pd
+    from dataclasses import replace
+
+    from .backtest import run_backtest
+
+    t = cfg.trend_filter
+    variants = {
+        "Ohne Trendfilter": replace(t, enabled=False),
+        "Filter nur Einstieg": replace(t, enabled=True, mode="entry"),
+        "Filter Ein- + Ausstieg": replace(t, enabled=True, mode="exit"),
+    }
+    # Nur den Zeitraum vergleichen, in dem der Filter bereits einsatzbereit ist
+    start = df.index[0] + pd.Timedelta(seconds=t.period * timeframe_seconds(t.timeframe))
+    window = df[df.index >= start]
+    if len(window) < 2:
+        print(
+            f"Zu wenig Historie: Der Filter braucht {t.period} {t.timeframe}-Kerzen Vorlauf. "
+            "Bitte --days erhöhen.",
+            file=sys.stderr,
+        )
+        return 2
+    print(
+        f"Trendfilter: Schluss über {t.kind.upper()}({t.period}) auf {t.timeframe}-Kerzen\n"
+        f"Vergleichszeitraum: {window.index[0]:%Y-%m-%d} bis {window.index[-1]:%Y-%m-%d} "
+        f"(davor Vorlauf für den Filter)"
+    )
+    for name in names:
+        strategy = _strategy_from(cfg, name)
+        rows = []
+        for label, tf_cfg in variants.items():
+            # Signale auf der ganzen Historie, bewertet wird nur das Vergleichsfenster
+            signals = strategy_signals(strategy, df, cfg.timeframe, tf_cfg)
+            m = run_backtest(
+                window, strategy, cfg.risk, cfg.backtest, cfg.timeframe, signals=signals
+            ).metrics
+            rows.append(
+                {
+                    "Variante": label,
+                    "Rendite %": round(m["total_return_pct"], 2),
+                    "MaxDD %": round(m["max_drawdown_pct"], 2),
+                    "Rendite/DD": round(m["total_return_pct"] / max(abs(m["max_drawdown_pct"]), 0.01), 2),
+                    "Sharpe": round(m["sharpe"], 2),
+                    "Trades": int(m["trades"]),
+                    "Treffer %": round(m["win_rate_pct"], 1),
+                    "Im Markt %": round(m["exposure_pct"], 1),
+                }
+            )
+        print(f"\n=== {strategy} | {cfg.symbol} {cfg.timeframe} | Trendfilter ===")
+        print(pd.DataFrame(rows).to_string(index=False))
+    print(
+        f"\nBuy & Hold im Vergleichszeitraum: "
+        f"{(window['close'].iloc[-1] / window['open'].iloc[0] - 1) * 100:+.1f} %. "
+        "Der Filter lohnt sich, wenn 'Rendite/DD' und 'Sharpe' steigen, nicht unbedingt "
+        "die Rendite: Er soll vor allem Verluste in Abwärtsphasen vermeiden."
+    )
+    return 0
+
+
+def timeframe_seconds(tf: str) -> float:
+    from .trend import timeframe_delta
+
+    return timeframe_delta(tf).total_seconds()
 
 
 def _full_stake(cfg: Config) -> None:
@@ -120,9 +204,10 @@ def _compare_stops(df, names: list[str], cfg: Config) -> int:
 
     for name in names:
         strategy = _strategy_from(cfg, name)
+        signals = strategy_signals(strategy, df, cfg.timeframe, cfg.trend_filter)
         rows = []
         for label, risk in stop_variants(cfg).items():
-            m = run_backtest(df, strategy, risk, cfg.backtest, cfg.timeframe).metrics
+            m = run_backtest(df, strategy, risk, cfg.backtest, cfg.timeframe, signals=signals).metrics
             rows.append(
                 {
                     "Variante": label,
@@ -176,13 +261,15 @@ def cmd_optimize(args, cfg: Config) -> int:
         cfg.optimize.metric = args.metric
     if args.full_stake:
         _full_stake(cfg)
+    _apply_trend_flag(args, cfg)
     datasets = _load_datasets(args, cfg)
     names = sorted(STRATEGIES) if args.all else [args.strategy or cfg.strategy.name]
     o = cfg.optimize
     print(
         f"Walk-Forward: {o.train_days} Tage optimieren -> {o.test_days} Tage ungesehen testen, "
         f"Ziel '{o.metric}', min. {o.min_trades} Trades pro Trainingsfenster\n"
-        f"Märkte: {', '.join(datasets)} | Timeframe {cfg.timeframe}"
+        f"Märkte: {', '.join(datasets)} | Timeframe {cfg.timeframe} | "
+        f"Trendfilter: {_trend_label(cfg)}"
     )
     pd.set_option("display.width", 200)
     overview = []
@@ -346,6 +433,10 @@ def build_parser() -> argparse.ArgumentParser:
     bt.add_argument(
         "--full-stake", action="store_true", help="Jeden Trade mit 100 %% des Kapitals rechnen"
     )
+    bt.add_argument(
+        "--compare-filter", action="store_true", help="Mit und ohne Trendfilter vergleichen"
+    )
+    bt.add_argument("--trend-filter", choices=["on", "off"], help="Trendfilter ein/aus")
 
     op = sub.add_parser("optimize", help="Parameter-Scan mit Walk-Forward-Test")
     op.add_argument("-s", "--strategy", choices=sorted(STRATEGIES))
@@ -357,6 +448,7 @@ def build_parser() -> argparse.ArgumentParser:
     op.add_argument("--test-days", type=int)
     op.add_argument("--metric", choices=["sharpe", "return", "calmar"])
     op.add_argument("--out", help="Ordner für CSV-Ergebnisse")
+    op.add_argument("--trend-filter", choices=["on", "off"], help="Trendfilter ein/aus")
     op.add_argument(
         "--full-stake",
         action="store_true",
