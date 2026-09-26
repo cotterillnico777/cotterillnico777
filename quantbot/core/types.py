@@ -115,3 +115,20 @@ class Balance:
     free: float  # frei verfügbare Margin
     currency: str = "USDT"
     extra: dict = field(default_factory=dict)
+
+
+@dataclass
+class Intent:
+    """Zielposition für ein Symbol, erzeugt von Strategie + Risk Engine.
+
+    ``target_qty`` mit Vorzeichen (+ long, - short, 0 = flat). Stop/Take-Profit gelten für
+    die Position nach der Ausführung. ``meta`` landet im Trade-Journal (Strategie, Version,
+    Signalstärke, Regime, Einstiegsgrund, Features).
+    """
+
+    symbol: str
+    target_qty: float
+    stop_price: float | None = None
+    take_profit: float | None = None
+    reason: str = "signal"
+    meta: dict = field(default_factory=dict)
