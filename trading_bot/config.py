@@ -41,9 +41,16 @@ class RiskConfig:
     # Trailing-Stop: Stop zieht mit dem höchsten Kurs seit Einstieg nach oben
     trailing_stop: bool = False
     # Positionsgröße: "fixed" = position_fraction vom Guthaben,
-    # "risk" = so groß, dass ein Stop-Treffer risk_per_trade vom Guthaben kostet
+    # "risk" = so groß, dass ein Stop-Treffer risk_per_trade vom Guthaben kostet,
+    # "vol_target" = so groß, dass das Konto etwa target_vol Jahresschwankung hat
     sizing: str = "fixed"
     risk_per_trade: float = 0.01
+    # Volatility Targeting: Ziel-Jahresvolatilität des Kontos (0.25 = 25 %)
+    target_vol: float = 0.25
+    # Zeitraum für die gemessene Volatilität in Tagen (unabhängig vom Timeframe)
+    vol_lookback_days: int = 30
+    # Nachjustieren erst ab dieser relativen Abweichung (spart Gebühren)
+    rebalance_threshold: float = 0.25
     # Tagesverlust in Quote-Währung, ab dem keine neuen Käufe mehr erfolgen
     max_daily_loss: float = 50.0
 
@@ -54,6 +61,10 @@ class RiskConfig:
     @property
     def needs_atr(self) -> bool:
         return self.stop_mode == "atr"
+
+    @property
+    def needs_vol(self) -> bool:
+        return self.sizing == "vol_target"
 
 
 @dataclass
@@ -129,8 +140,15 @@ class Config:
             raise ValueError("risk.stop_mode muss 'pct' oder 'atr' sein")
         if r.stop_mode == "atr" and (r.atr_period < 1 or r.atr_multiplier <= 0):
             raise ValueError("risk.atr_period >= 1 und atr_multiplier > 0 nötig")
-        if r.sizing not in ("fixed", "risk"):
-            raise ValueError("risk.sizing muss 'fixed' oder 'risk' sein")
+        if r.sizing not in ("fixed", "risk", "vol_target"):
+            raise ValueError("risk.sizing muss 'fixed', 'risk' oder 'vol_target' sein")
+        if r.sizing == "vol_target":
+            if not 0 < r.target_vol <= 2:
+                raise ValueError("risk.target_vol muss in (0, 2] liegen, z. B. 0.25")
+            if r.vol_lookback_days < 2:
+                raise ValueError("risk.vol_lookback_days muss >= 2 sein")
+            if not 0 <= r.rebalance_threshold < 1:
+                raise ValueError("risk.rebalance_threshold muss in [0, 1) liegen")
         if r.sizing == "risk":
             if not 0 < r.risk_per_trade <= 0.1:
                 raise ValueError("risk.risk_per_trade muss in (0, 0.1] liegen (max. 10 %)")

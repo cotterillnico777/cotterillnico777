@@ -8,9 +8,10 @@ from .base import Strategy
 from .bollinger_breakout import BollingerBreakout
 from .ma_crossover import MACrossover
 from .rsi_reversion import RSIReversion
+from .trend_ensemble import TrendEnsemble
 
 STRATEGIES: dict[str, type[Strategy]] = {
-    cls.name: cls for cls in (MACrossover, RSIReversion, BollingerBreakout)
+    cls.name: cls for cls in (MACrossover, RSIReversion, BollingerBreakout, TrendEnsemble)
 }
 
 

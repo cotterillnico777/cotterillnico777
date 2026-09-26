@@ -16,7 +16,8 @@ from .config import Config
 from .data import candles_to_frame
 from .indicators import atr
 from .trend import condition_from_htf
-from .risk import RiskManager, entry_order_value, stop_price, trail_stop
+from .backtest import vol_for
+from .risk import RiskManager, plan_rebalance, stop_price, trail_stop
 from .strategies import Strategy
 
 log = logging.getLogger(__name__)
@@ -31,6 +32,9 @@ class Position:
     stop: float | None = None
     # Höchster Kurs seit Einstieg (für den Trailing-Stop)
     highest: float = 0.0
+    # Aktuelles Strategiegewicht (0..1) und Wert einer vollen Position
+    weight: float = 1.0
+    unit_value: float = 0.0
 
 
 @dataclass
@@ -86,9 +90,30 @@ class TradingBot:
         self.tf_ms = exchange.parse_timeframe(cfg.timeframe) * 1000
 
     # ------------------------------------------------------------------ data
+    def _fetch(self, timeframe: str, limit: int) -> list[list[float]]:
+        """Die letzten ``limit`` Kerzen, bei Bedarf in mehreren Abrufen."""
+        page = 1000
+        if limit <= page:
+            return self.ex.fetch_ohlcv(self.cfg.symbol, timeframe, limit=limit)
+        tf_ms = self.ex.parse_timeframe(timeframe) * 1000
+        since = int(self.clock().timestamp() * 1000) - (limit + 1) * tf_ms
+        rows: dict[int, list[float]] = {}
+        while True:
+            batch = self.ex.fetch_ohlcv(self.cfg.symbol, timeframe, since=since, limit=page)
+            if not batch:
+                break
+            rows.update({r[0]: r for r in batch})
+            if len(batch) < page or batch[-1][0] <= since:
+                break
+            since = batch[-1][0] + tf_ms
+        return [rows[k] for k in sorted(rows)]
+
     def closed_candles(self) -> pd.DataFrame:
-        limit = max(self.strategy.warmup * 3, 200)
-        rows = self.ex.fetch_ohlcv(self.cfg.symbol, self.cfg.timeframe, limit=limit)
+        vol_window = 0
+        if self.cfg.risk.needs_vol:
+            vol_window = round(self.cfg.risk.vol_lookback_days * 86_400_000 / self.tf_ms) + 2
+        limit = min(max(self.strategy.warmup * 3, 200, vol_window + 10), 5000)
+        rows = self._fetch(self.cfg.timeframe, limit)
         now_ms = self.clock().timestamp() * 1000
         # Die aktuell noch laufende Kerze verwerfen
         rows = [r for r in rows if r[0] + self.tf_ms <= now_ms]
@@ -119,36 +144,44 @@ class TradingBot:
         self.state.trades.append(entry)
         self.state.trades = self.state.trades[-500:]
 
-    def _buy(self, price: float, atr_value: float | None = None) -> None:
-        _, quote_free = self.broker.balances()
-        value = entry_order_value(quote_free, self.cfg.risk, price, atr_value)
+    def _buy(self, value: float, price: float, atr_value: float | None = None) -> bool:
+        """Kaufen bzw. aufstocken für ``value`` Quote-Währung (nach Risikoprüfung)."""
         decision = self.risk.check_entry(value, self.state.realized_pnl_today)
         if not decision.allowed:
             log.warning("Kauf blockiert: %s", decision.reason)
-            return
+            return False
         fill = self.broker.market_buy(value, price)
-        self.state.position = Position(
-            amount=fill.amount,
-            entry_price=fill.price,
-            cost=-fill.quote_delta,
-            entry_time=self.clock().isoformat(),
-            stop=stop_price(fill.price, self.cfg.risk, atr_value),
-            highest=fill.price,
-        )
-        self._record(fill, "entry")
+        pos = self.state.position
+        if pos is None:
+            pos = self.state.position = Position(
+                amount=fill.amount,
+                entry_price=fill.price,
+                cost=-fill.quote_delta,
+                entry_time=self.clock().isoformat(),
+                stop=stop_price(fill.price, self.cfg.risk, atr_value),
+                highest=fill.price,
+            )
+            reason = "entry"
+        else:
+            pos.amount += fill.amount
+            pos.cost += -fill.quote_delta
+            reason = "add"
+        self._record(fill, reason)
         log.info(
-            "KAUF %.8f %s @ %.4f für %.2f (Stop %s)",
+            "KAUF (%s) %.8f %s @ %.4f für %.2f (Stop %s)",
+            reason,
             fill.amount,
             self.cfg.symbol,
             fill.price,
             -fill.quote_delta,
-            f"{self.state.position.stop:.4f}" if self.state.position.stop else "aus",
+            f"{pos.stop:.4f}" if pos.stop else "aus",
         )
+        return True
 
-    def _sell(self, price: float, reason: str) -> None:
+    def _sell(self, price: float, reason: str, fraction: float = 1.0) -> None:
         pos = self.state.position
         assert pos is not None
-        fill = self.broker.market_sell(pos.amount, price)
+        fill = self.broker.market_sell(pos.amount * min(max(fraction, 0.0), 1.0), price)
         pnl = fill.quote_delta - pos.cost * (fill.amount / pos.amount)
         remaining = pos.amount - fill.amount
         self.state.realized_pnl_today += pnl
@@ -227,6 +260,36 @@ class TradingBot:
             log.info("Trailing-Stop %.4f -> %.4f (Hoch %.4f)", pos.stop, new_stop, pos.highest)
             pos.stop = new_stop
 
+    def _rebalance(
+        self, weight: float, price: float, atr_value: float | None, vol_value: float | None
+    ) -> None:
+        """Position an das Strategiegewicht anpassen (gleiche Regeln wie im Backtest)."""
+        pos = self.state.position
+        _, quote_free = self.broker.balances()
+        current = pos.amount * price if pos else 0.0
+        order = plan_rebalance(
+            weight,
+            pos.weight if pos else 0.0,
+            pos.unit_value if pos else 0.0,
+            current,
+            quote_free + current,
+            quote_free,
+            self.cfg.risk,
+            price,
+            atr_value,
+            vol_value,
+        )
+        if order.action in ("open", "buy"):
+            if not self._buy(order.value, price, atr_value):
+                return
+        elif order.action == "sell":
+            self._sell(price, "rebalance", order.value)
+        elif order.action == "close":
+            self._sell(price, "signal")
+        pos = self.state.position
+        if order.action is not None and pos is not None:
+            pos.weight, pos.unit_value = order.weight, order.unit_value
+
     # ------------------------------------------------------------------ loop
     def tick(self) -> None:
         """Ein Durchlauf: Stop-Loss prüfen, bei neuer Kerze Signal auswerten."""
@@ -253,22 +316,27 @@ class TradingBot:
             if self.cfg.risk.needs_atr
             else None
         )
+        vol_value = (
+            float(vol_for(candles, self.cfg.risk, self.cfg.timeframe).iloc[-1])
+            if self.cfg.risk.needs_vol
+            else None
+        )
         self._trail(candles, atr_value)
 
-        signal = int(self.strategy.generate_signals(candles).iloc[-1])
+        signal = min(max(float(self.strategy.generate_signals(candles).iloc[-1]), 0.0), 1.0)
         tf_cfg = self.cfg.trend_filter
         trend_ok = self._trend_ok(candles) if tf_cfg.enabled else True
         if tf_cfg.enabled and tf_cfg.mode == "exit" and not trend_ok:
             signal = 0
         log.info(
-            "Neue Kerze %s, Schluss %.4f, Signal %d%s",
+            "Neue Kerze %s, Schluss %.4f, Signal %.2f%s",
             last_ts,
             candles["close"].iloc[-1],
             signal,
             f", Trend {'auf' if trend_ok else 'ab'}" if tf_cfg.enabled else "",
         )
 
-        if signal == 0:
+        if signal <= 0:
             self.state.wait_for_reset = False
             if self.state.position is not None:
                 self._sell(price, "signal")
@@ -278,7 +346,10 @@ class TradingBot:
             elif not trend_ok:
                 log.info("Trendfilter: kein Aufwärtstrend auf %s, kein Kauf", tf_cfg.timeframe)
             else:
-                self._buy(price, atr_value)
+                self._rebalance(signal, price, atr_value, vol_value)
+        else:
+            # Offene Position: Teilposition anpassen (Ensemble / Volatility Targeting)
+            self._rebalance(signal, price, atr_value, vol_value)
 
     def save(self) -> None:
         self.state.paper = self.broker.state()

@@ -94,13 +94,14 @@ def apply(signals: pd.Series, trend_ok: pd.Series, mode: str) -> pd.Series:
                erst durch das Strategiesignal geschlossen.
     """
     trend_ok = trend_ok.reindex(signals.index).fillna(False).astype(bool)
+    # Gewichte (z. B. Ensemble 2/3) bleiben erhalten, der Filter setzt nur auf 0
     if mode == "exit":
-        return (signals.astype(bool) & trend_ok).astype(int)
-    sig = signals.values.astype(bool)
+        return signals.astype(float).where(trend_ok, 0.0)
+    sig = signals.values.astype(float)
     ok = trend_ok.values
-    out = np.zeros(len(sig), dtype=int)
+    out = np.zeros(len(sig))
     held = False
     for i in range(len(sig)):
-        held = sig[i] and (held or ok[i])
-        out[i] = held
+        held = sig[i] > 0 and (held or ok[i])
+        out[i] = sig[i] if held else 0.0
     return pd.Series(out, index=signals.index)

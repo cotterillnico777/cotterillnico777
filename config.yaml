@@ -9,7 +9,7 @@ exchange:
   sandbox: false       # true = Testnet der Börse (falls vorhanden)
 
 strategy:
-  name: ma_crossover   # ma_crossover | rsi_reversion | bollinger_breakout
+  name: ma_crossover   # ma_crossover | trend_ensemble | bollinger_breakout | rsi_reversion
   params:
     fast: 20
     slow: 50
@@ -28,9 +28,15 @@ risk:
   atr_multiplier: 2.5       # Stop = Einstieg - 2,5 × ATR (stop_mode: atr)
   trailing_stop: false      # true = Stop zieht mit dem Höchstkurs nach oben
 
-  # Positionsgröße: "fixed" = position_fraction, "risk" = Verlust bei Stop = risk_per_trade
+  # Positionsgröße: "fixed" = position_fraction, "risk" = Verlust bei Stop = risk_per_trade,
+  # "vol_target" = Größe so, dass das Konto etwa target_vol pro Jahr schwankt
   sizing: fixed
   risk_per_trade: 0.01      # 1 % des Guthabens pro Trade riskieren (sizing: risk)
+  target_vol: 0.25          # 25 % Ziel-Jahresvolatilität (sizing: vol_target)
+  vol_lookback_days: 30     # Volatilität der letzten 30 Tage messen
+  rebalance_threshold: 0.25 # erst ab 25 % Abweichung nachkaufen/-verkaufen (spart Gebühren)
+  # Hinweis: Bei vol_target begrenzen position_fraction und max_order_value weiter die
+  # Größe. Für volle Wirkung position_fraction: 1.0 und max_order_value hoch setzen.
 
 trend_filter:
   enabled: false            # true = nur im Aufwärtstrend des höheren Zeitrahmens kaufen

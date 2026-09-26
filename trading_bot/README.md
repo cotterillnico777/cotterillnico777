@@ -42,8 +42,28 @@ Alle Einstellungen stehen in `config.yaml`.
 | `ma_crossover`       | Trendfolge: long, solange EMA(fast) > EMA(slow)                |
 | `rsi_reversion`      | Mean Reversion: Kauf bei RSI < 30, Verkauf bei RSI > 70        |
 | `bollinger_breakout` | Ausbruch über das obere Bollinger-Band, Ausstieg an Mittellinie |
+| `trend_ensemble`     | Drei Donchian-Trendsysteme (kurz/mittel/lang), Signal 0, ⅓, ⅔ oder 1 |
 
-Alle Strategien sind **long-only** (Spot, kein Hebel, kein Short).
+Alle Strategien sind **long-only** (Spot, kein Hebel, kein Short). Warum: siehe
+Recherche im Chatverlauf. Short-Seite verliert in Krypto durch Kurssprünge, Hebel
+vervielfacht die ohnehin großen Drawdowns, und für Privatanleger in der EU sind
+Krypto-Derivate auf 2:1 begrenzt.
+
+### `trend_ensemble` (Teilpositionen)
+
+Drei unabhängige Trendsysteme mit den Zeiträumen `short`, `mid` und `long` (in Kerzen):
+Einstieg bei Schluss über dem höchsten Hoch der letzten N Kerzen, Ausstieg bei Schluss
+unter dem tiefsten Tief der letzten N × `exit_ratio` Kerzen. Das Signal ist der Anteil
+der Systeme im Trend. Der Bot steigt also schrittweise ein und aus. Mit `kind: sma`
+gilt stattdessen "Schluss über SMA(N)".
+
+Die Voreinstellung 20/55/100 ist für **Tageskerzen** gedacht. Für 4h-Kerzen etwa × 6:
+
+```yaml
+strategy:
+  name: trend_ensemble
+  params: {short: 120, mid: 330, long: 600, exit_ratio: 0.5, kind: donchian}
+```
 
 ### Eigene Strategie hinzufügen
 
@@ -78,6 +98,7 @@ Alle Strategien sind **long-only** (Spot, kein Hebel, kein Short).
 | `stop_mode: pct`           | Stop fest `stop_loss_pct` unter dem Einstieg                            |
 | `stop_mode: atr`           | Stop `atr_multiplier` × ATR unter dem Einstieg. Die ATR ist die typische Schwankung einer Kerze: in unruhigen Phasen weiter weg, in ruhigen enger |
 | `trailing_stop: true`      | Der Stop zieht mit dem höchsten Kurs seit Einstieg nach oben (nie nach unten) und sichert so Gewinne |
+| `sizing: vol_target`       | Positionsgröße = Guthaben × `target_vol` / gemessene Volatilität (max. 100 %, kein Hebel). Bei 60 % Marktschwankung und 25 % Ziel sind rund 42 % investiert. Nachjustiert wird ab `rebalance_threshold` Abweichung |
 | `sizing: risk`             | Positionsgröße so, dass ein Stop-Treffer `risk_per_trade` (z. B. 1 %) des Guthabens kostet. Bei hoher Volatilität kleinere Position, bei niedriger größere |
 
 `position_fraction` und `max_order_value` gelten immer als Obergrenze.
@@ -86,7 +107,12 @@ Welche Variante zu einer Strategie passt, zeigt der Vergleich:
 
 ```bash
 python -m trading_bot backtest --all --compare-stops --full-stake
+python -m trading_bot backtest -s trend_ensemble -t 1d --compare-sizing --days 2000
 ```
+
+`--compare-sizing` vergleicht feste Größe, Volatility Targeting (20/30/40/60 %) und
+risikobasierte Größe, jeweils mit bis zu 100 % Einsatz, und zeigt Buy & Hold als
+Vergleichszeile mit Sharpe und Drawdown.
 
 Faustregel: Trendfolge (`ma_crossover`, `bollinger_breakout`) profitiert oft von
 einem ATR-Trailing-Stop. Mean Reversion (`rsi_reversion`) kauft bewusst in fallende

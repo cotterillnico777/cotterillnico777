@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
@@ -40,6 +41,19 @@ def atr(df: pd.DataFrame, period: int = 14) -> pd.Series:
         axis=1,
     ).max(axis=1)
     return true_range.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+
+
+def realized_vol(close: pd.Series, window: int, periods_per_year: float) -> pd.Series:
+    """Annualisierte Volatilität aus Log-Renditen der letzten ``window`` Kerzen."""
+    log_ret = np.log(close).diff()
+    return log_ret.rolling(window, min_periods=window).std() * np.sqrt(periods_per_year)
+
+
+def donchian(df: pd.DataFrame, period: int) -> tuple[pd.Series, pd.Series]:
+    """Höchstes Hoch und tiefstes Tief der *vorherigen* ``period`` Kerzen."""
+    upper = df["high"].rolling(period, min_periods=period).max().shift(1)
+    lower = df["low"].rolling(period, min_periods=period).min().shift(1)
+    return upper, lower
 
 
 def bollinger_bands(

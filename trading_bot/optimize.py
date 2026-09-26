@@ -21,7 +21,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .backtest import periods_per_year, run_backtest
+from .backtest import periods_per_year, run_backtest, vol_for
 from .config import Config
 from . import trend
 from .indicators import atr
@@ -98,6 +98,7 @@ def evaluate(
     cfg: Config,
     name: str,
     atr_series: pd.Series | None = None,
+    vol_series: pd.Series | None = None,
 ) -> pd.DataFrame:
     """Jede Kombination auf ``df`` backtesten. Eine Zeile pro Kombination."""
     strat = create_strategy(name)  # nur für run_backtest-Signatur
@@ -111,6 +112,7 @@ def evaluate(
             cfg.timeframe,
             signals=c.signals.loc[df.index],
             atr_series=atr_series,
+            vol_series=vol_series,
         )
         m = res.metrics
         valid = m["trades"] >= cfg.optimize.min_trades
@@ -240,6 +242,7 @@ def walk_forward(
     strat = create_strategy(name)
     # ATR wie die Signale einmal auf der ganzen Historie berechnen
     atr_full = atr(df, cfg.risk.atr_period) if cfg.risk.needs_atr else None
+    vol_full = vol_for(df, cfg.risk, cfg.timeframe) if cfg.risk.needs_vol else None
     wins = windows(df.index, o.train_days, o.test_days)
     if not wins:
         raise ValueError(
@@ -255,7 +258,7 @@ def walk_forward(
         test = df[(df.index >= test_start) & (df.index < test_end)]
         if len(train) < 2 or len(test) < 2:
             continue
-        rows = evaluate(train, cands, cfg, name, atr_full)
+        rows = evaluate(train, cands, cfg, name, atr_full, vol_full)
         best = best_row(rows)
         if best is None:
             # Keine Kombination erfüllt min_trades: in diesem Fenster nicht handeln
@@ -265,8 +268,9 @@ def walk_forward(
             params, train_score = best["params"], float(best["score"])
             sig = next(c.signals for c in cands if c.idx == best["idx"])
         common = (test, strat, cfg.risk, cfg.backtest, cfg.timeframe)
-        res = run_backtest(*common, signals=sig, atr_series=atr_full)
-        base = run_backtest(*common, signals=default_signals, atr_series=atr_full)
+        extra = {"atr_series": atr_full, "vol_series": vol_full}
+        res = run_backtest(*common, signals=sig, **extra)
+        base = run_backtest(*common, signals=default_signals, **extra)
         m = res.metrics
         folds.append(
             Fold(

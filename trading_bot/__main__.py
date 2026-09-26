@@ -72,6 +72,8 @@ def cmd_backtest(args, cfg: Config) -> int:
     _apply_trend_flag(args, cfg)
     names = sorted(STRATEGIES) if args.all else [args.strategy or cfg.strategy.name]
     print(f"Markt: {cfg.symbol} | Zeitrahmen: {cfg.timeframe} | {len(df)} Kerzen ab {df.index[0]:%Y-%m-%d}")
+    if args.compare_sizing:
+        return _compare_sizing(df, names, cfg)
     if args.compare_filter:
         return _compare_filter(df, names, cfg)
     if args.compare_stops:
@@ -229,6 +231,87 @@ def _compare_stops(df, names: list[str], cfg: Config) -> int:
         "Trailing-Stop einen Gewinn gesichert hat. Die Varianten mit Risiko-Sizing "
         "setzen pro Trade oft weniger Kapital ein, daher dort vor allem Sharpe vergleichen. "
         "Die gewählte Variante danach mit 'optimize' auf ungesehenen Daten prüfen."
+    )
+    return 0
+
+
+def sizing_variants(cfg: Config) -> dict:
+    """Positionsgrößen-Varianten, jeweils mit bis zu 100 % Kapitaleinsatz."""
+    from dataclasses import replace
+
+    base = replace(cfg.risk, position_fraction=1.0, max_order_value=float("inf"))
+    variants = {"Fest 100 %": replace(base, sizing="fixed")}
+    for tv in (0.2, 0.3, 0.4, 0.6):
+        variants[f"Vol-Target {tv:.0%}"] = replace(base, sizing="vol_target", target_vol=tv)
+    if base.stops_enabled:
+        variants[f"Risiko {base.risk_per_trade:.1%} pro Trade"] = replace(base, sizing="risk")
+    return variants
+
+
+def _buy_hold_row(df, cfg: Config) -> dict:
+    import math
+
+    from .backtest import periods_per_year
+
+    eq = df["close"] / df["open"].iloc[0]
+    rets = eq.pct_change().dropna()
+    sharpe = rets.mean() / rets.std() * math.sqrt(periods_per_year(cfg.timeframe))
+    dd = ((eq - eq.cummax()) / eq.cummax()).min() * 100
+    ret = (eq.iloc[-1] - 1) * 100
+    return {
+        "Variante": "Buy & Hold (Vergleich)",
+        "Rendite %": round(ret, 2),
+        "MaxDD %": round(dd, 2),
+        "Rendite/DD": round(ret / max(abs(dd), 0.01), 2),
+        "Sharpe": round(sharpe, 2),
+        "Ø investiert %": 100.0,
+        "Trades": 0,
+        "Orders": 1,
+    }
+
+
+def _compare_sizing(df, names: list[str], cfg: Config) -> int:
+    import pandas as pd
+
+    from .backtest import run_backtest, vol_for
+
+    vols = {}
+    for name in names:
+        strategy = _strategy_from(cfg, name)
+        signals = strategy_signals(strategy, df, cfg.timeframe, cfg.trend_filter)
+        rows = []
+        for label, risk in sizing_variants(cfg).items():
+            if risk.needs_vol:
+                key = risk.vol_lookback_days
+                vols.setdefault(key, vol_for(df, risk, cfg.timeframe))
+            m = run_backtest(
+                df, strategy, risk, cfg.backtest, cfg.timeframe, signals=signals,
+                vol_series=vols.get(risk.vol_lookback_days) if risk.needs_vol else None,
+            ).metrics
+            rows.append(
+                {
+                    "Variante": label,
+                    "Rendite %": round(m["total_return_pct"], 2),
+                    "MaxDD %": round(m["max_drawdown_pct"], 2),
+                    "Rendite/DD": round(m["total_return_pct"] / max(abs(m["max_drawdown_pct"]), 0.01), 2),
+                    "Sharpe": round(m["sharpe"], 2),
+                    "Ø investiert %": round(m["avg_exposure_pct"], 1),
+                    "Trades": int(m["trades"]),
+                    "Orders": int(m["orders"]),
+                }
+            )
+        rows.append(_buy_hold_row(df, cfg))
+        print(f"\n=== {strategy} | {cfg.symbol} {cfg.timeframe} | Positionsgröße ===")
+        print(pd.DataFrame(rows).to_string(index=False))
+    r = cfg.risk
+    print(
+        f"\nStop: {r.stop_mode} {r.stop_loss_pct:.0%}{' Trailing' if r.trailing_stop else ''} | "
+        f"Volatilität über {r.vol_lookback_days} Tage, Nachjustieren ab "
+        f"{r.rebalance_threshold:.0%} Abweichung.\n"
+        "So liest du das: Vol-Target investiert in ruhigen Phasen mehr und in wilden "
+        "weniger (max. 100 %, kein Hebel). Entscheidend sind 'Sharpe' und 'MaxDD'. "
+        "'Orders' zeigt, wie oft nachjustiert wurde (jede Order kostet Gebühren). "
+        "Danach die gewählte Variante mit 'optimize' auf ungesehenen Daten prüfen."
     )
     return 0
 
@@ -440,6 +523,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--compare-filter", action="store_true", help="Mit und ohne Trendfilter vergleichen"
     )
     bt.add_argument("--trend-filter", choices=["on", "off"], help="Trendfilter ein/aus")
+    bt.add_argument(
+        "--compare-sizing",
+        action="store_true",
+        help="Positionsgrößen vergleichen (fest, Volatility Targeting, Risiko)",
+    )
 
     op = sub.add_parser("optimize", help="Parameter-Scan mit Walk-Forward-Test")
     op.add_argument("-s", "--strategy", choices=sorted(STRATEGIES))

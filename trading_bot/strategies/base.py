@@ -13,6 +13,7 @@ class Strategy(ABC):
 
     Rückgabe von ``generate_signals``: Serie mit demselben Index wie ``df``
     und Werten 1 (long / investiert) oder 0 (flat / in Quote-Währung).
+    Werte dazwischen (z. B. 0.5) bedeuten eine Teilposition.
     Der Wert in Zeile t darf nur Daten bis einschließlich Kerze t verwenden
     (kein Blick in die Zukunft). Ausgeführt wird er erst zur nächsten Kerze.
     """

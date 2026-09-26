@@ -57,7 +57,7 @@ def test_strategies_have_no_lookahead(name):
     for cut in (150, 300, 450):
         partial = strat.generate_signals(df.iloc[:cut])
         pd.testing.assert_series_equal(partial, full.iloc[:cut], check_names=False)
-    assert set(full.unique()) <= {0, 1}
+    assert full.between(0, 1).all()
 
 
 def test_strategy_param_validation():
@@ -159,6 +159,8 @@ class FakeExchange:
         self.start_ms = int(start.timestamp() * 1000)
         self.now_index = 0  # Index der gerade laufenden Kerze
         self.price_override = None
+        # True: Ticker = Eröffnungskurs der laufenden Kerze (wie die Ausführung im Backtest)
+        self.ticker_at_open = False
 
     def parse_timeframe(self, tf):
         return {"1h": 3600, "4h": 4 * 3600, "1d": 86400}[tf]
@@ -180,6 +182,8 @@ class FakeExchange:
         return rows[-limit:]
 
     def fetch_ticker(self, symbol):
+        if self.ticker_at_open and self.now_index > 0:
+            return {"last": self.closes[self.now_index - 1]}
         return {"last": self.price_override or self.closes[self.now_index]}
 
 
@@ -586,3 +590,127 @@ def test_bot_trend_filter_exit_mode_sells_on_trend_break(tmp_path):
     run_ticks(bot, ex, len(closes))
     sells = [t for t in bot.state.trades if t["side"] == "sell"]
     assert sells  # spätestens nach dem ersten Tagesschluss unter dem Durchschnitt verkauft
+
+
+# ---------------------------------------- Teilpositionen / Vol-Target / Ensemble
+from trading_bot.backtest import vol_for  # noqa: E402
+from trading_bot.risk import plan_rebalance, position_value  # noqa: E402
+
+
+def full_risk(**kw):
+    return RiskConfig(**{"position_fraction": 1.0, "max_order_value": 1e12, "min_order_value": 1,
+                         "stop_loss_pct": 0, **kw})
+
+
+def test_plan_rebalance_fixed_steps():
+    r = full_risk()
+    o = plan_rebalance(1 / 3, 0, 0, 0, 900, 900, r, 100)
+    assert o.action == "open" and o.value == pytest.approx(300) and o.unit_value == 900
+    o = plan_rebalance(2 / 3, 1 / 3, 900, 330, 930, 600, r, 110)
+    assert o.action == "buy" and o.value == pytest.approx(300)  # Einheit bleibt fest
+    o = plan_rebalance(1 / 3, 2 / 3, 900, 700, 1000, 300, r, 110)
+    assert o.action == "sell" and o.value == pytest.approx(0.5)
+    assert plan_rebalance(1 / 3, 1 / 3, 900, 500, 1000, 500, r, 150).action is None  # Gewinner laufen lassen
+    assert plan_rebalance(0, 1 / 3, 900, 500, 1000, 500, r, 150).action == "close"
+
+
+def test_plan_rebalance_vol_target():
+    r = full_risk(sizing="vol_target", target_vol=0.25, rebalance_threshold=0.25)
+    assert position_value(1000, r, vol=0.5) == pytest.approx(500)
+    assert position_value(1000, r, vol=0.1) == pytest.approx(1000)  # max. 100 %, kein Hebel
+    assert position_value(1000, r, vol=float("nan")) == 0
+    o = plan_rebalance(1, 0, 0, 0, 1000, 1000, r, 100, vol=0.5)
+    assert o.action == "open" and o.value == pytest.approx(500)
+    # 10 % Abweichung < 25 % Schwelle -> nichts tun
+    assert plan_rebalance(1, 1, 0, 550, 1050, 500, r, 110, vol=0.5).action is None
+    # Volatilität verdoppelt -> Ziel halbiert -> Teilverkauf
+    o = plan_rebalance(1, 1, 0, 500, 1000, 500, r, 100, vol=1.0)
+    assert o.action == "sell" and o.value == pytest.approx(0.5)
+
+
+def test_trend_ensemble_steps_in_and_out():
+    closes = np.concatenate([np.full(40, 100.0), np.linspace(100, 200, 60), np.linspace(200, 120, 60)])
+    df = make_df(closes)
+    sig = create_strategy("trend_ensemble", {"short": 5, "mid": 10, "long": 20}).generate_signals(df)
+    levels = set(np.round(sig.unique(), 4))
+    assert levels <= {0, 0.3333, 0.6667, 1}
+    assert sig.iloc[99] == 1  # langer Anstieg: alle drei Systeme long
+    # Beim Rückgang steigen die Systeme nacheinander aus: 1 -> 2/3 -> 1/3 -> 0
+    falling = sig.iloc[100:].round(4)
+    steps = list(dict.fromkeys(falling.tolist()))
+    assert steps == [1.0, 0.6667, 0.3333, 0.0]
+    assert sig.iloc[-1] == 0
+    with pytest.raises(ValueError):
+        create_strategy("trend_ensemble", {"short": 50, "mid": 40, "long": 100})
+
+
+def test_backtest_partial_positions_exposure():
+    df = make_df(random_walk(600, seed=31))
+    half = pd.Series(0.5, index=df.index)
+    bt = BacktestConfig(fee=0.0, slippage=0.0)
+    res = run_backtest(df, create_strategy("ma_crossover"), full_risk(), bt, "1h", signals=half)
+    assert res.metrics["orders"] == 1  # einmal halb rein, danach nichts (Gewinner laufen)
+    assert res.metrics["trades"] == 0 and res.metrics["open_position"] == 1
+    exposure0 = 0.5
+    # Kapital = 50 % Cash + 50 % mit dem Kurs
+    expected = 1000 * (1 - exposure0) + 1000 * exposure0 * df["close"].iloc[-1] / df["open"].iloc[1]
+    assert res.metrics["final"] == pytest.approx(expected)
+
+
+def test_backtest_vol_target_matches_target_on_average():
+    rng = np.random.default_rng(32)
+    closes = 100 * np.exp(np.cumsum(rng.normal(0, 0.01, 24 * 200)))  # ~94 % Jahresvola
+    df = make_df(closes)
+    r = full_risk(sizing="vol_target", target_vol=0.3, vol_lookback_days=10)
+    res = run_backtest(df, create_strategy("ma_crossover"), r, BacktestConfig(fee=0, slippage=0),
+                       "1h", signals=pd.Series(1.0, index=df.index))
+    realized = res.equity.pct_change().dropna().std() * np.sqrt(24 * 365)
+    assert realized == pytest.approx(0.3, rel=0.25)
+    assert res.metrics["avg_exposure_pct"] < 50
+
+
+def test_backtest_prefix_consistent_with_ensemble_and_vol_target():
+    df = make_df(random_walk(24 * 60, seed=33))
+    r = full_risk(sizing="vol_target", target_vol=0.4, vol_lookback_days=5, stop_loss_pct=0.05,
+                  trailing_stop=True)
+    strat = create_strategy("trend_ensemble", {"short": 10, "mid": 30, "long": 60})
+    bt = BacktestConfig(fee=0.001, slippage=0.0005)
+    full = run_backtest(df, strat, r, bt, "1h")
+    part = run_backtest(df.iloc[:900], strat, r, bt, "1h")
+    pd.testing.assert_series_equal(part.equity, full.equity.iloc[:900])
+    assert full.metrics["orders"] > full.metrics["trades"]  # Teilkäufe/-verkäufe fanden statt
+
+
+@pytest.mark.parametrize("sizing", ["fixed", "vol_target"])
+def test_bot_matches_backtest_with_partial_positions(tmp_path, sizing):
+    """Live-Bot und Backtest müssen bei gleichen Kursen identisch handeln."""
+    closes = random_walk(24 * 20, seed=34) * 100
+    start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    ex = FakeExchange(closes, start)
+    ex.ticker_at_open = True  # Bot handelt zum Eröffnungskurs, wie der Backtest
+    ex.now_index = len(closes) - 1
+    df = candles_to_frame(ex.fetch_ohlcv("X", "1h", limit=10_000))
+
+    cfg = Config()
+    cfg.risk = full_risk(sizing=sizing, target_vol=0.5, vol_lookback_days=3,
+                         rebalance_threshold=0.2, min_order_value=5, max_daily_loss=1e9)
+    cfg.runtime.kill_switch_file = str(tmp_path / "STOP")
+    strat = create_strategy("trend_ensemble", {"short": 6, "mid": 12, "long": 24})
+    # Der Bot handelt erst, wenn genug Kerzen für den Vorlauf da sind (live immer der Fall)
+    signals = strat.generate_signals(df)
+    signals.iloc[: strat.warmup - 1] = 0
+    res = run_backtest(df, strat, cfg.risk, BacktestConfig(fee=0.001, slippage=0.0), "1h",
+                       signals=signals)
+
+    broker = PaperBroker(quote=1000, fee=0.001, slippage=0.0)
+    bot = TradingBot(cfg, strat, ex, broker, state_path=tmp_path / "s.json",
+                     clock=lambda: start + timedelta(hours=ex.now_index, minutes=1))
+    for i in range(1, len(closes)):
+        ex.now_index = i
+        bot.tick()
+
+    assert res.metrics["orders"] > res.metrics["trades"] > 0
+    assert len(bot.state.trades) == res.metrics["orders"]
+    base, quote = broker.balances()
+    # Gleiche Bestände -> gleicher Wert zum Schlusskurs der letzten Kerze
+    assert quote + base * closes[-1] == pytest.approx(res.equity.iloc[-1], rel=1e-9)
