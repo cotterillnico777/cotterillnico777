@@ -1,0 +1,67 @@
+# Trend-Ensemble auf Tageskerzen mit Volatility Targeting (25 %). Nur für Backtests/Paper gedacht.
+# Konfiguration des Trading-Bots
+# Alle Beträge in der Quote-Währung des Markts (bei BTC/USDT also USDT).
+
+symbol: BTC/USDT
+timeframe: 1d
+
+exchange:
+  id: binance          # jeder von ccxt unterstützte Name: kraken, bybit, coinbase, ...
+  sandbox: false       # true = Testnet der Börse (falls vorhanden)
+
+strategy:
+  name: trend_ensemble
+  params: {short: 20, mid: 55, long: 100, exit_ratio: 0.5, kind: donchian}
+
+risk:
+  position_fraction: 1.0    # Obergrenze 100 %, die Größe steuert vol_target
+  max_order_value: 1000000  # im Backtest praktisch unbegrenzt; LIVE unbedingt senken!
+  min_order_value: 10       # darunter wird nicht gekauft
+  max_daily_loss: 50        # ab diesem Tagesverlust keine neuen Käufe
+
+  # Stop-Loss: "pct" = fester Abstand, "atr" = passt sich der Schwankungsbreite an
+  stop_mode: pct
+  stop_loss_pct: 0.05       # 5 % unter Einstieg
+  atr_period: 14
+  atr_multiplier: 2.5       # Stop = Einstieg - 2,5 × ATR (stop_mode: atr)
+  trailing_stop: false      # true = Stop zieht mit dem Höchstkurs nach oben
+
+  # Positionsgröße: "fixed" = position_fraction, "risk" = Verlust bei Stop = risk_per_trade,
+  # "vol_target" = Größe so, dass das Konto etwa target_vol pro Jahr schwankt
+  sizing: vol_target
+  risk_per_trade: 0.01      # 1 % des Guthabens pro Trade riskieren (sizing: risk)
+  target_vol: 0.25          # 25 % Ziel-Jahresvolatilität (sizing: vol_target)
+  vol_lookback_days: 30     # Volatilität der letzten 30 Tage messen
+  rebalance_threshold: 0.25 # erst ab 25 % Abweichung nachkaufen/-verkaufen (spart Gebühren)
+  # Hinweis: Bei vol_target begrenzen position_fraction und max_order_value weiter die
+  # Größe. Für volle Wirkung position_fraction: 1.0 und max_order_value hoch setzen.
+
+trend_filter:
+  enabled: false            # true = nur im Aufwärtstrend des höheren Zeitrahmens kaufen
+  timeframe: 1d             # Tageskerzen
+  period: 200               # Schluss über dem 200-Tage-Durchschnitt = Aufwärtstrend
+  kind: sma                 # sma | ema
+  mode: entry               # entry = nur Käufe filtern, exit = auch verkaufen, wenn der Trend kippt
+
+backtest:
+  initial_balance: 1000
+  fee: 0.001
+  slippage: 0.0005
+  days: 365
+
+optimize:
+  train_days: 365
+  test_days: 120
+  metric: sharpe            # sharpe | return | calmar
+  min_trades: 2
+  symbols: [ETH/USDT, SOL/USDT]   # zusätzliche Märkte zum Gegenprüfen
+  grids:
+    trend_ensemble: {short: [10, 20, 30], mid: [40, 55, 70], long: [90, 120, 150], exit_ratio: [0.5], kind: [donchian, sma]}
+
+runtime:
+  mode: paper               # paper | live  (live zusätzlich nur mit --live)
+  paper_balance: 1000
+  poll_seconds: 60
+  state_file: state/bot_state.json
+  kill_switch_file: STOP    # Datei anlegen = Not-Aus für neue Käufe
+  log_file: state/bot.log
