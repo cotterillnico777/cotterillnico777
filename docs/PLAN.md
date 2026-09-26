@@ -105,3 +105,11 @@ zusätzlich dieselbe Execution Engine, nur mit unterschiedlichem Adapter.
 Alle Börsen-APIs sind aus der Cloud-Umgebung gesperrt. Echte Forschungsergebnisse
 entstehen daher nur auf dem Rechner des Nutzers über `python -m quantbot research ...`.
 Die Berichte werden dort erzeugt und hier ausgewertet.
+
+## 6. Fortschritt und Abweichungen
+
+- Phase 1 und 2 abgeschlossen.
+- **Reihenfolge geändert:** Die Risk Engine (Phase 5) wurde vor der Strategie-Forschung
+  (Phase 3) gebaut. Grund: Jedes Forschungsergebnis hängt von Positionsgröße, Hebel und
+  Limits ab. Forschung mit einer provisorischen Größenlogik hätte später komplett
+  wiederholt werden müssen.

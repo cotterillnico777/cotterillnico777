@@ -206,6 +206,7 @@ class BacktestEngine:
 
     # --------------------------------------------------------------------- Lauf
     def run(self, model: DecisionModel, metadata: dict | None = None) -> BacktestResult:
+        self.model = model
         self.account = Account(cash=self.initial_equity, mmr=dict(self.mmr))
         self.last_close: dict[str, float] = {}
         self.open_trades: dict[str, TradeRecord] = {}
@@ -315,6 +316,9 @@ class BacktestEngine:
                 trade.exit_reason = reason
                 self.trades.append(trade)
                 del self.open_trades[s]
+                hook = getattr(self.model, "on_trade_closed", None)
+                if hook is not None:
+                    hook(trade, i)
         opened = res.opened_qty
         if opened:
             open_fee = fee * (opened / abs(qty))

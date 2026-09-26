@@ -64,6 +64,12 @@ class RiskConfig:
     large_loss_threshold: float = 0.02  # Einzelverlust >= 2 % des Kontos -> Cooldown
     min_stop_distance_frac: float = 0.002  # Stops enger als 0,2 % werden abgelehnt
     min_trade_notional: float = 10.0
+    # Nachjustieren erst ab dieser relativen Abweichung (gleiche Richtung) -> weniger Gebühren
+    rebalance_threshold: float = 0.25
+    # Trade-Qualität: erwartete Kosten (Gebühren+Slippage hin und zurück) in R max.
+    max_cost_in_r: float = 0.15
+    min_signal: float = 0.05  # schwächere Signale = kein Trade
+    trailing_stop: bool = False  # Stop mit neuem Stop-Abstand der Strategie nachziehen
 
 
 @dataclass
@@ -161,6 +167,8 @@ class Config:
         _check(0 < r.daily_loss_limit <= r.weekly_loss_limit < r.max_drawdown_limit < 1, "Verlustlimits inkonsistent")
         _check(r.max_consecutive_losses >= 1 and r.cooldown_bars >= 0, "Verlustserie/Cooldown ungültig")
         _check(0 < r.target_portfolio_vol <= 2, "risk.target_portfolio_vol ungültig")
+        _check(0 <= r.rebalance_threshold < 1, "risk.rebalance_threshold in [0, 1)")
+        _check(r.max_cost_in_r > 0 and 0 <= r.min_signal < 1, "risk.max_cost_in_r / min_signal ungültig")
         c = self.costs
         _check(c.taker_fee >= 0 and c.maker_fee >= 0 and c.slippage_bps >= 0, "Kosten dürfen nicht negativ sein")
         _check(self.execution.delay_bars >= 0, "execution.delay_bars >= 0")
