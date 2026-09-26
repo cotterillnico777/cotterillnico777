@@ -251,6 +251,13 @@ class Researcher:
             rep.check("D: Monte Carlo", False, mc.get("note", "nicht möglich"))
         bd = self.breakdown(full)
         rep.stages["D_breakdown"] = bd
+        from .leverage import risk_scaling
+        from .ml import evaluate_meta_filter
+
+        rep.stages["D_risk_scaling"] = risk_scaling(self.prep(slots), self.splits.research)
+        tr = self.evaluate(slots, self.splits.train).trades
+        va = self.evaluate(slots, self.splits.validation).trades
+        rep.stages["D_ml_meta_filter"] = evaluate_meta_filter(tr, va)
         trend_keys = [k for k in bd["by_regime"] if k.startswith("trend:") and k != "trend:unknown"]
         neg = [k for k in trend_keys if bd["by_regime"][k]["net_pnl"] < 0]
         rep.check("D: übersteht mehrere Marktregime", len(trend_keys) >= 2 and len(neg) < len(trend_keys),

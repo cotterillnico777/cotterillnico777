@@ -87,6 +87,21 @@ def write_report(result: dict, data_meta: dict, out_dir: str | Path) -> Path:
                 lines += ["", "| Regime | Trades | Trefferquote | Ø Rendite/Trade | Netto-PnL |", "|---|---|---|---|---|"]
                 for k, v in bd["by_regime"].items():
                     lines.append(f"| {k} | {v['trades']} | {v['win_rate']:.0%} | {v['mean_return_pct']:+.2f} % | {v['net_pnl']:.0f} |")
+        if "D_risk_scaling" in r.stages:
+            lines += ["", "Mehr Risiko/Hebel (ohne Kill Switch, nur zur Einordnung):", "",
+                      "| Risiko-Faktor | Risiko/Trade | Max-Hebel | Rendite | Sharpe | Max-DD | Ø Exposure | Liquidationen |",
+                      "|---|---|---|---|---|---|---|---|"]
+            for x in r.stages["D_risk_scaling"]:
+                lines.append(f"| {x['risk_multiplier']:g}x | {x['risk_per_trade']:.2%} | {x['max_leverage']:.1f}x | "
+                             f"{_f(x['total_return'], True)} | {_f(x['sharpe'])} | {_f(x['max_drawdown'], True)} | "
+                             f"{_f(x['avg_gross_exposure'])}x | {x['liquidations']} |")
+        if "D_ml_meta_filter" in r.stages:
+            ml = r.stages["D_ml_meta_filter"]
+            lines += ["", f"ML-Meta-Filter: {ml['verdict']}"]
+            if "baseline" in ml:
+                lines += [f"(AUC Train {_f(ml['train_auc'])}, Validation {_f(ml['val_auc'])}; Erwartung/Trade "
+                          f"ohne Filter {_f(ml['baseline']['expectancy'])}, mit ML {_f(ml['ml_filter']['expectancy'])} "
+                          f"({ml['ml_filter']['trades']} Trades), einfache Regel {_f(ml['simple_rule_strong_signal']['expectancy'])})"]
         if "A_screen" in r.stages:
             s = r.stages["A_screen"]["summary"]
             if s.get("combos"):

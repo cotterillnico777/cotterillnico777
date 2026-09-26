@@ -73,7 +73,8 @@ class Trader:
         self.run_tag = hashlib.sha1(tag_src.encode()).hexdigest()[:8]
         self.exec = ExecutionEngine(exchange, journal, self.run_tag,
                                     ExecConfig(max_failures=cfg.runtime.max_order_failures,
-                                               min_notional=cfg.risk.min_trade_notional), sleep=sleep)
+                                               min_notional=cfg.risk.min_trade_notional), sleep=sleep,
+                                    clock=clock)
         warm = max(create(s.name, s.params).warmup for s in cfg.strategies) * 3
         bars_per_day = 86400 / tf_seconds(self.tf)
         regime_days = cfg.regime.trend_ma_days + cfg.regime.slope_days + cfg.regime.vol_rank_days // 4

@@ -40,12 +40,13 @@ def client_id(run_tag: str, symbol: str, bar_key: str, purpose: str) -> str:
 
 class ExecutionEngine:
     def __init__(self, adapter: ExchangeAdapter, journal: Journal, run_tag: str,
-                 cfg: ExecConfig | None = None, sleep=time.sleep) -> None:
+                 cfg: ExecConfig | None = None, sleep=time.sleep, clock=None) -> None:
         self.ex = adapter
         self.journal = journal
         self.run_tag = run_tag
         self.cfg = cfg or ExecConfig()
         self.sleep = sleep
+        self.clock = clock  # Uhr der Handelsschleife (für Zeitstempel der Fills)
         self.consecutive_failures = 0
 
     # --------------------------------------------------------------- Senden
@@ -114,7 +115,8 @@ class ExecutionEngine:
             # Preis des neuen Teils aus dem Durchschnitt zurückrechnen
             prev_avg = float(row["avg_price"] or 0.0) if row is not None else 0.0
             px = (o.avg_price * o.filled_qty - prev_avg * before) / new_qty if before else o.avg_price
-            self.journal.fill(o.client_id, o.symbol, o.side.value, new_qty, px, max(o.fee - fee_before, 0.0))
+            ts = self.clock().isoformat() if self.clock else None
+            self.journal.fill(o.client_id, o.symbol, o.side.value, new_qty, px, max(o.fee - fee_before, 0.0), ts)
         self.journal.order(o)
 
     # ------------------------------------------------------------ Umsetzung

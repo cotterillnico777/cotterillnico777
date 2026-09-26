@@ -125,6 +125,55 @@ def cmd_kill(args, cfg) -> int:
     return 0
 
 
+def cmd_analyze(args, cfg) -> int:
+    from .analytics import full_report, journal_equity, journal_trades
+    from .monitoring.journal import Journal
+
+    if args.journal:
+        j = Journal(args.journal)
+        text = full_report(journal_trades(j), journal_equity(j))
+    else:
+        from .config.schema import StrategySlot
+        from .research.runner import Prepared, run
+
+        slots = list(cfg.strategies) or [StrategySlot(args.strategy, {}, timeframe=args.timeframe)]
+        markets = load_markets(cfg, slots[0].timeframe, None, args.synthetic)
+        res = run(Prepared(cfg, markets, slots))
+        text = full_report(res.trades, res.equity)
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8")
+    print(text[:3000])
+    print(f"\nVollständig: {out}")
+    return 0
+
+
+def cmd_compare(args, cfg) -> int:
+    from .monitoring.journal import Journal
+    from .research.forward import compare_forward, format_forward, to_json
+
+    tf = cfg.strategies[0].timeframe
+    markets = load_markets(cfg, tf)
+    r = compare_forward(cfg, Journal(args.journal), markets)
+    print(format_forward(r))
+    Path(args.out).write_text(to_json(r), encoding="utf-8")
+    return 0
+
+
+def cmd_readiness(args, cfg) -> int:
+    import json
+
+    from .monitoring.journal import Journal
+    from .monitoring.readiness import format_readiness, readiness
+
+    j = Journal(args.journal) if args.journal and Path(args.journal).exists() else None
+    fwd = json.loads(Path(args.forward).read_text()) if args.forward and Path(args.forward).exists() else None
+    items = readiness(cfg, args.research, j, fwd)
+    print(format_readiness(items))
+    auto = [i for i in items if i.ok is not None]
+    return 0 if all(i.ok for i in auto) else 1
+
+
 def register(sub) -> None:
     r = sub.add_parser("research", help="Forschungspipeline (Train/Val/WF/Stress/MC/OOS)")
     r.add_argument("--timeframes", nargs="+", default=["4h", "1d"])
@@ -160,3 +209,22 @@ def register(sub) -> None:
 
     k = sub.add_parser("kill", help="Kill Switch setzen (alles schließen, nichts Neues)")
     k.set_defaults(func=cmd_kill)
+
+    an = sub.add_parser("analyze", help="Trade-Analyse (Journal oder Backtest)")
+    an.add_argument("--journal")
+    an.add_argument("-s", "--strategy", default="ema_trend")
+    an.add_argument("-t", "--timeframe", default="4h")
+    an.add_argument("--synthetic", action="store_true")
+    an.add_argument("--out", default="research_output/analysis.md")
+    an.set_defaults(func=cmd_analyze)
+
+    cp = sub.add_parser("compare", help="Phase 7: Paper-Journal vs. Backtest im selben Zeitraum")
+    cp.add_argument("--journal", required=True)
+    cp.add_argument("--out", default="research_output/forward_compare.json")
+    cp.set_defaults(func=cmd_compare)
+
+    rd = sub.add_parser("readiness", help="Phase 8: Live-Readiness-Checkliste (aktiviert nichts)")
+    rd.add_argument("--research", help="results.json aus 'quantbot research'")
+    rd.add_argument("--journal", help="Paper-Journal")
+    rd.add_argument("--forward", help="JSON aus 'quantbot compare'")
+    rd.set_defaults(func=cmd_readiness)
