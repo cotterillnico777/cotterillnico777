@@ -6,3 +6,5 @@ __pycache__/
 state/
 data/
 STOP
+market_data/
+research_output/
