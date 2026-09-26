@@ -113,3 +113,16 @@ Die Berichte werden dort erzeugt und hier ausgewertet.
   (Phase 3) gebaut. Grund: Jedes Forschungsergebnis hängt von Positionsgröße, Hebel und
   Limits ab. Forschung mit einer provisorischen Größenlogik hätte später komplett
   wiederholt werden müssen.
+- Phase 3 und 4 abgeschlossen: 17 Strategien, Regime, Pipeline A–F. Funktionstest:
+  auf Zufallsdaten besteht nichts (NO TRADE), auf synthetischen Trenddaten bestehen
+  Trendstrategien, Mean Reversion fällt durch.
+- Phase 6 abgeschlossen: Execution Engine, Paper-Börse, Trader, Journal.
+- Phase 7 und 8 abgeschlossen (technisch): Analytics, Forward-Vergleich (im Test
+  100 % identische Signale, 11 von 13 Trades zugeordnet), Risikoskalierung,
+  ML-Meta-Filter-Prüfung, Readiness-Checkliste.
+- **Nicht erledigt, weil in dieser Umgebung unmöglich:** Forschung auf echten Daten,
+  Paper-Phase, Forward-Vergleich mit echten Kursen. Es gibt daher bewusst **keine**
+  Performance-Aussage und keine empfohlene Strategie. Nächster Schritt liegt beim Nutzer
+  (siehe README.md).
+- ML: als Prüfung implementiert, im Handelspfad nicht aktiv (nur bei klarem OOS-Vorteil).
+- OI/Liquidations-Strategien: nicht gebaut (Historie zu kurz, A4).

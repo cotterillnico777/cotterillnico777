@@ -1,0 +1,36 @@
+# Beispielkonfiguration für quantbot (v2).
+# WICHTIG: Die Strategie unten ist ein PLATZHALTER, kein Forschungsergebnis.
+# Ersetze sie durch die Kandidaten, die in `python -m quantbot research` ALLE Stufen
+# inklusive Out-of-Sample bestanden haben – mit genau den Parametern aus REPORT.md.
+# Hat keine Strategie bestanden, ist NO TRADE das richtige Ergebnis: Liste leer lassen.
+#
+# Verwendung:  python -m quantbot -c configs/quantbot.example.yaml run --mode paper
+
+risk:
+  risk_per_trade: 0.005        # 0,5 % des Kontos bis zum Stop
+  sizing: risk                 # risk | vol_target
+  max_leverage: 2.0            # Hebel ergibt sich aus der Größe; dies ist nur die Obergrenze (hart max. 5)
+  max_gross_exposure: 2.0
+  max_net_exposure: 1.5
+  target_portfolio_vol: 0.30
+  daily_loss_limit: 0.03
+  weekly_loss_limit: 0.06
+  max_drawdown_limit: 0.20     # Kill Switch
+  max_consecutive_losses: 5
+  cooldown_bars: 12
+
+strategies:
+  - name: ema_trend            # PLATZHALTER
+    timeframe: 4h
+    params: {fast: 20, slow: 100, adx_min: 0, atr_mult: 3.0}
+    symbols: []                # leer = BTC, ETH, SOL
+    weight: 1.0
+    regimes: []                # z. B. [bull, bear] = nicht in Seitwärtsphasen handeln
+
+runtime:
+  paper_balance: 10000
+  database: state/quantbot.sqlite
+  kill_switch_file: STOP
+
+live:
+  enabled: false               # niemals automatisch; siehe docs/LIVE_TRADING.md
