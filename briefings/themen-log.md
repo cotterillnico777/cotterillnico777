@@ -16,3 +16,4 @@ Format: `Datum | Abschnitt-2-Thema (Finanzwissen) | Abschnitt-3-Thema (Geld & Ve
 | 2026-09-23 | Geopolitische Risikoprämie (Ölpreis)                        | Mental Accounting |
 | 2026-09-24 | Liquidationskaskaden bei gehebelten Positionen              | Bestätigungsfehler (Confirmation Bias) |
 | 2026-09-25 | BIP-Wachstumsraten (annualisiert vs. Jahresvergleich) / PCE vs. CPI | Ankereffekt (Anchoring Bias) |
+| 2026-09-26 | Bewertungskennzahlen (KGV, PEG, KBV, KUV)                    | Present Bias (Gegenwartsverzerrung) |
