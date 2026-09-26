@@ -15,21 +15,34 @@ from ..config.schema import Config, StrategySlot
 from ..data import MarketSeries
 from ..portfolio.allocator import SlotFrames, StrategyPortfolio, compute_slot
 from ..portfolio.correlation import RiskStats
+from ..regimes import detect_regimes
 from ..risk.engine import RiskEngine
 
 
 class Prepared:
     """Einmal vorberechnete Signale/Statistiken, wiederverwendbar für viele Zeiträume und Stresstests."""
 
-    def __init__(self, cfg: Config, markets: dict[str, MarketSeries], slots: list[StrategySlot]) -> None:
+    def __init__(self, cfg: Config, markets: dict[str, MarketSeries], slots: list[StrategySlot],
+                 shared: "Shared | None" = None) -> None:
         self.cfg = cfg
         self.markets = markets
         self.slots = slots
         self.computed: list[SlotFrames] = [compute_slot(s, markets) for s in slots]
+        self.shared = shared or Shared(cfg, markets)
+        self.timeframe = self.shared.timeframe
+        self.stats = self.shared.stats
+        self.regimes = self.shared.regimes
+
+
+class Shared:
+    """Je Zeitrahmen nur einmal zu berechnen: Risikostatistik und Regime."""
+
+    def __init__(self, cfg: Config, markets: dict[str, MarketSeries]) -> None:
         tf = next(iter(markets.values())).timeframe
         self.timeframe = tf
         self.stats = RiskStats({s: m.ohlcv["close"] for s, m in markets.items()}, tf,
                                cfg.risk.correlation_lookback_days)
+        self.regimes = {s: detect_regimes(m.ohlcv, tf, cfg.regime) for s, m in markets.items()}
 
 
 def run(
@@ -53,7 +66,8 @@ def run(
     stats_view = _StatsView(prep.stats, engine.index)
     risk = RiskEngine(risk_cfg, replace(cfg.costs, taker_fee=costs.taker_fee, slippage_bps=costs.slippage_bps),
                       mmr, stats_view)
-    model = StrategyPortfolio(prep.markets, prep.slots, risk, cfg.regime, computed=prep.computed)
+    model = StrategyPortfolio(prep.markets, prep.slots, risk, cfg.regime, computed=prep.computed,
+                              regimes=prep.regimes)
     meta = run_metadata(cfg, prep.markets, {
         "label": label, "period": [str(engine.index[0]), str(engine.index[-1])],
         "slots": [s.__dict__ for s in prep.slots], "cost_mult": list(cost_mult),

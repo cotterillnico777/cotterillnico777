@@ -48,12 +48,13 @@ class StrategyPortfolio:
         risk: RiskEngine,
         regime_cfg: RegimeConfig,
         computed: list[SlotFrames] | None = None,
+        regimes: dict[str, pd.DataFrame] | None = None,
     ) -> None:
         self.markets = markets
         self.slots = slots
         self.risk = risk
         self.computed = computed if computed is not None else [compute_slot(s, markets) for s in slots]
-        self.regimes = {s: detect_regimes(m.ohlcv, m.timeframe, regime_cfg) for s, m in markets.items()}
+        self.regimes = regimes or {s: detect_regimes(m.ohlcv, m.timeframe, regime_cfg) for s, m in markets.items()}
         self._bound_index = None
 
     def bind(self, index: pd.DatetimeIndex) -> None:

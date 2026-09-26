@@ -105,7 +105,15 @@ class ResearchConfig:
     delay_stress: list[int] = field(default_factory=lambda: [1, 2])
     monte_carlo_runs: int = 1000
     seed: int = 42
-    min_trades: int = 30
+    min_trades: int = 30  # im gesamten Forschungszeitraum (Train + Validation)
+    max_grid: int = 24  # max. Parameterkombinationen je Strategie (Stichprobe, reproduzierbar)
+    # Definition of Done (Schwellen)
+    max_drawdown_accept: float = 0.25
+    mc_drawdown_p95_limit: float = 0.35
+    mc_prob_loss_max: float = 0.25
+    min_positive_grid_share: float = 0.5
+    min_plateau_ratio: float = 0.5
+    wf_min_profitable_share: float = 0.5
 
 
 @dataclass
