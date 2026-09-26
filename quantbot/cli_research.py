@@ -72,6 +72,59 @@ def cmd_backtest(args, cfg) -> int:
     return 0
 
 
+def cmd_run(args, cfg) -> int:
+    from .backtesting.costs import CostModel
+    from .config import resolve_mode
+    from .core.types import Mode
+    from .exchanges.ccxt_futures import CCXTFuturesAdapter
+    from .exchanges.simulated import SimulatedExchange
+    from .execution.trader import Trader
+    from .monitoring.journal import Journal
+    from .monitoring.logs import setup_logging
+
+    mode = resolve_mode(cfg, args.mode)  # LIVE nur mit allen drei Freigaben
+    setup_logging(cfg.runtime.log_file)
+    db = args.journal or cfg.runtime.database.replace(".sqlite", f"_{mode.value}.sqlite")
+    journal = Journal(db)
+    mmr = {i.symbol: i.maintenance_margin_rate for i in cfg.instruments}
+    if mode is Mode.PAPER:
+        market = CCXTFuturesAdapter(cfg.data.exchange)
+        exchange = SimulatedExchange(market, CostModel.from_config(cfg.costs), cfg.runtime.paper_balance, mmr)
+    elif mode is Mode.LIVE:
+        exchange = CCXTFuturesAdapter(cfg.data.exchange, with_keys=True)
+        for inst in cfg.instruments:
+            # Börsen-Hebel = nur Margin-Rahmen; die tatsächliche Größe bestimmt die Risk Engine
+            exchange.set_leverage(inst.symbol, cfg.risk.max_leverage)
+        print("*** LIVE: echte Orders mit echtem Geld ***")
+    else:
+        print("Für Backtests: python -m quantbot backtest / research")
+        return 2
+    trader = Trader(cfg, mode, exchange, journal)
+    trader.run(max_cycles=1 if args.once else None)
+    return 0
+
+
+def cmd_status(args, cfg) -> int:
+    from .monitoring.journal import Journal
+    from .monitoring.status import format_status, status_report
+
+    mode = args.mode or "paper"
+    db = args.journal or cfg.runtime.database.replace(".sqlite", f"_{mode}.sqlite")
+    if not Path(db).exists():
+        print(f"Kein Journal unter {db}")
+        return 1
+    print(format_status(status_report(Journal(db), cfg.runtime.kill_switch_file)))
+    return 0
+
+
+def cmd_kill(args, cfg) -> int:
+    Path(cfg.runtime.kill_switch_file).touch()
+    print(f"Kill Switch gesetzt ({cfg.runtime.kill_switch_file}). Der Bot schließt alle Positionen "
+          f"beim nächsten Zyklus und öffnet keine neuen. Aufheben: Datei löschen UND Journal-Risikostatus "
+          f"bewusst zurücksetzen (neues Journal).")
+    return 0
+
+
 def register(sub) -> None:
     r = sub.add_parser("research", help="Forschungspipeline (Train/Val/WF/Stress/MC/OOS)")
     r.add_argument("--timeframes", nargs="+", default=["4h", "1d"])
@@ -93,3 +146,17 @@ def register(sub) -> None:
     b.add_argument("--end")
     b.add_argument("--synthetic", action="store_true")
     b.set_defaults(func=cmd_backtest)
+
+    rn = sub.add_parser("run", help="Paper- oder Live-Handel (Standard: TRADING_MODE oder paper)")
+    rn.add_argument("--mode", choices=["paper", "live"])
+    rn.add_argument("--journal", help="SQLite-Datei (Standard aus runtime.database)")
+    rn.add_argument("--once", action="store_true", help="nur ein Zyklus")
+    rn.set_defaults(func=cmd_run)
+
+    st = sub.add_parser("status", help="Bot-Status aus dem Journal")
+    st.add_argument("--mode", choices=["paper", "live"])
+    st.add_argument("--journal")
+    st.set_defaults(func=cmd_status)
+
+    k = sub.add_parser("kill", help="Kill Switch setzen (alles schließen, nichts Neues)")
+    k.set_defaults(func=cmd_kill)

@@ -126,13 +126,17 @@ class RiskEngine:
         account: Account,
         prices: dict[str, float],
         signals: dict[str, Signal],
+        bar_no: int | None = None,
     ) -> list[Intent]:
+        """``i`` = Index in den Statistiken; ``bar_no`` = fortlaufende Kerzennummer für Cooldowns
+        (Live: gleitendes Datenfenster, daher absolute Nummer). Standard: bar_no = i."""
         c = self.cfg
+        clock_i = i if bar_no is None else bar_no
         equity = account.equity(prices)
         if equity <= 0:
             self.kill("Kontowert <= 0")
         block = self._update_limits(ts, equity)
-        if block is None and i < self.state.cooldown_until:
+        if block is None and clock_i < self.state.cooldown_until:
             block = "cooldown"
         if self.state.killed:
             # Alles schließen, keine neuen Positionen mehr

@@ -76,7 +76,11 @@ class StrategyPortfolio:
     def decide(self, view) -> list[Intent]:
         if self._bound_index is None or self._bound_index is not view._e.index:
             self.bind(view._e.index)
-        i = view.i
+        signals = self.signals_at(view.i)
+        return self.risk.targets(view.i, view.timestamp, view.account, view.prices, signals)
+
+    def signals_at(self, i: int) -> dict[str, Signal]:
+        """Kombinierte Signale aller Strategien für Kerze i (nach bind())."""
         signals: dict[str, Signal] = {}
         for s in self.markets:
             trend, vol = self.reg[s][0][i], self.reg[s][1][i]
@@ -120,7 +124,7 @@ class StrategyPortfolio:
                 "features": json.dumps(features, sort_keys=True),
             }
             signals[s] = Signal(s, value, stop, tp if len(contributors) == 1 else None, meta)
-        return self.risk.targets(i, view.timestamp, view.account, view.prices, signals)
+        return signals
 
     def on_trade_closed(self, trade, i: int) -> None:
         self.risk.on_trade_closed(trade.net_pnl, trade.entry_equity, i)
