@@ -59,6 +59,22 @@ def cmd_data_validate(args, cfg) -> int:
     return 1 if bad else 0
 
 
+def cmd_data_audit(args, cfg) -> int:
+    from .data import DataStore
+    from .data.audit import audit_all, write_audit
+
+    symbols = args.symbols or [i.symbol for i in cfg.instruments]
+    result = audit_all(DataStore(cfg.data.directory), cfg.data.exchange, symbols, args.timeframes)
+    path = write_audit(result, args.out)
+    grades = [a.grade for a in result["series"]] + [g for g, _, _ in result["funding"].values()]
+    for a in result["series"]:
+        print(f"{a.grade:4}  {a.symbol} {a.timeframe}: {'; '.join(a.reasons) or 'ohne Befund'}")
+    for s, (g, reasons, _) in result["funding"].items():
+        print(f"{g:4}  {s} Funding: {'; '.join(reasons) or 'ohne Befund'}")
+    print(f"\nBericht: {path}")
+    return 1 if "FAIL" in grades else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="quantbot", description="Quantitativer Krypto-Futures-Bot (v2)")
     p.add_argument("-c", "--config", help="YAML-Konfiguration (Standard: eingebaute Defaults)")
@@ -75,6 +91,11 @@ def build_parser() -> argparse.ArgumentParser:
     va.add_argument("--timeframes", nargs="+", default=["15m", "1h", "4h", "1d"])
     va.add_argument("--symbols", nargs="+")
     va.set_defaults(func=cmd_data_validate)
+    au = data.add_parser("audit", help="Ausführliche Datenprüfung mit PASS/WARN/FAIL (ändert nichts)")
+    au.add_argument("--timeframes", nargs="+", default=["15m", "1h", "4h", "1d"])
+    au.add_argument("--symbols", nargs="+")
+    au.add_argument("--out", default="research_output/data_audit")
+    au.set_defaults(func=cmd_data_audit)
 
     from . import cli_research  # noqa: F401  (registriert weitere Befehle)
 

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from ..core.timeframes import tf_delta
 from .download import download_funding, download_ohlcv
 from .resample import resample_ohlcv
 from .store import DataStore, frame_hash
@@ -27,6 +28,18 @@ class MarketSeries:
     synthetic: bool = False
 
 
+def closed_candles(df: pd.DataFrame, timeframe: str, symbol: str = "", now: pd.Timestamp | None = None) -> pd.DataFrame:
+    """Nur abgeschlossene Kerzen (Ende <= jetzt). Die Datei bleibt unverändert; ausgeschlossene
+    Kerzen werden protokolliert. Normalerweise ist nichts auszuschließen, weil der Download nur
+    abgeschlossene Kerzen speichert – dies ist die zweite Sicherung für Research und Backtest."""
+    now = now if now is not None else pd.Timestamp.now(tz="UTC")
+    keep = df.index + tf_delta(timeframe) <= now
+    if not keep.all():
+        log.warning("%s %s: %d nicht abgeschlossene Kerze(n) ab %s ausgeschlossen",
+                    symbol, timeframe, int((~keep).sum()), df.index[~keep][0])
+    return df[keep]
+
+
 class MarketData:
     def __init__(self, store: DataStore, exchange: str) -> None:
         self.store = store
@@ -42,7 +55,7 @@ class MarketData:
         new = download_ohlcv(adapter, symbol, timeframe, since)
         df = new if old is None else pd.concat([old, new])
         df = df[~df.index.duplicated(keep="last")].sort_index()
-        report = validate_ohlcv(df, timeframe)
+        report = validate_ohlcv(df, timeframe, now=pd.Timestamp.now(tz="UTC"))
         if not report.ok:
             raise ValueError(f"Daten von {symbol} {timeframe} fehlerhaft:\n{report.summary()}")
         self.store.save(df, "ohlcv", self.exchange, symbol, timeframe)
@@ -61,6 +74,7 @@ class MarketData:
 
     def load(self, symbol: str, timeframe: str, start=None, end=None) -> MarketSeries:
         df = self.store.load("ohlcv", self.exchange, symbol, timeframe)
+        df = closed_candles(df, timeframe, symbol)
         if start is not None:
             df = df[df.index >= pd.Timestamp(start, tz="UTC")]
         if end is not None:
@@ -88,4 +102,5 @@ __all__ = [
     "validate_ohlcv",
     "resample_ohlcv",
     "frame_hash",
+    "closed_candles",
 ]

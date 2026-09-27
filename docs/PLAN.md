@@ -84,6 +84,9 @@ zusätzlich dieselbe Execution Engine, nur mit unterschiedlichem Adapter.
 - A14: Zeitliche Aufteilung: Train (60 %) → Validation (20 %) → Out-of-Sample (20 %).
   Der OOS-Teil wird für **keine** Auswahlentscheidung benutzt, nur einmal am Ende.
 - A15: Parameter werden als Bereiche bewertet (Nachbarschaftsstabilität), nicht als Punkt.
+- A17: Kerzen mit Volumen 0 (kein Handel, z. B. Börsenwartung) bleiben in den Daten, aber
+  Backtest-Orders und Stops werden dort nicht ausgeführt, sondern zur nächsten Kerze mit
+  Handel verschoben. Laufende Kerzen werden beim Download und erneut beim Laden ausgeschlossen.
 - A16: Ergebnisse aus synthetischen Daten sind ausschließlich Funktionstests und werden
   nie als Performance berichtet.
 

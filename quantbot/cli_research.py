@@ -22,8 +22,16 @@ def load_markets(cfg, timeframe: str, symbols=None, synthetic: bool = False, syn
             df = synthetic_ohlcv(n, timeframe, seed=cfg.research.seed + k, regime_switch=True, start="2020-01-01")
             out[s] = MarketSeries(s, timeframe, df, synthetic_funding(df.index, seed=k), f"synthetic{k}", True)
         return out
+    from .data import validate_ohlcv
+
     md = MarketData(DataStore(cfg.data.directory), cfg.data.exchange)
-    return {s: md.load(s, timeframe) for s in symbols}
+    out = {s: md.load(s, timeframe) for s in symbols}
+    for s, m in out.items():
+        rep = validate_ohlcv(m.ohlcv, timeframe)
+        if not rep.ok:
+            raise SystemExit(f"{s} {timeframe}: Daten verletzen die Integrität, Abbruch:\n{rep.summary()}\n"
+                             "Details: python -m quantbot data audit")
+    return out
 
 
 def cmd_research(args, cfg) -> int:

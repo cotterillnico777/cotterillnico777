@@ -169,13 +169,15 @@ class BacktestEngine:
         self.mmr = mmr
 
         # Numpy-Arrays je Symbol, auf den gemeinsamen Index ausgerichtet (NaN = keine Kerze)
-        self.o, self.h, self.l, self.c = {}, {}, {}, {}
+        self.o, self.h, self.l, self.c, self.no_trade = {}, {}, {}, {}, {}
         self.funding_events: dict[str, dict[int, list[tuple[float, bool]]]] = {}
         self.funding_fallback: dict[str, bool] = {}
         for s, m in markets.items():
             df = m.ohlcv.reindex(idx)
             self.o[s], self.h[s] = df["open"].values, df["high"].values
             self.l[s], self.c[s] = df["low"].values, df["close"].values
+            # Volumen 0 = in dieser Kerze fand kein Handel statt (z. B. Börsenwartung): keine Fills
+            self.no_trade[s] = (df["volume"] == 0).values
             self.funding_events[s], self.funding_fallback[s] = self._funding_schedule(m)
 
     # ------------------------------------------------------------------ Funding
@@ -226,8 +228,8 @@ class BacktestEngine:
             # 2. Ausführung fälliger Ziele
             carry = []
             for intent in pending.pop(i, []):
-                if math.isnan(self.o[intent.symbol][i]):
-                    carry.append(intent)  # keine Kerze: nächste Kerze
+                if math.isnan(self.o[intent.symbol][i]) or self.no_trade[intent.symbol][i]:
+                    carry.append(intent)  # keine Kerze / kein Handel: nächste Kerze
                     continue
                 self._execute(i, intent)
             if carry:
@@ -391,7 +393,7 @@ class BacktestEngine:
 
     def _check_exits(self, i: int, s: str) -> None:
         pos = self.account.positions.get(s)
-        if not pos or not pos.qty or math.isnan(self.o[s][i]):
+        if not pos or not pos.qty or math.isnan(self.o[s][i]) or self.no_trade[s][i]:
             return
         o, h, l = self.o[s][i], self.h[s][i], self.l[s][i]
         side = pos.side

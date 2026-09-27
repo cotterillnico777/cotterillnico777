@@ -29,6 +29,9 @@ pip install -r requirements.txt
 # 1. Daten (öffentliche Endpunkte, kein API-Schlüssel nötig)
 python -m quantbot data download --timeframes 15m 1h 4h 1d
 python -m quantbot data validate
+python -m quantbot data audit      # PASS/WARN/FAIL je Symbol und Zeitrahmen, ändert nichts
+#    -> research_output/data_audit/DATA_AUDIT.md (+ CSV mit jeder auffälligen Kerze)
+#    Research startet nur, wenn kein FAIL vorliegt (bei harten Fehlern bricht research ab)
 
 # 2. Forschung: alle Strategien, alle Stufen, OOS nur einmal am Ende
 python -m quantbot research --timeframes 1d 4h 1h 15m

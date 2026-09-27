@@ -13,6 +13,21 @@
   PnL, Gebühren, Funding, Slippage, Regime, Strategie, Version, Signalstärke,
   Ein-/Ausstiegsgrund, MFE, MAE, R-Multiple, Merkmale beim Einstieg.
 
+## Datenprüfung (`python -m quantbot data audit`)
+
+Vor der Forschung: je Symbol und Zeitrahmen PASS / WARN / FAIL, ohne Daten zu verändern.
+
+- **FAIL:** doppelte/unsortierte Zeitstempel, High < Low, Open/Close außerhalb High/Low,
+  Preis ≤ 0, fehlende Werte, negatives Volumen, Volumen 0 trotz Preisbewegung, beim Speichern
+  noch laufende Kerze, Widerspruch zwischen Zeitrahmen (höherer Zeitrahmen wird aus 15m
+  nachgebaut und mit dem getrennt geladenen verglichen).
+- **WARN:** Lücken, Kerzen ohne Handel (flach, Volumen 0), nicht bestätigte Extrembewegungen,
+  Auffälligkeiten bei Funding-Zeitpunkten.
+- Extrembewegung: |Log-Rendite − Median| > 12 × robuste Streuung (MAD × 1,4826) des jeweiligen
+  Zeitrahmens. Sie gilt als echt, wenn OHLC konsistent ist, der andere Zeitrahmen sie bestätigt,
+  kein Kurssprung zwischen Kerzen vorliegt und keine sofortige Umkehr bei schwachem Volumen folgt.
+  Gleichzeitige Bewegungen bei anderen Symbolen werden mit ausgewiesen.
+
 ## Metriken
 
 Rendite, CAGR, Max-Drawdown, Sharpe, Sortino, Calmar, Profit Factor, Expectancy,
