@@ -3,8 +3,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .env
-state/
-data/
+/state/
+/data/
 STOP
-market_data/
-research_output/
+/market_data/
+/research_output/
