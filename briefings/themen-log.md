@@ -20,3 +20,4 @@ Format: `Datum | Abschnitt-2-Thema (Finanzwissen) | Abschnitt-3-Thema (Geld & Ve
 | 2026-09-27 | Drawdown vom Allzeithoch (Maximum Drawdown)                  | Sunk Cost Fallacy |
 | 2026-09-28 | Zweitrundeneffekte (Erstrundeneffekt vs. Zweitrundeneffekt)  | Geld und Glück (Easterlin-Paradox) |
 | 2026-09-29 | Beta zwischen verwandten Anlageklassen (Gold vs. Silber)     | Home Bias (Heimatmarkt-Verzerrung) |
+| 2026-09-30 | Quartalsultimo-Effekte (Rebalancing, Window Dressing)        | Sozialer Vergleich beim Investieren |
