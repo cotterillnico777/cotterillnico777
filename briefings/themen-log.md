@@ -22,3 +22,4 @@ Format: `Datum | Abschnitt-2-Thema (Finanzwissen) | Abschnitt-3-Thema (Geld & Ve
 | 2026-09-29 | Beta zwischen verwandten Anlageklassen (Gold vs. Silber)     | Home Bias (Heimatmarkt-Verzerrung) |
 | 2026-09-30 | Quartalsultimo-Effekte (Rebalancing, Window Dressing)        | Sozialer Vergleich beim Investieren |
 | 2026-10-01 | Datenrevisionen bei Wirtschaftsstatistiken (Advance/Second/Third Estimate) | Recency Bias |
+| 2026-10-02 | Golden Cross / Death Cross (gleitende Durchschnitte)         | Illusion of Control |
