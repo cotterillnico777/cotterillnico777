@@ -24,3 +24,4 @@ Format: `Datum | Abschnitt-2-Thema (Finanzwissen) | Abschnitt-3-Thema (Geld & Ve
 | 2026-10-01 | Datenrevisionen bei Wirtschaftsstatistiken (Advance/Second/Third Estimate) | Recency Bias |
 | 2026-10-02 | Golden Cross / Death Cross (gleitende Durchschnitte)         | Illusion of Control |
 | 2026-10-03 | "Bad News is Good News"-Phänomen                             | Framing-Effekt |
+| 2026-10-04 | OPEC+-Förderquoten vs. tatsächliche Produktion               | Status Quo Bias |
