@@ -88,7 +88,36 @@ def crosstf_mismatch(low: pd.DataFrame, low_tf: str, high: pd.DataFrame, high_tf
     bad = price_bad | vol_bad
     out = pd.concat([b[bad].add_prefix(f"{high_tf}_"), a[bad].add_prefix(f"aus_{low_tf}_")], axis=1)
     out["nur_volumen"] = (~price_bad & vol_bad)[bad]
+    dev = pd.concat([((a[c] - b[c]).abs() / b[c].abs().clip(lower=1e-12)) for c in ("open", "high", "low", "close")],
+                    axis=1).max(axis=1)
+    out["max_preisabweichung_pct"] = (dev[bad] * 100).astype(float)
+    out["volumenabweichung_pct"] = (((a["volume"] - b["volume"]) / b["volume"].abs().clip(lower=1e-9)) * 100)[bad]
     return out, len(common)
+
+
+def classify_mismatches(mm: pd.DataFrame, tf: str, base: pd.DataFrame, base_tf: str,
+                        stored_base: pd.Timestamp | None, stored_tf: pd.Timestamp | None) -> pd.Series:
+    """Ursache je abweichender Kerze (nur Diagnose, die Daten bleiben unverändert).
+
+    wartung   : im Zeitraum der Kerze (± 1 Basis-Kerze) gibt es Basis-Kerzen ohne Handel ->
+                die Börse hat die Zeitrahmen um einen Ausfall herum unterschiedlich gebildet
+    datenende : Kerze liegt am Ende der Daten; vermutlich direkt nach Kerzenschluss geladen, bevor
+                die Börse sie final hatte -> erneuter Download (überlappt 2 Tage) ersetzt sie
+    ungeklärt : keine dieser Ursachen -> echte Integritätsverletzung
+    """
+    step, bstep = tf_delta(tf), tf_delta(base_tf)
+    idle = base.index[(base["volume"] == 0) & ((base["high"] - base["low"]).abs() <= 1e-12)]
+    stamps = [t for t in (stored_base, stored_tf) if t is not None]
+    end = min(stamps) if stamps else None
+    out = {}
+    for ts in mm.index:
+        if len(idle) and ((idle >= ts - bstep) & (idle < ts + step + bstep)).any():
+            out[ts] = "wartung"
+        elif end is not None and ts + step > end - 2 * step:
+            out[ts] = "datenende"
+        else:
+            out[ts] = "ungeklärt"
+    return pd.Series(out, dtype=object)
 
 
 def classify_outliers(df: pd.DataFrame, others: dict[str, pd.DataFrame], confirmed_ts: set | None) -> tuple[pd.DataFrame, float]:
@@ -229,13 +258,27 @@ def audit_all(store: DataStore, exchange: str, symbols: list[str], timeframes: l
             confirmed = None
             if tf != base_tf and (s, base_tf) in frames:
                 mm, n_common = crosstf_mismatch(frames[(s, base_tf)], base_tf, df, tf)
+                if len(mm):
+                    b_at = store.info("ohlcv", exchange, s, base_tf).get("updated_at")
+                    mm["ursache"] = classify_mismatches(mm, tf, frames[(s, base_tf)], base_tf,
+                                                        pd.Timestamp(b_at) if b_at else None,
+                                                        pd.Timestamp(a.stored_at) if a.stored_at else None)
                 a.crosstf = mm
                 if len(mm):
                     price = mm[~mm["nur_volumen"]]
-                    if len(price):
-                        a.fail(f"{len(price)} von {n_common} Kerzen widersprechen dem aus {base_tf} nachgebauten Wert")
+                    for cause, group in price.groupby("ursache"):
+                        what = f"{len(group)} von {n_common} Kerzen widersprechen im Preis dem aus {base_tf} nachgebauten Wert"
+                        if cause == "wartung":
+                            a.warn(f"{what} – alle im Umfeld von Kerzen ohne Handel (Börsenwartung)")
+                        elif cause == "datenende":
+                            a.fail(f"{what} – am Datenende, vermutlich vor der Finalisierung geladen; "
+                                   "erneut 'data download' ausführen")
+                        else:
+                            a.fail(f"{what} – Ursache ungeklärt (Integritätsverletzung)")
                     if len(mm) - len(price):
-                        a.warn(f"{len(mm) - len(price)} Kerzen mit Volumenabweichung > {VOLUME_TOL:.1%} zu {base_tf}")
+                        vol = mm[mm["nur_volumen"]]
+                        causes = ", ".join(f"{c}: {n}" for c, n in vol["ursache"].value_counts().items())
+                        a.warn(f"{len(vol)} Kerzen mit Volumenabweichung > {VOLUME_TOL:.1%} zu {base_tf} ({causes})")
                 a.notes.append(f"Abgleich mit {base_tf}: {n_common} Kerzen verglichen, {len(mm)} Abweichungen")
                 confirmed = set(df.index.difference(mm.index)) & set(
                     resample_ohlcv(frames[(s, base_tf)][~frames[(s, base_tf)].index.duplicated()].sort_index(),

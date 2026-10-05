@@ -23,6 +23,10 @@ Vor der Forschung: je Symbol und Zeitrahmen PASS / WARN / FAIL, ohne Daten zu ve
   nachgebaut und mit dem getrennt geladenen verglichen).
 - **WARN:** Lücken, Kerzen ohne Handel (flach, Volumen 0), nicht bestätigte Extrembewegungen,
   Auffälligkeiten bei Funding-Zeitpunkten.
+- Zeitrahmen-Widerspruch: Ursache wird je Kerze bestimmt. *wartung* (im Umfeld von 15m-Kerzen
+  ohne Handel; die Börse bildet die Zeitrahmen um Ausfälle unterschiedlich) = WARN;
+  *datenende* (vor Finalisierung geladen, erneuter Download ersetzt sie) und *ungeklärt* = FAIL.
+  Neue Kerzen werden erst 2 Minuten nach Schluss übernommen.
 - Extrembewegung: |Log-Rendite − Median| > 12 × robuste Streuung (MAD × 1,4826) des jeweiligen
   Zeitrahmens. Sie gilt als echt, wenn OHLC konsistent ist, der andere Zeitrahmen sie bestätigt,
   kein Kurssprung zwischen Kerzen vorliegt und keine sofortige Umkehr bei schwachem Volumen folgt.

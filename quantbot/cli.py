@@ -61,6 +61,7 @@ def cmd_data_validate(args, cfg) -> int:
 
 def cmd_data_audit(args, cfg) -> int:
     from .data import DataStore
+    from .core.timeframes import tf_seconds as _tf_seconds
     from .data.audit import audit_all, write_audit
 
     symbols = args.symbols or [i.symbol for i in cfg.instruments]
@@ -69,6 +70,11 @@ def cmd_data_audit(args, cfg) -> int:
     grades = [a.grade for a in result["series"]] + [g for g, _, _ in result["funding"].values()]
     for a in result["series"]:
         print(f"{a.grade:4}  {a.symbol} {a.timeframe}: {'; '.join(a.reasons) or 'ohne Befund'}")
+        for ts, r in a.crosstf.iterrows():
+            print(f"        {ts}  {'Volumen' if r['nur_volumen'] else 'Preis  '}  Preis Δ {r['max_preisabweichung_pct']:.4f} %"
+                  f"  Volumen Δ {r['volumenabweichung_pct']:+.2f} %  -> {r['ursache']}")
+        if a.timeframe == min(args.timeframes, key=_tf_seconds) and len(a.zero_volume):
+            print("        ohne Handel: " + ", ".join(str(t) for t in a.zero_volume.index))
     for s, (g, reasons, _) in result["funding"].items():
         print(f"{g:4}  {s} Funding: {'; '.join(reasons) or 'ohne Befund'}")
     print(f"\nBericht: {path}")

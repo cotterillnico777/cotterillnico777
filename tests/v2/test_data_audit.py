@@ -138,3 +138,52 @@ def test_engine_does_not_fill_on_zero_volume_bar():
     eng = BacktestEngine({"X": m}, CostModel(0, 0, 0, 0, 0, 0), 1000.0, {"X": 0.005})
     res = eng.run(Once())
     assert res.trades.iloc[0].entry_time == idx[3]  # Kerze 2 ohne Handel -> nächste Kerze
+
+
+def test_crosstf_mismatch_causes(tmp_path):
+    import json
+
+    maint = pd.date_range("2024-01-20 06:00", periods=6, freq="15min", tz="UTC")
+
+    def mutate(s, df):
+        df = df.copy()
+        for t in maint:
+            j = df.index.get_loc(t)
+            df.iloc[j, :4] = df["close"].iloc[j - 1]
+            df.iloc[j, df.columns.get_loc("volume")] = 0.0
+        return df
+
+    store, now = _store(tmp_path, mutate=mutate)
+    h = store.load("ohlcv", "ex", SYMS[0], "1h")
+    t_maint = pd.Timestamp("2024-01-20 07:00", tz="UTC")  # Stunde mit Wartung
+    h.loc[t_maint, "high"] *= 1.001
+    h.loc[t_maint, "volume"] *= 1.5
+    store.save(h, "ohlcv", "ex", SYMS[0], "1h")
+    res = audit_all(store, "ex", SYMS, ["15m", "1h"], now=now)
+    a = next(x for x in res["series"] if x.symbol == SYMS[0] and x.timeframe == "1h")
+    assert a.grade == "WARN" and a.crosstf.loc[t_maint, "ursache"] == "wartung"
+    assert a.crosstf.loc[t_maint, "max_preisabweichung_pct"] > 0.09
+
+    # gleiche Abweichung außerhalb der Wartung -> ungeklärt -> FAIL
+    t_other = pd.Timestamp("2024-01-25 07:00", tz="UTC")
+    h.loc[t_other, "low"] *= 0.999
+    store.save(h, "ohlcv", "ex", SYMS[0], "1h")
+    a = next(x for x in audit_all(store, "ex", SYMS, ["15m", "1h"], now=now)["series"]
+             if x.symbol == SYMS[0] and x.timeframe == "1h")
+    assert a.grade == "FAIL" and a.crosstf.loc[t_other, "ursache"] == "ungeklärt"
+
+    # letzte Kerze, kurz nach Schluss gespeichert -> datenende
+    h.loc[t_other, "low"] /= 0.999
+    last = h.index[-1]
+    h.loc[last, "volume"] *= 0.9
+    h.loc[last, "high"] *= 1.0005
+    store.save(h, "ohlcv", "ex", SYMS[0], "1h")
+    m = store.manifest()
+    for k in m:
+        if "BTCUSDT" in k and k.endswith(("_1h.csv.gz", "_15m.csv.gz")):
+            m[k]["updated_at"] = str(last + pd.Timedelta("1h") + pd.Timedelta("5s"))
+    store.manifest_path.write_text(json.dumps(m))
+    a = next(x for x in audit_all(store, "ex", SYMS, ["15m", "1h"], now=now)["series"]
+             if x.symbol == SYMS[0] and x.timeframe == "1h")
+    assert a.crosstf.loc[last, "ursache"] == "datenende"
+    assert a.grade == "FAIL" and any("data download" in r for r in a.reasons)

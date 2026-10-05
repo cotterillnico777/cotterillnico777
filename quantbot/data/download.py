@@ -12,6 +12,8 @@ from ..exchanges.base import ExchangeAdapter
 
 log = logging.getLogger(__name__)
 
+FINALIZE_GRACE_MS = 120_000  # Kerzen erst 2 min nach Schluss übernehmen
+
 
 def _retry(fn, attempts: int = 5, base_delay: float = 2.0):
     for i in range(attempts):
@@ -45,7 +47,8 @@ def download_ohlcv(
             break
         for r in batch:
             # Nur abgeschlossene Kerzen im gewünschten Zeitraum
-            if r[0] + step_ms <= min(end_ms, now_ms) and r[0] >= cursor - step_ms:
+            # (+ Puffer: direkt nach Schluss kann die Börse die Kerze noch nachführen)
+            if r[0] + step_ms <= min(end_ms, now_ms - FINALIZE_GRACE_MS) and r[0] >= cursor - step_ms:
                 rows[int(r[0])] = r
         nxt = int(batch[-1][0]) + step_ms
         if nxt <= cursor:
