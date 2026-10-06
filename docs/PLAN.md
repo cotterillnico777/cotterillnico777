@@ -135,3 +135,9 @@ Die Berichte werden dort erzeugt und hier ausgewertet.
   (siehe README.md).
 - ML: als Prüfung implementiert, im Handelspfad nicht aktiv (nur bei klarem OOS-Vorteil).
 - OI/Liquidations-Strategien: nicht gebaut (Historie zu kurz, A4).
+- **Fehler behoben (2026-10, nach dem ersten 1d/4h-Lauf):** Monte Carlo zog die Zusatzkosten
+  (0,05 % Taker-Gebühr) vom gesamten Konto statt vom Positionswert ab. Bei Positionen von
+  ca. 10–20 % des Kontos war der Abzug 5–10-fach zu hoch und wuchs mit der Trade-Anzahl
+  (ema_trend 4h: Median +1,8 % statt realistisch, Verlustwahrscheinlichkeit 45 %).
+  Die Schwellen der Definition of Done bleiben unverändert; nur die Rechnung ist korrigiert.
+  Die Läufe vom 2026-10 vor Commit-Fix sind in Stufe D zu pessimistisch und werden wiederholt.

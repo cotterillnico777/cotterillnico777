@@ -178,11 +178,15 @@ def test_download_pages_and_pipeline(tmp_path):
 
 
 def test_incomplete_last_candle_is_excluded():
+    from quantbot.data.download import FINALIZE_GRACE_MS
+
     now = pd.Timestamp.now(tz="UTC").floor("h")
     df = synthetic_ohlcv(10, "1h", seed=6, start=str(now - pd.Timedelta(hours=9)))
     ad = FakeAdapter(df, synthetic_funding(df.index))
     got = download_ohlcv(ad, "X", "1h", df.index[0])
-    assert got.index[-1] == now - pd.Timedelta(hours=1)  # die laufende Kerze fehlt
+    # letzte übernommene Kerze: endet spätestens FINALIZE_GRACE vor jetzt (laufende Kerze fehlt)
+    cutoff = pd.Timestamp.now(tz="UTC") - pd.Timedelta(milliseconds=FINALIZE_GRACE_MS)
+    assert got.index[-1] == cutoff.floor("h") - pd.Timedelta(hours=1)
     assert np.isfinite(got.values).all()
 
 

@@ -99,6 +99,8 @@ class TradeRecord:
             "exit_price": self.exit_price,
             "qty": self.qty,
             "notional": self.qty * self.entry_price,
+            # Positionswert / Konto bei Einstieg (rechnet Kosten auf den Positionswert in Konto-Anteile um)
+            "position_weight": self.qty * self.entry_price / self.entry_equity if self.entry_equity else np.nan,
             "leverage": self.leverage,
             "stop": self.stop,
             "take_profit": self.take_profit,

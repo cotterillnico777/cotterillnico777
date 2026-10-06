@@ -17,7 +17,7 @@ import pandas as pd
 from ..config.schema import Config, StrategySlot
 from ..data import MarketSeries
 from ..strategies import STRATEGIES
-from .montecarlo import monte_carlo, trade_returns
+from .montecarlo import monte_carlo, trade_returns, trade_weights
 from .runner import Prepared, Shared, run
 from .sensitivity import grid_combos, neighborhood_scores, summarize_grid
 from .splits import Period, Splits, make_splits, walk_forward_windows
@@ -240,7 +240,7 @@ class Researcher:
                 rep.check(f"D: Stress {key} Sharpe > 0", _fin(st[key]["sharpe"]) > 0,
                           f"Sharpe {st[key]['sharpe']:.2f}, Rendite {st[key]['total_return']:.1%}")
         mc = monte_carlo(trade_returns(full.trades), r.monte_carlo_runs, r.seed,
-                         extra_cost=self.cfg.costs.taker_fee)
+                         extra_cost=self.cfg.costs.taker_fee, weights=trade_weights(full.trades))
         rep.stages["D_monte_carlo"] = mc
         if mc.get("runs"):
             rep.check("D: Monte Carlo 95%-Drawdown", mc["max_dd_p95"] >= -r.mc_drawdown_p95_limit,

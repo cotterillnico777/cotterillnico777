@@ -13,22 +13,29 @@ def _max_dd(path: np.ndarray) -> np.ndarray:
 
 
 def monte_carlo(trade_returns: np.ndarray, runs: int = 1000, seed: int = 42,
-                extra_cost: float = 0.0) -> dict:
+                extra_cost: float = 0.0, weights: np.ndarray | None = None) -> dict:
     """Trade-Renditen (Anteil des Kontos je Trade) neu ziehen bzw. mischen.
 
     bootstrap: Ziehen mit Zurücklegen (andere Trade-Mischung, gleiche Anzahl)
     shuffle:   gleiche Trades, andere Reihenfolge (nur Drawdown ändert sich)
-    extra_cost: zufällige Zusatzkosten je Trade, gleichverteilt in [0, 2*extra_cost]
+    extra_cost: zufällige Zusatzkosten je Trade als Anteil des POSITIONSWERTS, gleichverteilt in
+                [0, 2*extra_cost]; mit ``weights`` (Positionswert / Konto je Trade) in Konto-Anteile
+                umgerechnet. Ohne weights wird Gewicht 1 angenommen (volle Kontogröße, sehr konservativ).
     """
     r = np.asarray(trade_returns, float)
-    r = r[np.isfinite(r)]
+    w = np.ones_like(r) if weights is None else np.asarray(weights, float)
+    if w.shape != r.shape:
+        raise ValueError("weights und trade_returns brauchen dieselbe Länge")
+    ok = np.isfinite(r) & np.isfinite(w)
+    r, w = r[ok], w[ok]
     if len(r) < 5:
         return {"runs": 0, "note": "zu wenige Trades für Monte Carlo"}
     rng = np.random.default_rng(seed)
     n = len(r)
-    boot = r[rng.integers(0, n, size=(runs, n))]
+    pick = rng.integers(0, n, size=(runs, n))
+    boot = r[pick]
     if extra_cost:
-        boot = boot - rng.uniform(0, 2 * extra_cost, size=boot.shape)
+        boot = boot - rng.uniform(0, 2 * extra_cost, size=boot.shape) * w[pick]
     boot_path = np.cumprod(1 + np.clip(boot, -0.99, None), axis=1)
     shuf = np.array([rng.permutation(r) for _ in range(runs)])
     shuf_path = np.cumprod(1 + np.clip(shuf, -0.99, None), axis=1)
@@ -52,3 +59,10 @@ def trade_returns(trades: pd.DataFrame) -> np.ndarray:
     if trades is None or trades.empty:
         return np.array([])
     return (trades["return_pct"] / 100).values
+
+
+def trade_weights(trades: pd.DataFrame) -> np.ndarray | None:
+    """Positionswert / Konto je Trade (für Kostenaufschläge in Monte Carlo)."""
+    if trades is None or trades.empty or "position_weight" not in trades:
+        return None
+    return trades["position_weight"].astype(float).values

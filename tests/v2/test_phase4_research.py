@@ -94,3 +94,17 @@ def test_pipeline_runs_all_stages_on_trending_data(tmp_path):
     text = path.read_text()
     assert "SYNTHETISCHE DATEN" in text and "ts_momentum" in text
     assert (tmp_path / "results.json").exists()
+
+
+def test_monte_carlo_extra_cost_scaled_by_position_weight():
+    # 800 Trades, Ø +0,06 % des Kontos, Positionen = 15 % des Kontos.
+    # Zusatzkosten 0,05 % des Positionswerts = 0,0075 % des Kontos je Trade -> kaum Einfluss.
+    rng = np.random.default_rng(0)
+    r = rng.normal(0.0006, 0.004, 800)
+    w = np.full(800, 0.15)
+    scaled = monte_carlo(r, runs=500, seed=1, extra_cost=0.0005, weights=w)
+    plain = monte_carlo(r, runs=500, seed=1)
+    unscaled = monte_carlo(r, runs=500, seed=1, extra_cost=0.0005)  # alter Fehler: Gewicht 1
+    assert scaled["return_p50"] > 0.9 * plain["return_p50"] - 0.06
+    assert unscaled["return_p50"] < scaled["return_p50"] - 0.2
+    assert scaled["prob_loss"] < 0.25
