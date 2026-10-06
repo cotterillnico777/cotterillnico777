@@ -1,0 +1,27 @@
+# Paper-Trading-Kandidat aus dem Research-Lauf 4h, Git 2ed2d15 (2026-10-06).
+# ensemble_equal = ema_trend + squeeze_breakout, gleich gewichtet, ohne Regime-Filter
+# (die regime-gefilterte Variante ist in der Validierung durchgefallen).
+# Parameter exakt wie in REPORT.md – nicht ändern, sonst gilt der Research-Nachweis nicht mehr.
+#
+# Start:   python -m quantbot -c configs/paper_ensemble_4h.yaml run --mode paper
+# Status:  python -m quantbot -c configs/paper_ensemble_4h.yaml status
+
+risk:
+  risk_per_trade: 0.005        # wie im Research (Faktor 1x)
+  max_leverage: 2.0
+
+strategies:
+  - name: ema_trend
+    timeframe: 4h
+    params: {fast: 10, slow: 200, adx_min: 20, atr_mult: 4.0, allow_short: true}
+    weight: 1.0
+  - name: squeeze_breakout
+    timeframe: 4h
+    params: {n: 30, squeeze_pct: 0.2, rank_window: 250, lookback: 5, atr_mult: 2.0, allow_short: true}
+    weight: 1.0
+
+runtime:
+  paper_balance: 10000
+
+live:
+  enabled: false
