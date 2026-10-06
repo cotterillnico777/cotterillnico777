@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import pandas as pd
 
@@ -26,6 +26,8 @@ class MarketSeries:
     funding: pd.DataFrame | None  # None = keine Historie -> Fallback-Rate im Backtest
     data_hash: str
     synthetic: bool = False
+    # Zeitfenster [von, bis), in denen die Börse widersprüchliche Kerzen geliefert hat (data audit)
+    no_trade_windows: list = field(default_factory=list)
 
 
 def closed_candles(df: pd.DataFrame, timeframe: str, symbol: str = "", now: pd.Timestamp | None = None) -> pd.DataFrame:
@@ -83,6 +85,8 @@ class MarketData:
             funding = self.store.load("funding", self.exchange, symbol)
         except FileNotFoundError:
             funding = None
+        from .audit import load_incident_windows
+
         info = self.store.info("ohlcv", self.exchange, symbol, timeframe)
         return MarketSeries(
             symbol=symbol,
@@ -91,6 +95,7 @@ class MarketData:
             funding=funding,
             data_hash=frame_hash(df),
             synthetic=bool(info.get("synthetic", False)),
+            no_trade_windows=load_incident_windows(self.store.root),
         )
 
 

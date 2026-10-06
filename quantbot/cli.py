@@ -67,6 +67,9 @@ def cmd_data_audit(args, cfg) -> int:
     symbols = args.symbols or [i.symbol for i in cfg.instruments]
     result = audit_all(DataStore(cfg.data.directory), cfg.data.exchange, symbols, args.timeframes)
     path = write_audit(result, args.out)
+    from .data.audit import save_incidents
+
+    inc = save_incidents(DataStore(cfg.data.directory), result["incidents"])
     grades = [a.grade for a in result["series"]] + [g for g, _, _ in result["funding"].values()]
     for a in result["series"]:
         print(f"{a.grade:4}  {a.symbol} {a.timeframe}: {'; '.join(a.reasons) or 'ohne Befund'}")
@@ -77,6 +80,8 @@ def cmd_data_audit(args, cfg) -> int:
             print("        ohne Handel: " + ", ".join(str(t) for t in a.zero_volume.index))
     for s, (g, reasons, _) in result["funding"].items():
         print(f"{g:4}  {s} Funding: {'; '.join(reasons) or 'ohne Befund'}")
+    if result["incidents"]:
+        print(f"\n{len(result['incidents'])} Kerzen mit Börsenereignis -> ohne Handel im Backtest: {inc}")
     print(f"\nBericht: {path}")
     return 1 if "FAIL" in grades else 0
 

@@ -187,3 +187,40 @@ def test_crosstf_mismatch_causes(tmp_path):
              if x.symbol == SYMS[0] and x.timeframe == "1h")
     assert a.crosstf.loc[last, "ursache"] == "datenende"
     assert a.grade == "FAIL" and any("data download" in r for r in a.reasons)
+
+
+def test_exchange_wide_mismatch_is_warn_and_creates_no_trade_window(tmp_path):
+    from quantbot.data import MarketData
+    from quantbot.data.audit import save_incidents
+
+    store, now = _store(tmp_path)
+    t = pd.Timestamp("2024-01-25 07:00", tz="UTC")
+    for s in SYMS:  # dieselbe Stunde weicht bei beiden Symbolen ab -> Ereignis der Börse
+        h = store.load("ohlcv", "ex", s, "1h")
+        h.loc[t, "high"] *= 1.002
+        store.save(h, "ohlcv", "ex", s, "1h")
+    res = audit_all(store, "ex", SYMS, ["15m", "1h"], now=now)
+    for a in (x for x in res["series"] if x.timeframe == "1h"):
+        assert a.grade == "WARN" and a.crosstf.loc[t, "ursache"] == "börsenweit"
+    assert {i["start"] for i in res["incidents"]} == {str(t)}
+    save_incidents(store, res["incidents"])
+
+    # nur ein Symbol betroffen -> ungeklärt -> FAIL
+    h = store.load("ohlcv", "ex", SYMS[0], "1h")
+    t2 = pd.Timestamp("2024-01-26 07:00", tz="UTC")
+    h.loc[t2, "low"] *= 0.998
+    store.save(h, "ohlcv", "ex", SYMS[0], "1h")
+    a = next(x for x in audit_all(store, "ex", SYMS, ["15m", "1h"], now=now)["series"]
+             if x.symbol == SYMS[0] and x.timeframe == "1h")
+    assert a.grade == "FAIL" and a.crosstf.loc[t2, "ursache"] == "ungeklärt"
+
+    # Fenster wird geladen und vom Backtest als "kein Handel" behandelt (auch auf 15m und 4h)
+    from quantbot.backtesting.costs import CostModel
+    from quantbot.backtesting.engine import BacktestEngine
+
+    for tf in ("15m", "4h"):
+        m = MarketData(store, "ex").load(SYMS[0], tf)
+        assert m.no_trade_windows == [(t, t + pd.Timedelta("1h"))]
+        eng = BacktestEngine({SYMS[0]: m}, CostModel(0, 0, 0, 0, 0, 0), 1000.0, {SYMS[0]: 0.005})
+        blocked = eng.index[eng.no_trade[SYMS[0]]]
+        assert len(blocked) and all((b < t + pd.Timedelta("1h")) and (b + eng.step > t) for b in blocked)

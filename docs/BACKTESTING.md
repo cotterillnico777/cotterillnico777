@@ -25,7 +25,11 @@ Vor der Forschung: je Symbol und Zeitrahmen PASS / WARN / FAIL, ohne Daten zu ve
   Auffälligkeiten bei Funding-Zeitpunkten.
 - Zeitrahmen-Widerspruch: Ursache wird je Kerze bestimmt. *wartung* (im Umfeld von 15m-Kerzen
   ohne Handel; die Börse bildet die Zeitrahmen um Ausfälle unterschiedlich) = WARN;
+  *börsenweit* (dieselbe Kerze weicht bei mehreren Symbolen ab -> Ereignis der Börse) = WARN;
   *datenende* (vor Finalisierung geladen, erneuter Download ersetzt sie) und *ungeklärt* = FAIL.
+  Für *wartung* und *börsenweit* schreibt `data audit` die Zeitfenster nach
+  `market_data/incidents.json`; der Backtest führt dort in allen Zeitrahmen weder Orders noch
+  Stops aus. Die Kursdateien bleiben unverändert.
   Neue Kerzen werden erst 2 Minuten nach Schluss übernommen.
 - Extrembewegung: |Log-Rendite − Median| > 12 × robuste Streuung (MAD × 1,4826) des jeweiligen
   Zeitrahmens. Sie gilt als echt, wenn OHLC konsistent ist, der andere Zeitrahmen sie bestätigt,

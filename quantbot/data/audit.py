@@ -96,13 +96,17 @@ def crosstf_mismatch(low: pd.DataFrame, low_tf: str, high: pd.DataFrame, high_tf
 
 
 def classify_mismatches(mm: pd.DataFrame, tf: str, base: pd.DataFrame, base_tf: str,
-                        stored_base: pd.Timestamp | None, stored_tf: pd.Timestamp | None) -> pd.Series:
+                        stored_base: pd.Timestamp | None, stored_tf: pd.Timestamp | None,
+                        other_symbols_ts: set | None = None) -> pd.Series:
     """Ursache je abweichender Kerze (nur Diagnose, die Daten bleiben unverändert).
 
     wartung   : im Zeitraum der Kerze (± 1 Basis-Kerze) gibt es Basis-Kerzen ohne Handel ->
                 die Börse hat die Zeitrahmen um einen Ausfall herum unterschiedlich gebildet
     datenende : Kerze liegt am Ende der Daten; vermutlich direkt nach Kerzenschluss geladen, bevor
                 die Börse sie final hatte -> erneuter Download (überlappt 2 Tage) ersetzt sie
+    börsenweit: dieselbe Kerze weicht auch bei mindestens einem anderen Symbol ab -> Ereignis auf
+                Seiten der Börse (z. B. Störung mit nachträglich unterschiedlich gebildeten Kerzen),
+                kein Fehler einer einzelnen Datei
     ungeklärt : keine dieser Ursachen -> echte Integritätsverletzung
     """
     step, bstep = tf_delta(tf), tf_delta(base_tf)
@@ -115,6 +119,8 @@ def classify_mismatches(mm: pd.DataFrame, tf: str, base: pd.DataFrame, base_tf: 
             out[ts] = "wartung"
         elif end is not None and ts + step > end - 2 * step:
             out[ts] = "datenende"
+        elif other_symbols_ts and ts in other_symbols_ts:
+            out[ts] = "börsenweit"
         else:
             out[ts] = "ungeklärt"
     return pd.Series(out, dtype=object)
@@ -222,6 +228,12 @@ def audit_all(store: DataStore, exchange: str, symbols: list[str], timeframes: l
             except FileNotFoundError:
                 pass
     base_tf = min(timeframes, key=tf_seconds)
+    crosstf = {}
+    for tf in timeframes:
+        for s in symbols:
+            if tf != base_tf and (s, tf) in frames and (s, base_tf) in frames:
+                crosstf[(s, tf)] = crosstf_mismatch(frames[(s, base_tf)], base_tf, frames[(s, tf)], tf)
+    incidents: list[dict] = []
     results: list[SeriesAudit] = []
     for tf in timeframes:
         for s in symbols:
@@ -257,12 +269,19 @@ def audit_all(store: DataStore, exchange: str, symbols: list[str], timeframes: l
             # Zeitrahmen-Abgleich: gegen den kleinsten vorhandenen Zeitrahmen
             confirmed = None
             if tf != base_tf and (s, base_tf) in frames:
-                mm, n_common = crosstf_mismatch(frames[(s, base_tf)], base_tf, df, tf)
+                mm, n_common = crosstf[(s, tf)]
                 if len(mm):
                     b_at = store.info("ohlcv", exchange, s, base_tf).get("updated_at")
+                    other_ts = set().union(*[set(crosstf[(o, tf)][0].index) for o in symbols
+                                             if o != s and (o, tf) in crosstf] or [set()])
                     mm["ursache"] = classify_mismatches(mm, tf, frames[(s, base_tf)], base_tf,
                                                         pd.Timestamp(b_at) if b_at else None,
-                                                        pd.Timestamp(a.stored_at) if a.stored_at else None)
+                                                        pd.Timestamp(a.stored_at) if a.stored_at else None,
+                                                        other_ts)
+                    for ts, r in mm[~mm["nur_volumen"] & mm["ursache"].isin(["wartung", "börsenweit"])].iterrows():
+                        incidents.append({"start": str(ts), "end": str(ts + tf_delta(tf)), "timeframe": tf,
+                                          "symbol": s, "cause": r["ursache"],
+                                          "max_price_dev_pct": float(r["max_preisabweichung_pct"])})
                 a.crosstf = mm
                 if len(mm):
                     price = mm[~mm["nur_volumen"]]
@@ -270,6 +289,9 @@ def audit_all(store: DataStore, exchange: str, symbols: list[str], timeframes: l
                         what = f"{len(group)} von {n_common} Kerzen widersprechen im Preis dem aus {base_tf} nachgebauten Wert"
                         if cause == "wartung":
                             a.warn(f"{what} – alle im Umfeld von Kerzen ohne Handel (Börsenwartung)")
+                        elif cause == "börsenweit":
+                            a.warn(f"{what} – gleichzeitig bei anderen Symbolen (Ereignis der Börse); "
+                                   "Backtest handelt in diesem Zeitfenster nicht")
                         elif cause == "datenende":
                             a.fail(f"{what} – am Datenende, vermutlich vor der Finalisierung geladen; "
                                    "erneut 'data download' ausführen")
@@ -308,7 +330,31 @@ def audit_all(store: DataStore, exchange: str, symbols: list[str], timeframes: l
         except FileNotFoundError:
             f, stored = None, None
         funding[s] = audit_funding(f, stored)
-    return {"series": results, "funding": funding, "now": str(now)}
+    return {"series": results, "funding": funding, "now": str(now), "incidents": incidents}
+
+
+INCIDENTS_FILE = "incidents.json"
+
+
+def save_incidents(store: DataStore, incidents: list[dict]) -> Path:
+    """Zeitfenster, in denen die Börse widersprüchliche Kerzen liefert. Nur Metadaten: die
+    Kursdateien bleiben unverändert; der Backtest führt in diesen Fenstern nichts aus."""
+    import json
+
+    path = store.root / INCIDENTS_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(sorted(incidents, key=lambda x: x["start"]), indent=2), encoding="utf-8")
+    return path
+
+
+def load_incident_windows(root: str | Path) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
+    import json
+
+    path = Path(root) / INCIDENTS_FILE
+    if not path.exists():
+        return []
+    rows = json.loads(path.read_text(encoding="utf-8"))
+    return sorted({(pd.Timestamp(x["start"]), pd.Timestamp(x["end"])) for x in rows})
 
 
 def write_audit(result: dict, out_dir: str | Path) -> Path:

@@ -177,7 +177,11 @@ class BacktestEngine:
             self.o[s], self.h[s] = df["open"].values, df["high"].values
             self.l[s], self.c[s] = df["low"].values, df["close"].values
             # Volumen 0 = in dieser Kerze fand kein Handel statt (z. B. Börsenwartung): keine Fills
-            self.no_trade[s] = (df["volume"] == 0).values
+            no_trade = (df["volume"] == 0).values
+            # Börsenereignis (data audit): widersprüchliche Kerzen -> dort weder Fills noch Stops
+            for w_start, w_end in getattr(m, "no_trade_windows", []) or []:
+                no_trade = no_trade | ((idx < w_end) & (idx + self.step > w_start))
+            self.no_trade[s] = no_trade
             self.funding_events[s], self.funding_fallback[s] = self._funding_schedule(m)
 
     # ------------------------------------------------------------------ Funding

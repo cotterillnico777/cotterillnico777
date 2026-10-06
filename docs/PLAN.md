@@ -87,6 +87,12 @@ zusätzlich dieselbe Execution Engine, nur mit unterschiedlichem Adapter.
 - A17: Kerzen mit Volumen 0 (kein Handel, z. B. Börsenwartung) bleiben in den Daten, aber
   Backtest-Orders und Stops werden dort nicht ausgeführt, sondern zur nächsten Kerze mit
   Handel verschoben. Laufende Kerzen werden beim Download und erneut beim Laden ausgeschlossen.
+- A18: Befund der echten Binance-Daten (Audit 2026-10): Kerzen ohne Handel bei allen drei
+  Symbolen am 2021-03-02 01:15–02:00, 2022-05-01 22:30 und 2022-05-28 16:45–17:15 UTC
+  (Börsenwartung). Widersprüche zwischen 15m und 1h/4h bei allen Symbolen gleichzeitig am
+  2023-11-10 (ca. 12–17 Uhr UTC) und 2024-10-28 (ca. 20–22 Uhr UTC), bis 1,19 % Preisabweichung
+  (ETH 1h 2024-10-28 21:00); Tageskerzen nur Volumen (zusätzlich 2023-08-16). Welche Version
+  richtig ist, lässt sich nicht feststellen -> diese Fenster werden nicht gehandelt (A17).
 - A16: Ergebnisse aus synthetischen Daten sind ausschließlich Funktionstests und werden
   nie als Performance berichtet.
 
