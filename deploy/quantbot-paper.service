@@ -1,0 +1,27 @@
+# systemd-Dienst für quantbot im PAPER-Modus (Vorlage; setup_server.sh ersetzt @...@).
+# Kein TRADING_MODE und keine Live-Freigabe: der Dienst kann nur Paper handeln.
+[Unit]
+Description=quantbot paper trading
+Wants=network-online.target time-sync.target
+After=network-online.target time-sync.target
+# Neustart-Schleifen begrenzen (z. B. bei dauerhaftem Konfigurationsfehler)
+StartLimitIntervalSec=600
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=@USER@
+WorkingDirectory=@APP_DIR@
+ExecStart=@APP_DIR@/.venv/bin/python -m quantbot -c @CONFIG@ run --mode paper
+Restart=always
+RestartSec=30
+Environment=PYTHONUNBUFFERED=1
+# Härtung: der Bot darf nur in sein Verzeichnis schreiben
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=@APP_DIR@
+
+[Install]
+WantedBy=multi-user.target

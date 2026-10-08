@@ -19,6 +19,7 @@ maximaler Rendite.** NO TRADE ist ein gültiges Ergebnis.
 | [STRATEGIES.md](STRATEGIES.md) | 17 Strategien, Regime-Erkennung, ML-Prüfung |
 | [RISK_MANAGEMENT.md](RISK_MANAGEMENT.md) | Positionsgröße, Hebel, Limits, Kill Switch |
 | [BACKTESTING.md](BACKTESTING.md) | Kostenmodell, Pipeline A–F, Abnahmekriterien |
+| [SERVER.md](SERVER.md) | Paper-Bot 24/7 auf einem kleinen Linux-Server |
 | [LIVE_TRADING.md](LIVE_TRADING.md) | Paper, Forward-Vergleich, Readiness, Live-Freigabe |
 | [CHANGELOG.md](CHANGELOG.md) | Versionen |
 

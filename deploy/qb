@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Kurzbefehle für den quantbot-Server.  Aufruf: qb <befehl>
+set -euo pipefail
+
+APP_DIR="/home/quantbot/cotterillnico777"
+UNIT="quantbot-paper"
+CONFIG=$(systemctl cat "${UNIT}" 2>/dev/null | sed -n 's/.* -c \([^ ]*\) run .*/\1/p' | head -1 || true)
+CONFIG="${CONFIG:-configs/paper_ensemble_4h.yaml}"
+DB="state/quantbot_paper.sqlite"
+
+as_bot() {
+  if [[ $(id -un) == quantbot ]]; then bash -c "cd '${APP_DIR}' && $*"
+  else sudo -u quantbot bash -c "cd '${APP_DIR}' && $*"; fi
+}
+need_root() { [[ $EUID -eq 0 ]] || { echo "Dafür als root anmelden: ssh root@SERVER-IP" >&2; exit 1; }; }
+sql() { as_bot "sqlite3 -header -column '${DB}' \"$1\""; }
+
+case "${1:-help}" in
+  status)
+    systemctl is-active --quiet "${UNIT}" && echo "Dienst: läuft" || echo "Dienst: GESTOPPT"
+    as_bot ".venv/bin/python -m quantbot -c '${CONFIG}' status" ;;
+  positions)
+    sql "SELECT symbol, qty AS menge, round(entry_price,2) AS einstieg, round(stop,2) AS stop, round(unrealized,2) AS buch_pnl FROM positions WHERE ts=(SELECT MAX(ts) FROM positions);" ;;
+  trades)
+    sql "SELECT symbol, direction AS richtung, entry_time AS einstieg, exit_time AS ausstieg, round(net_pnl,2) AS netto FROM trades ORDER BY id;" ;;
+  analyze)
+    as_bot ".venv/bin/python -m quantbot -c '${CONFIG}' analyze --journal '${DB}'" ;;
+  logs)
+    need_root; journalctl -u "${UNIT}" -n "${2:-50}" --no-pager ;;
+  follow)
+    need_root; journalctl -u "${UNIT}" -f ;;
+  start|stop|restart)
+    need_root; systemctl "$1" "${UNIT}"; systemctl --no-pager --lines=0 status "${UNIT}" || true ;;
+  kill)
+    as_bot ".venv/bin/python -m quantbot -c '${CONFIG}' kill" ;;
+  update)
+    need_root; echo "Aktualisiere Code (Dienst wird dafür kurz gestoppt)"
+    systemctl stop "${UNIT}"
+    as_bot "git pull -q --ff-only && .venv/bin/pip install -q -r requirements.txt"
+    systemctl start "${UNIT}"; echo "ok" ;;
+  *)
+    cat <<'EOF'
+qb status      Dienst + Kontostand, Drawdown, Kill Switch
+qb positions   offene Positionen
+qb trades      abgeschlossene Trades
+qb analyze     ausführliche Auswertung
+qb logs [n]    letzte n Logzeilen (Standard 50)
+qb follow      Log live mitlesen (Ende mit Ctrl+C)
+qb start|stop|restart
+qb kill        Notbremse: alles schließen, nichts Neues
+qb update      neuesten Code holen und Dienst neu starten
+EOF
+    ;;
+esac
