@@ -4,14 +4,16 @@ Forschungs- und Handelssystem für BTC, ETH und SOL USDT-Perpetuals (15m, 1h, 4h
 Leitprinzip: **Robustheit, reproduzierbare Out-of-Sample-Ergebnisse und Kapitalerhalt vor
 maximaler Rendite.** NO TRADE ist ein gültiges Ergebnis.
 
-> Stand: Das System ist technisch vollständig und getestet. **Es gibt noch keine Aussage
-> über echte Märkte**, weil die Cloud-Umgebung, in der es gebaut wurde, keinen Zugriff auf
-> Börsendaten hat. Alle echten Ergebnisse entstehen auf deinem Rechner (Schritte unten).
+> Stand 2026-10: Forschung auf echten Binance-Daten abgeschlossen (siehe RESULTS.md).
+> Auf 4h hat ein Ensemble aus `ema_trend` und `squeeze_breakout` alle Stufen inkl.
+> Out-of-Sample bestanden und läuft im **Paper Trading**; 1h und 15m ergaben NO TRADE.
+> LIVE ist nicht freigegeben.
 
 ## Dokumentation
 
 | Datei | Inhalt |
 |---|---|
+| [RESULTS.md](RESULTS.md) | **Forschungsergebnisse auf echten Daten**, inkl. negativer Ergebnisse |
 | [PLAN.md](PLAN.md) | Bestandsaufnahme, Annahmen A1–A16, Phasen, Fortschritt |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Module, Datenfluss, Lookahead-Schutz |
 | [STRATEGIES.md](STRATEGIES.md) | 17 Strategien, Regime-Erkennung, ML-Prüfung |

@@ -39,7 +39,10 @@ def cmd_research(args, cfg) -> int:
     from .research.report import write_report
     from .strategies import STRATEGIES
 
+    from .backtesting.metadata import git_commit
+
     names = args.strategies or sorted(STRATEGIES)
+    commit = git_commit()  # Stand beim Start: ein späteres git pull ändert den geladenen Code nicht
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     for tf in args.timeframes:
         markets = load_markets(cfg, tf, args.symbols, args.synthetic)
@@ -48,7 +51,7 @@ def cmd_research(args, cfg) -> int:
         result = researcher.run_all(names, jobs=args.jobs)
         meta = {s: {"rows": len(m.ohlcv), "hash": m.data_hash, "synthetic": m.synthetic,
                     "funding_history": m.funding is not None} for s, m in markets.items()}
-        path = write_report(result, meta, Path(args.out) / f"{stamp}_{tf}")
+        path = write_report(result, meta, Path(args.out) / f"{stamp}_{tf}", commit=commit)
         print(f"Bericht {tf}: {path}")
     return 0
 

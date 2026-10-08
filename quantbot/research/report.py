@@ -27,7 +27,9 @@ HEADER = ("| | Sharpe | Rendite | CAGR | Max-DD | Profit Factor | Trades | Ø He
           "|---|---|---|---|---|---|---|---|---|")
 
 
-def write_report(result: dict, data_meta: dict, out_dir: str | Path) -> Path:
+def write_report(result: dict, data_meta: dict, out_dir: str | Path, commit: str | None = None) -> Path:
+    """``commit``: Code-Stand beim START des Laufs (Standard: aktueller Stand beim Schreiben)."""
+    commit = commit or git_commit()
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     reps: list[CandidateReport] = result["reports"] + result["ensembles"]
@@ -36,7 +38,7 @@ def write_report(result: dict, data_meta: dict, out_dir: str | Path) -> Path:
     if synthetic:
         lines += ["> **ACHTUNG: SYNTHETISCHE DATEN. Dieser Bericht ist ein Funktionstest und enthält "
                   "keinerlei Aussage über echte Märkte.**", ""]
-    lines += [f"Git: `{git_commit()}`", "", "Zeiträume:", ""]
+    lines += [f"Git: `{commit}`", "", "Zeiträume:", ""]
     lines += [f"- {v}" for v in result["splits"].values()]
     lines += ["", "Daten:", ""]
     for s, v in data_meta.items():
@@ -114,7 +116,7 @@ def write_report(result: dict, data_meta: dict, out_dir: str | Path) -> Path:
         "timeframe": result["timeframe"],
         "splits": result["splits"],
         "data": data_meta,
-        "git_commit": git_commit(),
+        "git_commit": commit,
         "reports": [dataclasses.asdict(r) for r in reps],
     }
     (out / "results.json").write_text(json.dumps(payload, indent=2, default=str, ensure_ascii=False), encoding="utf-8")
