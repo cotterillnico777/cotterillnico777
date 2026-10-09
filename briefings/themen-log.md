@@ -29,3 +29,4 @@ Format: `Datum | Abschnitt-2-Thema (Finanzwissen) | Abschnitt-3-Thema (Geld & Ve
 | 2026-10-06 | PMI-Methodik (Diffusionsindex, Subkomponenten)               | Negativity Bias |
 | 2026-10-07 | FOMC-Protokoll (Minutes) vs. Fed-Statement                   | Escalation of Commitment |
 | 2026-10-08 | Wöchentliche Rohöl-Lagerbestandsdaten (API/EIA)              | Normalcy Bias |
+| 2026-10-09 | Frachtraten (Tanker-Charterraten) als Frühindikator          | Gambler's Fallacy (Spielerfehlschluss) |
