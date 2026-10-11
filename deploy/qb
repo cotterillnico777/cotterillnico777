@@ -3,10 +3,14 @@
 set -euo pipefail
 
 APP_DIR="/home/quantbot/cotterillnico777"
-UNIT="quantbot-paper"
+# Instanz wählen: "qb status" = Hauptinstanz (0,5 %), "qb risk1 status" = Vergleichsinstanz (1 %)
+if [[ "${1:-}" == risk1 ]]; then
+  shift; UNIT="quantbot-paper-risk1"; CONFIG_DEFAULT="configs/paper_ensemble_4h_risk1.yaml"; DB="state/risk1_paper.sqlite"
+else
+  UNIT="quantbot-paper"; CONFIG_DEFAULT="configs/paper_ensemble_4h.yaml"; DB="state/quantbot_paper.sqlite"
+fi
 CONFIG=$(systemctl cat "${UNIT}" 2>/dev/null | sed -n 's/.* -c \([^ ]*\) run .*/\1/p' | head -1 || true)
-CONFIG="${CONFIG:-configs/paper_ensemble_4h.yaml}"
-DB="state/quantbot_paper.sqlite"
+CONFIG="${CONFIG:-${CONFIG_DEFAULT}}"
 
 as_bot() {
   if [[ $(id -un) == quantbot ]]; then bash -c "cd '${APP_DIR}' && $*"
@@ -34,12 +38,16 @@ case "${1:-help}" in
   kill)
     as_bot ".venv/bin/python -m quantbot -c '${CONFIG}' kill" ;;
   update)
-    need_root; echo "Aktualisiere Code (Dienst wird dafür kurz gestoppt)"
-    systemctl stop "${UNIT}"
+    need_root; echo "Aktualisiere Code (beide Dienste werden dafür kurz gestoppt)"
+    running=$(for u in quantbot-paper quantbot-paper-risk1; do systemctl is-active --quiet "$u" && echo "$u"; done || true)
+    [[ -n "${running}" ]] && systemctl stop ${running}
     as_bot "git pull -q --ff-only && .venv/bin/pip install -q -r requirements.txt"
-    systemctl start "${UNIT}"; echo "ok" ;;
+    [[ -n "${running}" ]] && systemctl start ${running}
+    echo "ok (neu gestartet: ${running:-keiner})" ;;
   *)
     cat <<'EOF'
+Hauptinstanz (0,5 % Risiko): qb <befehl>    Vergleichsinstanz (1 % Risiko): qb risk1 <befehl>
+
 qb status      Dienst + Kontostand, Drawdown, Kill Switch
 qb positions   offene Positionen
 qb trades      abgeschlossene Trades

@@ -1,0 +1,40 @@
+# Vergleichs-Instanz: dieselbe 4h-Kombination wie paper_ensemble_4h.yaml, aber DOPPELTES Risiko.
+# Entspricht der Zeile "Risiko-Faktor 2x" im Research-Bericht 4h (Git 2ed2d15):
+#   Forschung: Rendite +123,6 %, Sharpe 1,27, Max-DD -16,1 % (dort ohne Kill Switch gerechnet)
+# Strategien und Parameter sind identisch – nur Größe und Grenzen sind verdoppelt.
+# Die Schutzmechanismen bleiben aktiv (anders als im Bericht): Verlustlimits verdoppelt,
+# Kill Switch bei -25 % Drawdown.
+#
+# Läuft PARALLEL zur Hauptinstanz mit eigenem Spielkonto, Journal, Log und Kill-Switch-Datei.
+# Start:   python -m quantbot -c configs/paper_ensemble_4h_risk1.yaml run --mode paper
+# Status:  python -m quantbot -c configs/paper_ensemble_4h_risk1.yaml status
+# Notbremse nur für diese Instanz: python -m quantbot -c configs/paper_ensemble_4h_risk1.yaml kill
+
+risk:
+  risk_per_trade: 0.01         # 1 % je Trade (Hauptinstanz: 0,5 %)
+  max_leverage: 4.0            # Obergrenze, tatsächlicher Hebel ergibt sich aus der Größe
+  max_gross_exposure: 4.0
+  max_symbol_exposure: 2.0
+  max_net_exposure: 3.0
+  daily_loss_limit: 0.06
+  weekly_loss_limit: 0.12
+  max_drawdown_limit: 0.25
+
+strategies:
+  - name: ema_trend
+    timeframe: 4h
+    params: {fast: 10, slow: 200, adx_min: 20, atr_mult: 4.0, allow_short: true}
+    weight: 1.0
+  - name: squeeze_breakout
+    timeframe: 4h
+    params: {n: 30, squeeze_pct: 0.2, rank_window: 250, lookback: 5, atr_mult: 2.0, allow_short: true}
+    weight: 1.0
+
+runtime:
+  paper_balance: 10000
+  database: state/risk1.sqlite      # -> state/risk1_paper.sqlite (getrennt von der Hauptinstanz)
+  log_file: state/risk1.log
+  kill_switch_file: STOP_RISK1
+
+live:
+  enabled: false

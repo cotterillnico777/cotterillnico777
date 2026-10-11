@@ -50,6 +50,10 @@ Einschränkungen:
   Konto statt Positionswert). Schwellen wurden nicht verändert.
 - Regime-gefiltertes Ensemble (nur Bull/Bear) fiel in der Validierung durch (Sharpe −0,38).
 
+Vergleichsinstanz seit 2026-10: dieselbe Kombination mit 1 % Risiko je Trade
+(`configs/paper_ensemble_4h_risk1.yaml`, eigenes Spielkonto), um die Wirkung des höheren
+Risikos (Forschung: +123,6 %, Sharpe 1,27, Max-DD −16,1 %) im Forward-Betrieb zu beobachten.
+
 ## Negative Ergebnisse
 
 - **Mean Reversion** (bollinger, rsi, zscore, vwap): auf allen vier Zeitrahmen bereits im

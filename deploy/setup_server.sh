@@ -85,24 +85,39 @@ sudo -u "${BOT_USER}" "${APP_DIR}/.venv/bin/pip" install -q --upgrade pip
 sudo -u "${BOT_USER}" "${APP_DIR}/.venv/bin/pip" install -q -r "${APP_DIR}/requirements.txt"
 sudo -u "${BOT_USER}" install -d -m 700 "${APP_DIR}/state"
 
-echo "==> Selbsttest (Konfiguration laden, keine Orders)"
-sudo -u "${BOT_USER}" bash -c "cd '${APP_DIR}' && .venv/bin/python -c \"from quantbot.config import load_config; c=load_config('${CONFIG}'); assert not c.live.enabled; print('    Konfiguration ok:', [s.name for s in c.strategies])\""
+# Dienste: Hauptinstanz (0,5 % Risiko) und Vergleichsinstanz (1 % Risiko), je eigenes Spielkonto
+declare -A UNITS=(
+  [quantbot-paper]="${CONFIG}"
+  [quantbot-paper-risk1]="${CONFIG_RISK1:-configs/paper_ensemble_4h_risk1.yaml}"
+)
 
-echo "==> systemd-Dienst quantbot-paper"
-sed -e "s#@APP_DIR@#${APP_DIR}#g" -e "s#@USER@#${BOT_USER}#g" -e "s#@CONFIG@#${CONFIG}#g" \
-  "${APP_DIR}/deploy/quantbot-paper.service" > /etc/systemd/system/quantbot-paper.service
+echo "==> Selbsttest (Konfigurationen laden, keine Orders)"
+for unit in "${!UNITS[@]}"; do
+  cfg="${UNITS[$unit]}"
+  sudo -u "${BOT_USER}" bash -c "cd '${APP_DIR}' && .venv/bin/python -c \"from quantbot.config import load_config; c=load_config('${cfg}'); assert not c.live.enabled; print('    ${unit}: ok', [s.name for s in c.strategies], 'Risiko', c.risk.risk_per_trade)\""
+done
+
+echo "==> systemd-Dienste"
+for unit in "${!UNITS[@]}"; do
+  sed -e "s#@APP_DIR@#${APP_DIR}#g" -e "s#@USER@#${BOT_USER}#g" -e "s#@CONFIG@#${UNITS[$unit]}#g" \
+    "${APP_DIR}/deploy/quantbot-paper.service" > "/etc/systemd/system/${unit}.service"
+done
 install -m 755 "${APP_DIR}/deploy/qb" /usr/local/bin/qb
 systemctl daemon-reload
-systemctl enable quantbot-paper >/dev/null
+systemctl enable "${!UNITS[@]}" >/dev/null
 
 cat <<EOF
 
-Fertig. Der Dienst ist eingerichtet, aber noch NICHT gestartet.
+Fertig. Zwei Dienste sind eingerichtet, aber noch NICHT gestartet:
+  quantbot-paper        (0,5 % Risiko, Befehle: qb ...)
+  quantbot-paper-risk1  (1 % Risiko,   Befehle: qb risk1 ...)
 
 Nächste Schritte (siehe docs/SERVER.md):
   1. Paper-Bot auf dem Mac stoppen (Ctrl+C) und das Journal hochladen:
        scp state/quantbot_paper.sqlite quantbot@SERVER-IP:cotterillnico777/state/
      (ohne Upload startet ein neues Paper-Konto mit 10.000)
-  2. Starten:   qb start
-  3. Prüfen:    qb status   /   qb logs
+     und genauso für die 1-%-Instanz (falls sie auf dem Mac lief):
+       scp state/risk1_paper.sqlite* quantbot@SERVER-IP:cotterillnico777/state/
+  2. Starten:   qb start        und   qb risk1 start
+  3. Prüfen:    qb status       und   qb risk1 status
 EOF

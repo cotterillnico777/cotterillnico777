@@ -64,6 +64,7 @@ Journal vom Mac auf den Server kopiert.
 ```bash
 cd ~/Desktop/cotterillnico777
 scp state/quantbot_paper.sqlite* quantbot@SERVER-IP:cotterillnico777/state/
+scp state/risk1_paper.sqlite* quantbot@SERVER-IP:cotterillnico777/state/   # falls die 1-%-Instanz auf dem Mac lief
 ```
 
 Wer neu anfangen will, lässt diesen Schritt weg – dann startet ein neues Paper-Konto mit 10.000.
@@ -74,11 +75,23 @@ Wieder auf dem Server (`ssh root@SERVER-IP`):
 
 ```bash
 qb start
+qb risk1 start
 qb status
-qb logs
+qb risk1 status
 ```
 
 `qb status` sollte „Dienst: läuft“ und kurz danach „Heartbeat: ok“ zeigen.
+
+## Zwei Instanzen
+
+Es laufen zwei getrennte Paper-Bots mit identischen Strategien, aber eigenem Spielkonto:
+
+| Instanz | Risiko je Trade | Konfiguration | Befehle |
+|---|---|---|---|
+| Haupt | 0,5 % | `configs/paper_ensemble_4h.yaml` | `qb status`, `qb trades`, … |
+| Vergleich | 1 % | `configs/paper_ensemble_4h_risk1.yaml` | `qb risk1 status`, `qb risk1 trades`, … |
+
+`qb kill` stoppt nur die Hauptinstanz, `qb risk1 kill` nur die Vergleichsinstanz.
 
 ## Alltag
 
