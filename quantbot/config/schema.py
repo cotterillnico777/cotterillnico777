@@ -125,6 +125,9 @@ class RuntimeConfig:
     paper_balance: float = 10_000.0
     max_price_deviation: float = 0.15  # Kurs springt > 15 % gegenüber letzter Kerze -> Datenfehler
     max_order_failures: int = 3
+    # Verbindungsstörung zur Börse: kein Kill Switch (ohne Verbindung lässt sich ohnehin nichts
+    # schließen; live schützen die Stops auf der Börse). Nach dieser Dauer CRITICAL-Meldung.
+    max_outage_minutes: float = 30.0
     max_data_age_bars: float = 2.5
 
 

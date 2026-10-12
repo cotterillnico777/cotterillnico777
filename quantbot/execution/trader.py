@@ -80,7 +80,9 @@ class Trader:
         regime_days = cfg.regime.trend_ma_days + cfg.regime.slope_days + cfg.regime.vol_rank_days // 4
         self.history_bars = int(min(max(warm, (regime_days + 5) * bars_per_day,
                                         cfg.risk.correlation_lookback_days * bars_per_day), 20_000))
-        self.errors = 0
+        self.errors = 0  # API-Fehler in Folge (wird bei jedem erfolgreichen Abruf zurückgesetzt)
+        self.outage_since: pd.Timestamp | None = None
+        self.outage_alerted = False
         self.data_errors = 0
         self.ledger = TradeLedger(journal)
         if isinstance(exchange, SimulatedExchange) and journal.get("paper_exchange"):
@@ -189,6 +191,7 @@ class Trader:
             prices = {s: self.ex.get_ticker_price(s) for s in self.symbols}
         except ExchangeUnavailable as exc:
             return self._error("api", str(exc))
+        self._connection_ok()
         problems = self.health(markets, prices)
         if problems:
             self.data_errors += 1
@@ -227,7 +230,7 @@ class Trader:
         self.journal.set("last_bar", str(last_ts))
         self.journal.set("risk_state", dataclasses.asdict(self.risk.state))
         self._persist_paper()
-        self.errors = 0
+        self._connection_ok()
         status = "killed" if self.risk.state.killed else "ok"
         self.journal.heartbeat(status, self.risk.state.kill_reason or f"Kerze {last_ts} verarbeitet")
         return status
@@ -293,12 +296,33 @@ class Trader:
                                       p.take_profit, p.unrealized(prices[s]))
 
     def _error(self, kind: str, msg: str) -> str:
+        """Verbindungs-/API-Fehler: protokollieren und im nächsten Zyklus erneut versuchen.
+
+        Bewusst KEIN Kill Switch: Ohne Verbindung kann der Bot ohnehin nichts schließen, und ein
+        kurzer Netz- oder Börsenausfall soll nicht den ganzen Betrieb beenden. Echte Risikofälle
+        (Drawdown, Datenfehler, abgelehnte Orders) lösen den Kill Switch weiterhin aus.
+        """
+        now = pd.Timestamp(self.clock())
         self.errors += 1
+        if self.outage_since is None:
+            self.outage_since = now
         self.journal.event("ERROR", kind, msg)
-        self.journal.heartbeat("error", msg)
-        if self.errors >= 10:
-            self.risk.kill(f"{self.errors} Fehler in Folge ({kind})")
+        minutes = (now - self.outage_since).total_seconds() / 60
+        if minutes >= self.cfg.runtime.max_outage_minutes and not self.outage_alerted:
+            self.outage_alerted = True
+            self.journal.event("CRITICAL", "outage",
+                               f"Verbindung zur Börse seit {minutes:.0f} min gestört ({self.errors} Fehler in Folge)")
+        self.journal.heartbeat("error", f"{msg} (seit {minutes:.0f} min, {self.errors} Fehler in Folge)")
         return "error"
+
+    def _connection_ok(self) -> None:
+        if self.outage_since is not None:
+            minutes = (pd.Timestamp(self.clock()) - self.outage_since).total_seconds() / 60
+            self.journal.event("INFO", "recovered",
+                               f"Verbindung wieder da nach {minutes:.0f} min ({self.errors} Fehler)")
+        self.errors = 0
+        self.outage_since = None
+        self.outage_alerted = False
 
     def run(self, max_cycles: int | None = None) -> None:
         n = 0

@@ -11,7 +11,7 @@ from quantbot.config.schema import Config, RegimeConfig, StrategySlot
 from quantbot.core.timeframes import to_ms
 from quantbot.core.types import Intent, Mode, Order, OrderStatus, OrderType, Side
 from quantbot.data.synthetic import synthetic_funding, synthetic_ohlcv
-from quantbot.exchanges.base import ExchangeAdapter
+from quantbot.exchanges.base import ExchangeAdapter, ExchangeUnavailable
 from quantbot.exchanges.simulated import SimulatedExchange
 from quantbot.execution.engine import ExecConfig, ExecutionEngine, ExecutionHalted, client_id
 from quantbot.execution.ledger import TradeLedger
@@ -154,6 +154,7 @@ class FeedAdapter(ExchangeAdapter):
         self.frames, self.funding = frames, funding
         self.now = None
         self.stale = False
+        self.down = False  # simuliert Verbindungsausfall
 
     def get_ohlcv(self, symbol, timeframe, since=None, limit=500):
         df = self.frames[symbol]
@@ -167,6 +168,8 @@ class FeedAdapter(ExchangeAdapter):
         return [(int(t.timestamp() * 1000), float(r)) for t, r in zip(sel.index, sel["rate"])]
 
     def get_ticker_price(self, symbol):
+        if self.down:
+            raise ExchangeUnavailable("Verbindung unterbrochen (Test)")
         df = self.frames[symbol]
         return float(df[df.index <= self.now]["open"].iloc[-1])
 
@@ -289,3 +292,55 @@ def test_cli_live_is_blocked_by_default(monkeypatch, tmp_path):
     monkeypatch.delenv("QUANTBOT_LIVE_CONFIRM", raising=False)
     with pytest.raises(LiveTradingDisabled):
         main(["run", "--mode", "live", "--journal", str(tmp_path / "x.sqlite")])
+
+
+def test_isolated_api_errors_never_accumulate_to_kill(tmp_path):
+    """Vereinzelte Fehler in Wartephasen zwischen Kerzen dürfen sich nicht aufsummieren."""
+    feed, cfg, ex, frames = paper_setup(tmp_path)
+    idx = frames["BTC/USDT:USDT"].index
+    journal = Journal(tmp_path / "j.sqlite")
+    clock = {"t": None}
+    trader = Trader(cfg, Mode.PAPER, ex, journal, clock=lambda: clock["t"], sleep=lambda s: None)
+    errors = 0
+    for k in range(200, 260):
+        for minute in (5, 6, 7):  # drei Zyklen je Kerze: einer davon scheitert
+            feed.now = idx[k] + pd.Timedelta(minutes=minute)
+            clock["t"] = feed.now.to_pydatetime()
+            feed.down = minute == 6
+            errors += trader.tick() == "error"
+    feed.down = False
+    assert errors == 60
+    assert not trader.risk.state.killed
+    assert trader.errors == 0
+    assert journal.query("SELECT COUNT(*) AS n FROM events WHERE level='CRITICAL'")[0]["n"] == 0
+
+
+def test_long_outage_alerts_but_does_not_kill_and_recovers(tmp_path):
+    feed, cfg, ex, frames = paper_setup(tmp_path)
+    idx = frames["BTC/USDT:USDT"].index
+    journal = Journal(tmp_path / "j.sqlite")
+    clock = {"t": None}
+    trader = Trader(cfg, Mode.PAPER, ex, journal, clock=lambda: clock["t"], sleep=lambda s: None)
+    for k in range(200, 300):
+        feed.now = idx[k] + pd.Timedelta(minutes=5)
+        clock["t"] = feed.now.to_pydatetime()
+        trader.tick()
+    pos_before = {p.symbol: p.qty for p in ex.get_positions()}
+    start = idx[300] + pd.Timedelta(minutes=5)
+    feed.down = True
+    results = []
+    for i in range(240):  # 2 Stunden Ausfall, Abfrage alle 30 s
+        feed.now = start + pd.Timedelta(seconds=30 * i)
+        clock["t"] = feed.now.to_pydatetime()
+        results.append(trader.tick())
+    assert set(results) == {"error"}
+    assert not trader.risk.state.killed
+    crit = journal.query("SELECT message FROM events WHERE level='CRITICAL'")
+    assert len(crit) == 1 and "gestört" in crit[0]["message"]
+    assert {p.symbol: p.qty for p in ex.get_positions()} == pos_before  # nichts panisch geschlossen
+    feed.down = False
+    feed.now = start + pd.Timedelta(hours=2, minutes=1)
+    clock["t"] = feed.now.to_pydatetime()
+    assert trader.tick() in ("ok", "waiting")
+    assert trader.errors == 0 and trader.outage_since is None
+    assert journal.query("SELECT COUNT(*) AS n FROM events WHERE type='recovered'")[0]["n"] == 1

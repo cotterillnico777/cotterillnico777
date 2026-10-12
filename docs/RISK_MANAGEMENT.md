@@ -35,6 +35,7 @@ Alle Entscheidungen über Größe und Hebel trifft die zentrale Risk Engine
 | Drawdown ≥ 20 % vom Höchststand | **Kill Switch**: alles schließen, nichts Neues, manuelle Freigabe |
 | Datei `STOP` / `quantbot kill` | Kill Switch manuell |
 | Wiederholte Order-Ablehnungen, alte Daten, Kurssprünge > 15 % | Handelsstopp |
+| Verbindung zur Börse gestört | **kein** Kill Switch: weiter versuchen; nach 30 min CRITICAL-Meldung (`runtime.max_outage_minutes`) |
 
 Stops liegen zusätzlich als reduce-only Stop-Market-Order auf der Börse, damit ein
 Ausfall des Bots nicht zu ungeschützten Positionen führt.
