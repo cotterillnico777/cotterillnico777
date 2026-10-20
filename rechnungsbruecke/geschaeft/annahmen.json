@@ -66,6 +66,29 @@
       "kosten.unternehmerlohn": [[1, 0], [13, 1500], [25, 2500]]
     },
     "basis": {},
+    "minimalkapital": {
+      "kosten.einmalig_monat_1": 1200,
+      "kosten.website_hosting_tools": 40,
+      "kosten.steuerberatung": 100,
+      "kosten.freelancer_entwicklung": [[1, 0]],
+      "kosten.support_teilzeit": [[1, 0], [19, 1500]],
+      "kosten.lohn_nur_aus_gewinn": true,
+      "nachfrage.werbebudget": [[1, 0], [7, 300], [13, 1200], [19, 2000]]
+    },
+    "minimalkapital_pessimistisch": {
+      "nachfrage.organisch_wachstum_mtl": 0.05,
+      "nachfrage.kosten_je_free_installation": 40,
+      "conversion.free_pool_zu_bezahlt_mtl": 0.005,
+      "conversion.churn_bezahlt_mtl": 0.035,
+      "partner.neukunden_mtl": [[4, 0.25], [7, 0.75], [13, 1.5], [25, 2]],
+      "kosten.einmalig_monat_1": 1200,
+      "kosten.website_hosting_tools": 40,
+      "kosten.steuerberatung": 100,
+      "kosten.freelancer_entwicklung": [[1, 0]],
+      "kosten.support_teilzeit": [[1, 0], [19, 1500]],
+      "kosten.lohn_nur_aus_gewinn": true,
+      "nachfrage.werbebudget": [[1, 0]]
+    },
     "optimistisch": {
       "nachfrage.organisch_wachstum_mtl": 0.10,
       "nachfrage.kosten_je_free_installation": 18,

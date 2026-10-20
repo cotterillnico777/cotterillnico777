@@ -83,6 +83,9 @@ def simuliere(a):
         )
         ergebnis_vor_lohn = umsatz - provision - gebuehren - support - fix
         lohn = stufe(k["unternehmerlohn"], m)
+        if k.get("lohn_nur_aus_gewinn"):
+            # Entnahme höchstens in Höhe des laufenden Monatsgewinns: es entsteht kein Verlust durch den Lohn
+            lohn = min(lohn, max(0.0, ergebnis_vor_lohn))
         ergebnis = ergebnis_vor_lohn - lohn
         kasse += ergebnis
         zeilen.append({

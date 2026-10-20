@@ -16,6 +16,7 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 | **Erlöse** | Lizenz-Abo in 4 Stufen (0 / 39 / 99 / 249 € netto pro Monat) + Einrichtung (590 €) + Partnerkanal (IT-Systemhäuser, 25 % Provision) |
 | **Finanzen (Basis)** | Umsatz J1 19 T€ → J2 125 T€ → **J3 294 T€** · Ergebnis J3 **+116 T€ nach Unternehmerlohn** · dauerhaft profitabel ab **Monat 21** · Kapitalbedarf **≈ 37 T€** |
 | **Worst Case** | Bremst man die Kosten rechtzeitig (Szenario „pessimistisch_gegensteuern“), ist das Geschäft trotzdem **ab Monat 14 profitabel**, bei nur ≈ 7 T€ Kapitalbedarf. |
+| **Minimalkapital** | Wenn du nur Gehalt entnimmst, was schon verdient ist, und vor dem ersten Umsatz kein Geld für Werbung oder Personal ausgibst, sinkt der Kapitalbedarf auf **≈ 1.500 €**. Das gilt im Basis- **und** im pessimistischen Szenario (siehe Kapitel 7a). |
 | **Stand** | Das Produkt ist fertig: Version 1.0, 37 automatische Tests, alle Beispielrechnungen fehlerfrei gegen EN 16931 und XRechnung 3.0. |
 
 ---
@@ -140,6 +141,35 @@ Vollständige Ergebnisse: [`geschaeft/ergebnisse/zusammenfassung.md`](geschaeft/
 ```bash
 python3 geschaeft/finanzmodell.py    # nach Änderung von geschaeft/annahmen.json
 ```
+
+---
+
+## 7a. Variante mit minimalem Kapital (empfohlen für den Start)
+
+Warum braucht das Basis-Szenario ≈ 37 T€? Das Produkt selbst kostet kaum etwas, es ist schon fertig. Bis zum
+tiefsten Kontostand (Monat 20) fließen 87 T€ Umsatz herein. Ausgegeben werden aber **39 T€ Unternehmerlohn,
+26 T€ Werbung, 21 T€ Freelancer und 16 T€ Teilzeit-Support**. Dazu kommen nur ≈ 11 T€ unvermeidbare Kosten
+(einmalige Einrichtung, Steuerberatung, Versicherung, Tools). Kapital braucht man also nur, weil man Geld
+ausgibt, bevor der Umsatz da ist.
+
+**Regeln der Minimalkapital-Variante** (Szenarien `minimalkapital` und `minimalkapital_pessimistisch`):
+1. **Gehalt nur aus Gewinn:** Entnommen wird höchstens, was der Monat erwirtschaftet hat (Obergrenze wie im Basis-Szenario).
+2. **Kein Personal vor dem Umsatz:** Die Pflege der Software übernimmst du selbst, Teilzeit-Support kommt erst ab Monat 19.
+3. **Werbung erst nach den ersten Verkäufen:** Im Basis-Fall ab Monat 7 mit 300 €. Im pessimistischen Fall gar keine Werbung, nur Suchmaschinen-Content und Partner.
+4. **Einmalkosten von 1.200 €:** AGB/EULA aus einer anwaltlich geprüften Vorlage, Markenanmeldung beim DPMA, Domain. Steuerberatung zunächst 100 €/Monat.
+
+| Kennzahl | Minimalkapital (Basis-Nachfrage) | Minimalkapital (pessimistische Nachfrage) |
+|---|---:|---:|
+| Max. Kapitalbedarf | **1.506 €** | **1.607 €** |
+| Dauerhaft profitabel ab Monat | 3 | 4 |
+| Umsatz Jahr 1 / 2 / 3 | 15.567 / 107.669 / 270.909 € | 8.274 / 44.798 / 89.352 € |
+| Entnommenes Gehalt Jahr 1 / 2 / 3 | 8.558 / 41.616 / 54.000 € | 4.852 / 26.621 / 49.850 € |
+| Ergebnis Jahr 3 (nach Gehalt) | 138.884 € | 6.364 € |
+| Kasse nach 36 Monaten (vor Steuern) | 160.222 € | 5.872 € |
+
+**Der Preis dafür:** Im ersten Jahr verdienst du kaum Gehalt (≈ 400–700 € pro Monat). Die Variante passt also,
+wenn du nebenher angestellt bist, Rücklagen hast oder den Gründungszuschuss bekommst. Das Risiko ist dann
+nicht mehr Geld, sondern deine Zeit: etwa 10–15 Stunden pro Woche im ersten Jahr.
 
 ---
 
