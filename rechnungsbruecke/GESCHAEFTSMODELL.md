@@ -17,7 +17,7 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 | **Finanzen (Basis)** | Umsatz J1 19 T€ → J2 125 T€ → **J3 294 T€** · Ergebnis J3 **+116 T€ nach Unternehmerlohn** · dauerhaft profitabel ab **Monat 21** · Kapitalbedarf **≈ 37 T€** |
 | **Worst Case** | Bremst man die Kosten rechtzeitig (Szenario „pessimistisch_gegensteuern“), ist das Geschäft trotzdem **ab Monat 14 profitabel**, bei nur ≈ 7 T€ Kapitalbedarf. |
 | **Minimalkapital** | Wenn du nur Gehalt entnimmst, was schon verdient ist, und vor dem ersten Umsatz kein Geld für Werbung oder Personal ausgibst, sinkt der Kapitalbedarf auf **unter 1.000 €**. Das gilt im Basis- **und** im pessimistischen Szenario (siehe Kapitel 7a). |
-| **Stand** | Das Produkt ist fertig: Version 1.0, 37 automatische Tests, alle Beispielrechnungen fehlerfrei gegen EN 16931 und XRechnung 3.0. |
+| **Stand** | Version 1.1, bereit für Pilotkunden: grafische Oberfläche, Pflichtprüfung jeder Rechnung mit Prüfbericht, festgeschriebene Versionen, 47 automatische Tests. ZUGFeRD-PDFs extern bestätigt mit veraPDF (PDF/A-3b) und Mustang. Vor dem Produktivbetrieb: offizielle KoSIT-Regeln einrichten ([`PRUEFPROTOKOLL.md`](PRUEFPROTOKOLL.md)). |
 
 ---
 
@@ -55,21 +55,23 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 
 ---
 
-## 4. Produkt (umgesetzt in Version 1.0)
+## 4. Produkt (umgesetzt in Version 1.1)
 
 | Funktion | Nutzen |
 |---|---|
 | CSV → XRechnung 3.0 (CII) und ZUGFeRD/Factur-X EN 16931 (PDF/A-3 mit eingebettetem XML) | Erfüllt die Versandpflicht. Kund:innen erhalten wie gewohnt ein PDF, ihr System liest automatisch das XML |
 | Zuordnung beliebiger Spaltennamen per Mapping, Windows-1252 und deutsches Zahlenformat, Ablehnung mehrdeutiger Zahlen | Funktioniert mit dem vorhandenen Export des Altsystems, ohne Anpassungen dort |
 | Vorprüfung mit deutschen Klartext-Meldungen (IBAN-Prüfziffer, Pflichtfelder, Steuerlogik für Reverse Charge, innergemeinschaftliche Lieferung, Kleinunternehmer) | Fehler fallen vor dem Versand auf, nicht erst beim Kunden |
-| Prüfung gegen die offiziellen EN-16931- und XRechnung-Regeln (optional) | Gleiche Prüftiefe wie beim Validator der KoSIT |
+| Pflichtprüfung gegen die offiziellen EN-16931- und XRechnung-Regeln vor jedem Schreiben | Gleiche Prüftiefe wie beim Validator der KoSIT |
 | Lesen eingehender E-Rechnungen (CII/UBL, XML/PDF) → HTML + Buchungsliste, mit Rechenkontrolle | Erfüllt die Empfangspflicht und spart das Abtippen in der Buchhaltung |
 | Hotfolder für automatischen Betrieb | Vollautomatisch: Das Altsystem exportiert, die E-Rechnung entsteht von selbst |
 | Signierte Offline-Lizenzen, Monatskontingente | Lizenzierung ohne Server und ohne Datenabfluss |
+| Grafische Oberfläche im Browser (lokal) | Buchhaltung arbeitet ohne Kommandozeile: Export ablegen, prüfen, erzeugen |
+| Pflichtprüfung mit Prüfbericht je Rechnung, festgeschriebene Regel- und Bibliotheksversionen | Nachweisbar korrekt: Nichts verlässt das Haus ungeprüft |
 
 **Kosten pro Kunde für uns:** nahezu null. Die Software läuft beim Kunden, wir brauchen keine Server und schließen keinen Auftragsverarbeitungsvertrag, weil wir keine Daten verarbeiten. Variable Kosten sind nur Support (im Modell 4 € je Kunde und Monat) und Zahlungsgebühren.
 
-**Fahrplan:** v1.1 lokale Weboberfläche für Mitarbeitende ohne Kommandozeile · v1.2 Zu- und Abschläge, strukturiertes Skonto · v1.3 Versand per E-Mail und Anbindung an einen Peppol-Zugangspunkt eines Partners · jährlich: Updates auf neue XRechnung-Versionen (im Freelancer-Budget enthalten).
+**Fahrplan:** v1.1 lokale Weboberfläche ✓ · v1.2 Zu- und Abschläge, strukturiertes Skonto · v1.3 Versand per E-Mail und Anbindung an einen Peppol-Zugangspunkt eines Partners · jährlich: Updates auf neue XRechnung-Versionen (im Freelancer-Budget enthalten).
 
 ---
 
@@ -182,10 +184,11 @@ nicht mehr Geld, sondern deine Zeit: etwa 10–15 Stunden pro Woche im ersten Ja
 - [ ] **IT-/Vermögensschadenhaftpflicht** (im Modell mit 60 €/Monat).
 - [ ] **Datenschutz:** Die Software verarbeitet beim Kunden lokal, daher ist kein Auftragsverarbeitungsvertrag nötig. Datenschutzerklärung nur für Website und Shop.
 - [ ] **Impressum** (§ 5 DDG), Gewerbeanmeldung. Umsatzsteuer: B2B-Inland mit 19 %, B2B-EU mit Reverse Charge. Der Zahlungsanbieter als Händler (Merchant of Record) vereinfacht das.
-- [ ] **Open-Source-Lizenzen:** Die Pflichtabhängigkeiten (factur-x, reportlab, lxml, pypdf, Pillow, cryptography) stehen unter BSD, MIT oder Apache und sind kommerziell nutzbar. Lizenzhinweise mitliefern. Die Lizenz der optionalen Abhängigkeit saxonche (SaxonC-HE) vor der Weitergabe prüfen.
+- [ ] **Open-Source-Lizenzen:** Die Pflichtabhängigkeiten (factur-x, reportlab, lxml, pypdf, Pillow, cryptography) stehen unter BSD, MIT oder Apache und sind kommerziell nutzbar. Lizenzhinweise mitliefern. Die Lizenz von saxonche (SaxonC-HE, jetzt Pflichtabhängigkeit für die Prüfung) vor der Weitergabe prüfen.
 - [ ] **Offizielle Regelwerke** (KoSIT, CEN) werden nicht mitgeliefert. Die Kunden laden sie selbst herunter, oder die Lizenzbedingungen werden vor einer Weitergabe geprüft.
 - [ ] **Vor dem ersten Verkauf:** Schlüsselpaar für die Lizenzen erzeugen (`werkzeuge/lizenz_ausstellen.py schluessel`), den privaten Schlüssel sicher und offline aufbewahren.
-- [ ] **PDF/A-3** der ZUGFeRD-Ausgabe einmal mit veraPDF bestätigen lassen. Dazu Testrechnungen mit 3 Pilotkunden und deren Buchhaltungssoftware (DATEV, Lexware, sevdesk) austauschen.
+- [x] **PDF/A-3b** der ZUGFeRD-Ausgabe mit veraPDF 1.28.2 und Mustang 2.26.0 bestätigt ([`PRUEFPROTOKOLL.md`](PRUEFPROTOKOLL.md)).
+- [ ] **Offizielle KoSIT-Regeln** einrichten und Prüflauf wiederholen. Testrechnungen mit 3 Pilotkunden und deren Buchhaltungssoftware (DATEV, Lexware, sevdesk) austauschen.
 
 ---
 
@@ -198,7 +201,7 @@ nicht mehr Geld, sondern deine Zeit: etwa 10–15 Stunden pro Woche im ersten Ja
 | Haftung für fehlerhafte Rechnungen | gering | hoch | Offizielle Regelprüfung vor dem Schreiben, Ablehnung mehrdeutiger Zahlen, AGB mit Haftungsbegrenzung, Haftpflichtversicherung |
 | Neue XRechnung-Versionen (jährlich) | sicher | mittel | Freelancer-Budget für Pflege. Die Regeln sind austauschbar, sodass Prüfungen ohne neues Release aktualisiert werden können |
 | Kontingente werden umgangen | mittel | gering | Signierte Lizenzen, Prüfrecht in den AGB. B2B-Kunden halten Lizenzen in der Regel ein |
-| Kommandozeile schreckt Fachanwender ab | hoch | mittel | Einrichtung als Service, Hotfolder (danach keine Bedienung mehr nötig), Weboberfläche in v1.1 |
+| Bedienung zu technisch für Fachanwender | mittel | mittel | Grafische Oberfläche (v1.1), Einrichtung als Service, Hotfolder; als Nächstes ein Windows-Installationspaket |
 | Reichweite zu gering | mittel | hoch | Stop-/Go-Kriterien (Kapitel 10), Partnerkanal, Kostenbremse im Szenario „gegensteuern“ |
 
 ---

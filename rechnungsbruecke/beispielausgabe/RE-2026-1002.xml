@@ -43,7 +43,7 @@
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>FR-22</ram:BuyerReference>
+      <ram:BuyerReference>Commande 2026-118</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Muster Metallbau GmbH</ram:Name>
         <ram:SpecifiedLegalOrganization>

@@ -98,7 +98,7 @@ class Rechnung:
     leistungszeitraum: tuple[date, date] | None = None  # BG-14
     faelligkeit: date | None = None             # BT-9
     zahlungsbedingungen: str = ""               # BT-20
-    kaeufer_referenz: str = ""                  # BT-10 (Leitweg-ID oder Kundenreferenz)
+    kaeufer_referenz: str = ""                  # BT-10, vom Käufer vergeben (Leitweg-ID oder vereinbarte Referenz)
     bestellnummer: str = ""                     # BT-13
     vorauszahlung: Decimal = Decimal("0")       # BT-113
     bemerkung: str = ""                         # BT-22

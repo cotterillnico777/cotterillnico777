@@ -29,8 +29,9 @@ from rechnungsbruecke.leser import LeseFehler, lies, lies_datei
 from rechnungsbruecke.lizenz import FREE, Lizenz, LizenzFehler, Nutzung, pruefe_lizenzdatei
 from rechnungsbruecke.modell import (KLEINUNTERNEHMER_GRUND, Anschrift, Bankverbindung, Partei, Position,
                                      Rechnung)
+from rechnungsbruecke.regeln import RegelFehler, einrichten, lade
 from rechnungsbruecke.verarbeitung import hotfolder_durchlauf, konvertiere
-from rechnungsbruecke.vorpruefung import iban_gueltig, pruefe
+from rechnungsbruecke.vorpruefung import iban_gueltig, leitweg_id_gueltig, pruefe
 
 HIER = Path(__file__).resolve().parent
 BEISPIELE = HIER.parent / "rechnungsbruecke" / "beispiele"
@@ -150,9 +151,13 @@ class OffizielleRegelnTest(MitDatenverzeichnis):
 
     def test_konvertieren_mit_regeln(self):
         erg = konvertiere(BEISPIELE / "rechnungen.csv", Stammdaten.laden(BEISPIELE / "stammdaten.json"),
-                          self.tmp / "out", FREE, regeln=REGELN)
+                          self.tmp / "out", FREE, format="beide", regeln=lade(REGELN))
         self.assertTrue(erg.ok, erg.fehler)
-        self.assertEqual(len(erg.erzeugt), 3)
+        self.assertEqual(len(erg.erzeugt), 6)  # je Rechnung XML und PDF; auch das ZUGFeRD-XML ist geprüft
+        self.assertEqual(len(erg.berichte), 3)
+        bericht = json.loads(erg.berichte[0].read_text(encoding="utf-8"))
+        self.assertEqual(bericht["offizielle_pruefung"], "bestanden")
+        self.assertEqual(bericht["regeln"]["xrechnung_version"], "3.0")
 
 
 class CsvImportTest(unittest.TestCase):
@@ -177,7 +182,7 @@ class CsvImportTest(unittest.TestCase):
         self.assertEqual(r1.netto, D("1569.00"))
         self.assertEqual(r1.faelligkeit, date(2026, 11, 3))
         self.assertEqual(rechnungen[1].positionen[0].kategorie, "K")
-        self.assertEqual(rechnungen[2].kaeufer_referenz, "991-12345-67")
+        self.assertEqual(rechnungen[2].kaeufer_referenz, "991-33333TEST-33")
 
     def test_altsystem_cp1252_mit_mapping(self):
         mapping = json.loads((BEISPIELE / "mapping_altsystem.json").read_text(encoding="utf-8"))
@@ -333,7 +338,7 @@ class LizenzTest(MitDatenverzeichnis):
     def test_kontingent_stoppt_konvertierung(self):
         Nutzung(FREE).buchen(24)
         erg = konvertiere(BEISPIELE / "rechnungen.csv", Stammdaten.laden(BEISPIELE / "stammdaten.json"),
-                          self.tmp / "out", FREE)
+                          self.tmp / "out", FREE, ohne_offizielle_pruefung=True)
         self.assertEqual(len(erg.erzeugt), 1)
         self.assertTrue(any("Monatskontingent" in f for f in erg.fehler))
 
@@ -354,7 +359,7 @@ class HotfolderTest(MitDatenverzeichnis):
         for f in eingang.iterdir():
             os.utime(f, (alt, alt))
         ergebnisse = hotfolder_durchlauf(eingang, self.tmp / "ziel", Stammdaten.laden(BEISPIELE / "stammdaten.json"),
-                                         BUSINESS, format="beide")
+                                         BUSINESS, format="beide", ohne_offizielle_pruefung=True)
         status = {d.name: e.ok for d, e in ergebnisse}
         self.assertEqual(status, {"rechnungen.csv": True, "ubl_eingang.xml": True, "kaputt.xml": False})
         self.assertEqual(len(list((self.tmp / "ziel" / "ausgang").glob("*.pdf"))), 3)
@@ -370,6 +375,155 @@ class HotfolderTest(MitDatenverzeichnis):
         self.assertEqual(hotfolder_durchlauf(eingang, self.tmp / "ziel", None, BUSINESS, mindestalter_s=3600), [])
 
 
+class KaeuferreferenzTest(MitDatenverzeichnis):
+    def test_keine_selbst_vergebene_referenz(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8") as f:
+            f.write("rechnungsnummer;rechnungsdatum;kunde_name;kunde_strasse;kunde_plz;kunde_ort;kunde_email;"
+                    "bestellnummer;bezeichnung;menge;einzelpreis\n"
+                    "R-77;20.10.2026;Kunde AG;Weg 1;10115;Berlin;e@k.de;PO-1;Teil;1;10,00\n")
+        try:
+            (r,) = importiere(Path(f.name), Stammdaten.laden(BEISPIELE / "stammdaten.json"))
+        finally:
+            os.unlink(f.name)
+        self.assertEqual(r.kaeufer_referenz, "")  # weder Rechnungs- noch Bestellnummer
+        fehler = " ".join(m.text for m in pruefe(r, "xrechnung") if m.schwere == "fehler")
+        self.assertIn("Käuferreferenz fehlt", fehler)
+        self.assertEqual([m for m in pruefe(r, "zugferd") if m.schwere == "fehler"], [])
+        self.assertNotIn(b"BuyerReference", erzeuge_cii(r, "zugferd"))
+
+    def test_leitweg_id_pruefziffer(self):
+        self.assertTrue(leitweg_id_gueltig("991-33333TEST-33"))
+        self.assertTrue(leitweg_id_gueltig("04011000-1234512345-06"))
+        self.assertFalse(leitweg_id_gueltig("991-12345-67"))
+        hinweise = [m.text for m in pruefe(rechnung(kaeufer_referenz="991-12345-67")) if m.schwere == "hinweis"]
+        self.assertTrue(any("Prüfziffer" in h for h in hinweise))
+        self.assertEqual(pruefe(rechnung(kaeufer_referenz="Bestellung 4711")), [])
+
+
+class RegelnTest(MitDatenverzeichnis):
+    def regelpaket(self, version="3.0", mit_en=True) -> Path:
+        quelle = self.tmp / "kosit" / "resources" / "xrechnung" / version / "xsl"
+        quelle.mkdir(parents=True)
+        (quelle / "XRechnung-CII-validation.xsl").write_text(
+            f'<x><xsl:variable name="XR-MAJOR-MINOR-VERSION" select="\'{version}\'"/></x>')
+        if mit_en:
+            (quelle.parent / "EN16931-CII-validation.xslt").write_text("<x>en16931</x>")
+        paket = self.tmp / "kosit.zip"
+        shutil.make_archive(str(paket.with_suffix("")), "zip", self.tmp / "kosit")
+        return paket
+
+    def test_einrichten_mit_manifest(self):
+        werk = einrichten(self.regelpaket())
+        self.assertEqual(werk.manifest["xrechnung_version"], "3.0")
+        self.assertEqual(set(werk.manifest["dateien"]), {"XRechnung-CII-validation.xsl", "EN16931-CII-validation.xsl"})
+        self.assertEqual(lade(werk.ordner).manifest["quelle"], "kosit.zip")
+
+    def test_veraenderte_regeln_werden_erkannt(self):
+        werk = einrichten(self.regelpaket())
+        (werk.ordner / "EN16931-CII-validation.xsl").write_text("<x>manipuliert</x>")
+        with self.assertRaisesRegex(RegelFehler, "verändert"):
+            lade(werk.ordner)
+
+    def test_falsche_version_abgelehnt(self):
+        with self.assertRaisesRegex(RegelFehler, "XRechnung 2.3"):
+            einrichten(self.regelpaket(version="2.3"))
+
+    def test_unvollstaendig_abgelehnt(self):
+        with self.assertRaisesRegex(RegelFehler, "EN16931-CII-validation"):
+            einrichten(self.regelpaket(mit_en=False))
+
+    def test_ohne_regeln_wird_nichts_geschrieben(self):
+        erg = konvertiere(BEISPIELE / "rechnungen.csv", Stammdaten.laden(BEISPIELE / "stammdaten.json"),
+                          self.tmp / "out", FREE)
+        self.assertFalse(erg.ok)
+        self.assertIn("regeln-einrichten", erg.fehler[0])
+        self.assertFalse((self.tmp / "out").exists())
+
+
+class OberflaecheTest(MitDatenverzeichnis):
+    def setUp(self):
+        super().setUp()
+        import threading
+
+        from rechnungsbruecke.oberflaeche import erstelle_server
+
+        self.server, self.token = erstelle_server(self.tmp / "arbeit", port=0, ohne_offizielle_pruefung=True)
+        self.port = self.server.server_address[1]
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        super().tearDown()
+
+    def anfrage(self, pfad, daten=None, token=True, host=None):
+        import urllib.error
+        import urllib.request
+
+        req = urllib.request.Request(f"http://127.0.0.1:{self.port}{pfad}", data=daten,
+                                     method="POST" if daten is not None else "GET")
+        if token:
+            req.add_header("X-RB-Token", self.token)
+        if host:
+            req.add_header("Host", host)
+        try:
+            with urllib.request.urlopen(req) as antwort:
+                return antwort.status, antwort.read(), antwort.headers.get("Content-Type", "")
+        except urllib.error.HTTPError as e:
+            return e.code, e.read(), e.headers.get("Content-Type", "")
+
+    def json(self, pfad, daten=None):
+        status, inhalt, _ = self.anfrage(pfad, daten)
+        return status, json.loads(inhalt)
+
+    def test_sicherheit(self):
+        self.assertEqual(self.anfrage("/api/status", token=False)[0], 403)
+        self.assertEqual(self.anfrage("/api/status", host="evil.example:80")[0], 403)
+        status, seite, typ = self.anfrage("/", token=False)
+        self.assertEqual(status, 200)
+        self.assertIn(self.token.encode(), seite)
+        (self.tmp / "geheim.txt").write_text("x")
+        for pfad in ("../geheim.txt", "../../etc/passwd", "stammdaten.json"):
+            self.assertEqual(self.anfrage(f"/api/datei?pfad={pfad}")[0], 404, pfad)
+
+    def test_ablauf_erstellen_und_lesen(self):
+        status, s = self.json("/api/status")
+        self.assertFalse(s["stammdaten_vorhanden"])
+        csv = (BEISPIELE / "rechnungen.csv").read_bytes()
+        self.assertEqual(self.anfrage("/api/pruefen?format=xrechnung&name=x.csv", csv)[0], 409)  # Firmendaten fehlen
+
+        stamm = (BEISPIELE / "stammdaten.json").read_bytes()
+        self.assertEqual(self.json("/api/stammdaten", stamm)[0], 200)
+        kaputt = json.dumps({"verkaeufer": {"name": "X"}}).encode()
+        self.assertEqual(self.anfrage("/api/stammdaten", kaputt)[0], 422)
+
+        status, d = self.json("/api/pruefen?format=beide&name=export.csv", csv)
+        self.assertEqual(status, 200)
+        self.assertEqual([r["ok"] for r in d["rechnungen"]], [True, True, True])
+        self.assertEqual(d["dateien"], [])
+        self.assertEqual(Nutzung(FREE).verbraucht, 0)  # Prüfen verbraucht kein Kontingent
+
+        status, d = self.json("/api/erzeugen?format=beide&name=export.csv", csv)
+        self.assertTrue(d["ok"], d)
+        self.assertEqual(len([x for x in d["dateien"] if x.endswith((".xml", ".pdf"))]), 6)
+        status, inhalt, typ = self.anfrage("/api/datei?pfad=" + d["dateien"][0])
+        self.assertEqual(status, 200)
+        status, inhalt, typ = self.anfrage("/api/zip", json.dumps({"dateien": d["dateien"]}).encode())
+        self.assertEqual(typ, "application/zip")
+
+        ubl = (HIER / "daten" / "ubl_eingang.xml").read_bytes()
+        status, d = self.json("/api/lesen?buchen=1&name=ubl.xml", ubl)
+        self.assertEqual((d["nummer"], d["probleme"], d["gebucht"]), ("LF-778", [], True))
+        self.assertEqual(self.anfrage("/api/datei?pfad=gelesen/buchungsliste.csv")[0], 200)
+        self.assertEqual(self.anfrage("/api/lesen?name=x.xml", b"<foo/>")[0], 422)
+
+    def test_mapping(self):
+        mapping = (BEISPIELE / "mapping_altsystem.json").read_bytes()
+        self.assertEqual(self.json("/api/mapping", mapping)[0], 200)
+        self.assertEqual(self.json("/api/mapping")[1]["_zahlenformat"], "de")
+        self.assertEqual(self.anfrage("/api/mapping", b"[1,2]")[0], 400)
+
+
 class CliTest(MitDatenverzeichnis):
     def lauf(self, *args):
         out = io.StringIO()
@@ -379,7 +533,7 @@ class CliTest(MitDatenverzeichnis):
 
     def test_konvertieren_und_pruefen(self):
         code, out = self.lauf("konvertieren", BEISPIELE / "rechnungen.csv", "--stammdaten",
-                              BEISPIELE / "stammdaten.json", "--ziel", self.tmp / "out")
+                              BEISPIELE / "stammdaten.json", "--ziel", self.tmp / "out", "--ohne-offizielle-pruefung")
         self.assertEqual(code, 0, out)
         self.assertIn("3 Rechnung(en) erzeugt, 0 Fehler", out)
         code, out = self.lauf("pruefen", self.tmp / "out" / "RE-2026-1001.xml")
@@ -394,7 +548,7 @@ class CliTest(MitDatenverzeichnis):
 
     def test_xml_ist_wohlgeformt(self):
         self.lauf("konvertieren", BEISPIELE / "rechnungen.csv", "--stammdaten", BEISPIELE / "stammdaten.json",
-                  "--ziel", self.tmp / "out")
+                  "--ziel", self.tmp / "out", "--ohne-offizielle-pruefung")
         for f in (self.tmp / "out").glob("*.xml"):
             etree.parse(str(f))
 

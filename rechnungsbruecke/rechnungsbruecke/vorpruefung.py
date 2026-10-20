@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from .modell import KATEGORIEN, Rechnung
 
 UST_ID = re.compile(r"^[A-Z]{2}[0-9A-Z+*.]{2,13}$")
+# Leitweg-ID: Grobadressierung (2–12 Ziffern), optional Feinadressierung, Prüfziffer (2 Ziffern)
+LEITWEG_ID = re.compile(r"^\d{2,12}(-[0-9A-Za-z]{1,30})?-\d{2}$")
 
 
 @dataclass
@@ -25,7 +27,13 @@ def iban_gueltig(iban: str) -> bool:
     return int(zahl) % 97 == 1
 
 
-def pruefe(r: Rechnung) -> list[Meldung]:
+def leitweg_id_gueltig(lid: str) -> bool:
+    """Prüfziffer nach Modulo 97-10 (ISO/IEC 7064), wie in der Leitweg-ID-Formatspezifikation."""
+    s = lid.replace("-", "").upper()
+    return int("".join(str(int(c, 36)) for c in s)) % 97 == 1
+
+
+def pruefe(r: Rechnung, profil: str = "xrechnung") -> list[Meldung]:
     m: list[Meldung] = []
 
     def fehler(text):
@@ -62,6 +70,14 @@ def pruefe(r: Rechnung) -> list[Meldung]:
     if not (v.ust_id or v.registernummer or v.kennung):
         fehler("Verkäufer: Ohne USt-IdNr. ist eine Registernummer (z. B. Handelsregister) "
                "oder eine Verkäuferkennung ('kennung') nötig")
+
+    if profil == "xrechnung" and not r.kaeufer_referenz:
+        fehler("Käuferreferenz fehlt (Spalte 'kunde_referenz'). XRechnung verlangt sie: bei Behörden die "
+               "Leitweg-ID, sonst die Referenz, die Ihr Kunde vorgibt (z. B. Bestellzeichen). Bitte beim Kunden "
+               "erfragen, nicht selbst vergeben. Ohne Referenz ist nur ZUGFeRD möglich.")
+    elif LEITWEG_ID.match(r.kaeufer_referenz) and not leitweg_id_gueltig(r.kaeufer_referenz):
+        hinweis(f"Käuferreferenz '{r.kaeufer_referenz}' sieht aus wie eine Leitweg-ID, aber die Prüfziffer "
+                f"stimmt nicht. Bitte mit dem Auftraggeber abgleichen.")
 
     if not r.bank:
         fehler("Bankverbindung fehlt (Zahlungsanweisung ist in XRechnung Pflicht)")

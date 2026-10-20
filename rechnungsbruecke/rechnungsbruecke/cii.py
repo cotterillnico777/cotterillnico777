@@ -4,6 +4,7 @@ from decimal import Decimal
 from lxml import etree
 
 from .modell import Partei, Rechnung, runden
+from .standards import EN16931_KENNUNG, PEPPOL_PROZESS, XRECHNUNG_KENNUNG
 
 NS = {
     "rsm": "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100",
@@ -11,11 +12,7 @@ NS = {
     "udt": "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100",
     "qdt": "urn:un:unece:uncefact:data:standard:QualifiedDataType:100",
 }
-PROFILE = {
-    "xrechnung": "urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0",
-    "zugferd": "urn:cen.eu:en16931:2017",
-}
-PEPPOL_PROZESS = "urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"
+PROFILE = {"xrechnung": XRECHNUNG_KENNUNG, "zugferd": EN16931_KENNUNG}
 
 
 def _el(parent, tag, text=None, **attrib):

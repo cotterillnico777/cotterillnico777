@@ -154,10 +154,11 @@ def _mit_output_intent(pdf: bytes) -> bytes:
     return out.getvalue()
 
 
-def erzeuge_zugferd(r: Rechnung) -> bytes:
+def erzeuge_zugferd(r: Rechnung, xml: bytes | None = None) -> bytes:
+    """`xml` ist das bereits geprüfte CII-XML (Profil zugferd); fehlt es, wird es erzeugt."""
     from facturx import generate_from_binary
 
-    xml = erzeuge_cii(r, profil="zugferd")
+    xml = xml or erzeuge_cii(r, profil="zugferd")
     pdf = _mit_output_intent(_visuelles_pdf(r))
     return generate_from_binary(
         pdf, xml, flavor="factur-x", level="en16931", check_xsd=True, lang="de-DE",

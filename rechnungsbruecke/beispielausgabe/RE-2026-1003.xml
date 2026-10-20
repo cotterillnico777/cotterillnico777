@@ -69,7 +69,7 @@
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>991-12345-67</ram:BuyerReference>
+      <ram:BuyerReference>991-33333TEST-33</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Muster Metallbau GmbH</ram:Name>
         <ram:SpecifiedLegalOrganization>

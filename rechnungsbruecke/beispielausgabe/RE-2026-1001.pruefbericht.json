@@ -1,0 +1,28 @@
+{
+  "rechnung": "RE-2026-1001",
+  "erstellt_am": "2026-10-20T19:16:17",
+  "dateien": [
+    "RE-2026-1001.xml",
+    "RE-2026-1001.pdf"
+  ],
+  "offizielle_pruefung": "bestanden",
+  "regeln": {
+    "quelle": "testkopie-aus-pypi-mcp-einvoicing-de-0.11.4.zip",
+    "eingerichtet_am": "2026-10-20T19:16:16",
+    "xrechnung_version": "3.0",
+    "dateien": {
+      "XRechnung-CII-validation.xsl": "ec54f662803a87f527ec606d1320bc404f1657a848af6a76f37f32905e4aac40",
+      "XRechnung-UBL-validation.xsl": "e32d831668facbbd5136cc0119bf1dd6f92ac20738aa3b3f021586f5a305c738",
+      "EN16931-CII-validation.xsl": "0911e927f13f9ae2cdc7f973643f27bf0ad3c5da02483c04a5b8a47eb4822199",
+      "EN16931-UBL-validation.xsl": "759f2d2e830c7fd1d5a6e8b4f61e5dbafc7a7805862c4ae1c749eeac6adde698"
+    }
+  },
+  "warnungen": [],
+  "summen": {
+    "netto": "1569.00",
+    "steuer": "298.11",
+    "brutto": "1867.11",
+    "zahlbetrag": "1867.11",
+    "waehrung": "EUR"
+  }
+}

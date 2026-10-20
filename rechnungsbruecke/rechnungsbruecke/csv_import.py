@@ -194,7 +194,8 @@ def importiere(pfad: Path, stamm: Stammdaten, mapping: dict[str, str] | None = N
             leistungsdatum=datum(kopf["leistungsdatum"], "leistungsdatum", nr) if kopf.get("leistungsdatum") else rdatum,
             faelligkeit=rdatum + timedelta(days=tage),
             zahlungsbedingungen=stamm.zahlungsbedingungen.format(tage=tage),
-            kaeufer_referenz=kopf.get("kunde_referenz") or kopf.get("bestellnummer") or nummer,
+            # BT-10 vergibt der Käufer (Leitweg-ID oder vereinbarte Referenz); nie selbst erfinden
+            kaeufer_referenz=kopf.get("kunde_referenz", ""),
             bestellnummer=kopf.get("bestellnummer", ""), bemerkung=kopf.get("bemerkung", ""),
             befreiungsgruende={"E": KLEINUNTERNEHMER_GRUND} if stamm.kleinunternehmer else {},
         ))

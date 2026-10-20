@@ -4,7 +4,8 @@
 
 - **Ausgang:** CSV-Export (eine Zeile je Position) → **XRechnung 3.0** (CII-XML) und/oder **ZUGFeRD/Factur-X** (PDF/A-3 mit eingebettetem XML, Profil EN 16931)
 - **Eingang:** XRechnung/ZUGFeRD (CII oder UBL, als XML oder PDF) → lesbare HTML-Ansicht + Buchungsliste (CSV)
-- **Prüfung:** verständliche Vorprüfung auf Deutsch; optional vollständige Prüfung gegen die offiziellen EN-16931- und XRechnung-Schematron-Regeln
+- **Prüfung:** verständliche Vorprüfung auf Deutsch und **verpflichtend** die Prüfung gegen die offiziellen EN-16931- und XRechnung-Regeln, bevor eine Rechnung geschrieben wird; je Rechnung ein Prüfbericht
+- **Grafische Oberfläche** im Browser für die Buchhaltung, ohne Kommandozeile
 - **Hotfolder:** Das Altsystem legt CSV-Dateien ab, die Rechnungsbrücke erzeugt automatisch die E-Rechnungen
 - Läuft vollständig **on-premises** (Windows, Linux, macOS; Python ≥ 3.10). Rechnungsdaten verlassen das Haus nicht.
 
@@ -13,7 +14,14 @@ Geschäftsmodell und Finanzplan: [`GESCHAEFTSMODELL.md`](GESCHAEFTSMODELL.md).
 ## Schnellstart
 
 ```bash
-pip install .                      # optional: pip install ".[offiziell]" für die Prüfung mit offiziellen Regeln
+pip install .
+rechnungsbruecke regeln-einrichten validator-configuration-xrechnung.zip   # einmalig, offizielle KoSIT-Regeln
+rechnungsbruecke oberflaeche       # grafische Oberfläche im Browser (Arbeitsordner ~/Rechnungsbruecke)
+```
+
+Oder per Kommandozeile:
+
+```bash
 rechnungsbruecke beispiel demo     # Beispieldateien anlegen
 rechnungsbruecke konvertieren demo/rechnungen.csv --stammdaten demo/stammdaten.json --ziel demo/ausgabe --format beide
 rechnungsbruecke pruefen demo/ausgabe/RE-2026-1001.xml
@@ -40,7 +48,7 @@ Trennzeichen `;` `,` Tab oder `|`, Kodierung UTF-8 oder Windows-1252 werden erka
 | `kunde_name`, `kunde_strasse`, `kunde_plz`, `kunde_ort` | ja | |
 | `bezeichnung`, `menge`, `einzelpreis` | ja | Einzelpreis netto |
 | `kunde_email` | für XRechnung ja | elektronische Adresse des Käufers |
-| `kunde_referenz` | empfohlen | Leitweg-ID (öffentliche Auftraggeber) oder Ihre Kundennummer |
+| `kunde_referenz` | für XRechnung ja | Referenz, die **Ihr Kunde** vorgibt: Leitweg-ID bei Behörden, sonst z. B. Bestellzeichen oder Kostenstelle. Nicht Ihre eigene Kunden- oder Rechnungsnummer. |
 | `leistungsdatum`, `kunde_land`, `kunde_ustid`, `bestellnummer`, `einheit`, `ust_satz`, `steuerkategorie`, `artikelnummer`, `zahlungsziel_tage`, `typ`, `bemerkung` | nein | `einheit` z. B. Stk, Std, kg, m, pauschal; `steuerkategorie` S, Z, E, AE (Reverse Charge), K (innergem. Lieferung), G (Export); `typ` 380 Rechnung, 381 Gutschrift |
 
 ### Mapping für Altsysteme
@@ -65,13 +73,44 @@ rechnungsbruecke ueberwachen /pfad/hotfolder --ziel /pfad/ausgabe --stammdaten s
 - Verarbeitete Dateien → `hotfolder/verarbeitet/`, fehlerhafte → `hotfolder/fehler/` mit `.log`
 - `--einmal` für einen einzelnen Durchlauf, z. B. per Windows-Aufgabenplanung oder cron
 
-## Prüfung mit den offiziellen Regeln
+## Grafische Oberfläche
 
-`pruefen`, `konvertieren` und `ueberwachen` akzeptieren `--regeln ORDNER`. Der Ordner enthält die kompilierten
-Schematron-Regeln `EN16931-CII-validation.xsl(t)`, `XRechnung-CII-validation.xsl(t)` und für UBL die
-entsprechenden `-UBL-`-Dateien – aus der XRechnung-Konfiguration der KoSIT bzw. den Releases von
-CEN/TC 434 (eInvoicing-EN16931). Dazu `pip install ".[offiziell]"` (Saxon-XSLT-Prozessor).
-Bei `konvertieren --regeln` wird keine Rechnung geschrieben, die eine fatale Regel verletzt.
+`rechnungsbruecke oberflaeche` startet die Oberfläche im Browser. Sie ist nur auf diesem Rechner erreichbar (127.0.0.1)
+und durch einen Sitzungsschlüssel gegen Zugriffe anderer Webseiten geschützt.
+
+- **Rechnungen erstellen:** CSV-Export ablegen, Format wählen, „Prüfen“ (schreibt nichts, verbraucht kein Kontingent),
+  dann „E-Rechnungen erzeugen“; Download einzeln oder als ZIP
+- **Rechnung lesen:** eingegangene XRechnung/ZUGFeRD ansehen, Rechenkontrolle, zur Buchungsliste hinzufügen
+- **Einstellungen:** Firmendaten, Prüfregeln (KoSIT-ZIP auswählen), Lizenz, Spaltenzuordnung für den Export
+
+Arbeitsordner (Standard `~/Rechnungsbruecke`, änderbar mit `--ordner`): `stammdaten.json`, `mapping.json`,
+`eingang/` (hochgeladene Exporte), `ausgabe/JJJJ-MM/` (E-Rechnungen und Prüfberichte), `gelesen/`.
+
+## Offizielle Prüfung (Pflicht)
+
+Jede Ausgangsrechnung wird vor dem Schreiben gegen die offiziellen Regeln geprüft: XSD, EN 16931 (CII) und bei
+XRechnung zusätzlich die XRechnung-Regeln; auch das XML im ZUGFeRD-PDF. Was eine fatale Regel verletzt, wird nicht
+geschrieben. Zu jeder Rechnung entsteht `<nummer>.pruefbericht.json` (Zeitpunkt, Ergebnis, Regelquelle,
+Prüfsummen, Beträge) als Nachweis.
+
+Einrichtung einmalig: die XRechnung-Konfiguration der KoSIT (`validator-configuration-xrechnung`, passend zu
+XRechnung 3.0) als ZIP herunterladen und `rechnungsbruecke regeln-einrichten <zip>` ausführen (oder in der Oberfläche
+unter Einstellungen auswählen). Die Rechnungsbrücke prüft die XRechnung-Version, legt die Regeln mit SHA-256-Prüfsummen
+ab und verweigert die Arbeit, wenn Dateien später verändert wurden. `rechnungsbruecke info` zeigt den Stand.
+
+Ohne eingerichtete Regeln werden keine Rechnungen erzeugt. Nur für Tests gibt es `--ohne-offizielle-pruefung`.
+
+## Käuferreferenz (BT-10)
+
+XRechnung verlangt eine Käuferreferenz. Sie wird **vom Kunden vergeben**: bei Behörden die Leitweg-ID, sonst z. B.
+das Bestellzeichen. Die Rechnungsbrücke erfindet sie nie, auch nicht aus Rechnungs- oder Kundennummer. Fehlt sie,
+wird die XRechnung abgelehnt (ZUGFeRD ist ohne möglich). Leitweg-IDs werden auf ihre Prüfziffer kontrolliert.
+
+## Festgeschriebene Versionen
+
+XRechnung 3.0, ZUGFeRD/Factur-X Profil EN 16931 als PDF/A-3b. Alle Python-Abhängigkeiten sind in `pyproject.toml`
+auf die getesteten Versionen festgelegt. Nachweise und externe Prüfung (veraPDF, Mustang):
+[`PRUEFPROTOKOLL.md`](PRUEFPROTOKOLL.md), wiederholbar mit `werkzeuge/externe_pruefung.sh`.
 
 ## Tarife
 
@@ -88,17 +127,16 @@ offline geprüft. Anbieterseitig: [`werkzeuge/lizenz_ausstellen.py`](werkzeuge/l
 ersten Verkauf ein eigenes Schlüsselpaar erzeugen und den öffentlichen Schlüssel in `rechnungsbruecke/lizenz.py`
 eintragen.
 
-## Grenzen (Version 1.0)
+## Grenzen (Version 1.1)
 
 - Keine Zu-/Abschläge auf Belegebene und kein strukturiertes Skonto (Skonto als Text in den Zahlungsbedingungen möglich)
 - Steuerkategorie „nicht steuerbar“ (O) und Fremdwährungs-Steuerausweis werden nicht unterstützt
 - Kein Versand (E-Mail/Peppol) – die Dateien werden über die vorhandenen Wege verschickt
-- ZUGFeRD-PDFs werden als PDF/A-3 aufgebaut (eingebettete Schriften, sRGB-OutputIntent, XMP), sind aber noch
-  nicht mit veraPDF zertifiziert; das eingebettete XML ist gegen die EN-16931-Regeln geprüft
+- Die Oberfläche ist für einen Arbeitsplatz gedacht (kein Mehrbenutzerbetrieb, keine Anmeldung)
 
 ## Entwicklung
 
 ```bash
-python3 -m unittest discover tests                    # 37 Tests
+python3 -m unittest discover tests                    # 47 Tests
 RB_REGELN=/pfad/zu/regeln python3 -m unittest discover tests   # inkl. Prüfung gegen offizielle Regeln
 ```

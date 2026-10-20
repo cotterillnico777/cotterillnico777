@@ -95,7 +95,7 @@
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>KD-4711</ram:BuyerReference>
+      <ram:BuyerReference>Bestellung 4500012345 / Fr. Meier</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Muster Metallbau GmbH</ram:Name>
         <ram:SpecifiedLegalOrganization>
