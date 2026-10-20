@@ -16,7 +16,7 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 | **Erlöse** | Lizenz-Abo in 4 Stufen (0 / 39 / 99 / 249 € netto pro Monat) + Einrichtung (590 €) + Partnerkanal (IT-Systemhäuser, 25 % Provision) |
 | **Finanzen (Basis)** | Umsatz J1 19 T€ → J2 125 T€ → **J3 294 T€** · Ergebnis J3 **+116 T€ nach Unternehmerlohn** · dauerhaft profitabel ab **Monat 21** · Kapitalbedarf **≈ 37 T€** |
 | **Worst Case** | Bremst man die Kosten rechtzeitig (Szenario „pessimistisch_gegensteuern“), ist das Geschäft trotzdem **ab Monat 14 profitabel**, bei nur ≈ 7 T€ Kapitalbedarf. |
-| **Minimalkapital** | Wenn du nur Gehalt entnimmst, was schon verdient ist, und vor dem ersten Umsatz kein Geld für Werbung oder Personal ausgibst, sinkt der Kapitalbedarf auf **≈ 1.500 €**. Das gilt im Basis- **und** im pessimistischen Szenario (siehe Kapitel 7a). |
+| **Minimalkapital** | Wenn du nur Gehalt entnimmst, was schon verdient ist, und vor dem ersten Umsatz kein Geld für Werbung oder Personal ausgibst, sinkt der Kapitalbedarf auf **unter 1.000 €**. Das gilt im Basis- **und** im pessimistischen Szenario (siehe Kapitel 7a). |
 | **Stand** | Das Produkt ist fertig: Version 1.0, 37 automatische Tests, alle Beispielrechnungen fehlerfrei gegen EN 16931 und XRechnung 3.0. |
 
 ---
@@ -156,16 +156,16 @@ ausgibt, bevor der Umsatz da ist.
 1. **Gehalt nur aus Gewinn:** Entnommen wird höchstens, was der Monat erwirtschaftet hat (Obergrenze wie im Basis-Szenario).
 2. **Kein Personal vor dem Umsatz:** Die Pflege der Software übernimmst du selbst, Teilzeit-Support kommt erst ab Monat 19.
 3. **Werbung erst nach den ersten Verkäufen:** Im Basis-Fall ab Monat 7 mit 300 €. Im pessimistischen Fall gar keine Werbung, nur Suchmaschinen-Content und Partner.
-4. **Einmalkosten von 1.200 €:** AGB/EULA aus einer anwaltlich geprüften Vorlage, Markenanmeldung beim DPMA, Domain. Steuerberatung zunächst 100 €/Monat.
+4. **Einmalkosten von 500 €:** Markenanmeldung beim DPMA (290 €, online, bis zu drei Klassen), B2B-AGB/EULA aus einem AGB-Generator bzw. einer Vorlage eines Rechtsdienstleisters (Einrichtung ≈ 150 €, danach ≈ 20 €/Monat für Aktualisierungen, in den laufenden Tool-Kosten von 60 €/Monat enthalten), Domain. Steuerberatung zunächst 100 €/Monat. Eine anwaltliche Prüfung der Haftungsklausel (≈ 200–600 €) wird erst aus den ersten Einnahmen bezahlt.
 
 | Kennzahl | Minimalkapital (Basis-Nachfrage) | Minimalkapital (pessimistische Nachfrage) |
 |---|---:|---:|
-| Max. Kapitalbedarf | **1.506 €** | **1.607 €** |
-| Dauerhaft profitabel ab Monat | 3 | 4 |
+| Max. Kapitalbedarf | **848 €** | **967 €** |
+| Dauerhaft profitabel ab Monat | 4 | 4 |
 | Umsatz Jahr 1 / 2 / 3 | 15.567 / 107.669 / 270.909 € | 8.274 / 44.798 / 89.352 € |
-| Entnommenes Gehalt Jahr 1 / 2 / 3 | 8.558 / 41.616 / 54.000 € | 4.852 / 26.621 / 49.850 € |
-| Ergebnis Jahr 3 (nach Gehalt) | 138.884 € | 6.364 € |
-| Kasse nach 36 Monaten (vor Steuern) | 160.222 € | 5.872 € |
+| Entnommenes Gehalt Jahr 1 / 2 / 3 | 8.438 / 41.576 / 54.000 € | 4.732 / 26.421 / 49.730 € |
+| Ergebnis Jahr 3 (nach Gehalt) | 138.644 € | 6.244 € |
+| Kasse nach 36 Monaten (vor Steuern) | 160.362 € | 6.292 € |
 
 **Der Preis dafür:** Im ersten Jahr verdienst du kaum Gehalt (≈ 400–700 € pro Monat). Die Variante passt also,
 wenn du nebenher angestellt bist, Rücklagen hast oder den Gründungszuschuss bekommst. Das Risiko ist dann
