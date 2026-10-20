@@ -1,0 +1,3 @@
+BelegNr;Belegdatum;LiefDatum;KdNr;Kunde;Strasse;PLZ;Ort;UStID;Mail;Artikeltext;Anzahl;ME;EP netto;MwSt
+20261001;20.10.2026;19.10.2026;10023;Müller & Söhne GmbH;Große Straße 3;50667;Köln;DE822222222;buchhaltung@mueller-soehne.de;Schweißarbeiten;3,5;Std;72,00;19
+20261001;20.10.2026;19.10.2026;10023;Müller & Söhne GmbH;Große Straße 3;50667;Köln;DE822222222;buchhaltung@mueller-soehne.de;Flachstahl 40x5;1.250;kg;1,89;19

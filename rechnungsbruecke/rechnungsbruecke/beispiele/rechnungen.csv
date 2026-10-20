@@ -1,0 +1,7 @@
+rechnungsnummer;rechnungsdatum;leistungsdatum;kunde_name;kunde_strasse;kunde_plz;kunde_ort;kunde_land;kunde_ustid;kunde_email;kunde_referenz;bestellnummer;bezeichnung;menge;einheit;einzelpreis;ust_satz;steuerkategorie
+RE-2026-1001;20.10.2026;15.10.2026;Bauhof Schneider KG;Am Werk 12;80331;München;DE;DE811111111;rechnungseingang@bauhof-schneider.de;KD-4711;PO-889;Montage Stahltreppe;7,5;Std;68,00;19;S
+RE-2026-1001;20.10.2026;15.10.2026;Bauhof Schneider KG;Am Werk 12;80331;München;DE;DE811111111;rechnungseingang@bauhof-schneider.de;KD-4711;PO-889;Stahlträger HEA 200;12;m;84,50;19;S
+RE-2026-1001;20.10.2026;15.10.2026;Bauhof Schneider KG;Am Werk 12;80331;München;DE;DE811111111;rechnungseingang@bauhof-schneider.de;KD-4711;PO-889;Anfahrtspauschale;1;pauschal;45,00;19;S
+RE-2026-1002;20.10.2026;17.10.2026;Atelier Lumière SARL;12 Rue de la Paix;75002;Paris;FR;FR40303265045;factures@atelier-lumiere.fr;FR-22;;Edelstahlgeländer nach Maß;2;Stk;1.249,00;0;K
+RE-2026-1003;20.10.2026;30.09.2026;Stadtwerke Beispielstadt;Rathausplatz 1;10115;Berlin;DE;;e-rechnung@stadtwerke-beispielstadt.de;991-12345-67;;Wartung Rolltore Q3;1;pauschal;980,00;19;S
+RE-2026-1003;20.10.2026;30.09.2026;Stadtwerke Beispielstadt;Rathausplatz 1;10115;Berlin;DE;;e-rechnung@stadtwerke-beispielstadt.de;991-12345-67;;Fachbuch Brandschutz;1;Stk;39,90;7;S

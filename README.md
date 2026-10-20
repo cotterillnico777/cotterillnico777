@@ -1,6 +1,13 @@
-# Finlyra
+# Geschäftsmodelle
 
-Deutschsprachige Finanzbildung mit Fokus auf Geldpsychologie. Keine Anlageberatung.
+Dieses Repository enthält zwei eigenständige Geschäftsmodelle:
+
+1. **[Rechnungsbrücke](rechnungsbruecke/)**: Software, die CSV-Rechnungsexporte bestehender Systeme in gültige
+   E-Rechnungen (XRechnung 3.0 / ZUGFeRD) umwandelt. Lauffähiges Produkt mit Tests, Lizenzierung, Geschäftsmodell
+   ([`GESCHAEFTSMODELL.md`](rechnungsbruecke/GESCHAEFTSMODELL.md)) und Finanzmodell.
+2. **Finlyra** (unten): deutschsprachige Finanzbildung mit Fokus auf Geldpsychologie. Keine Anlageberatung.
+
+## Finlyra
 
 | Ordner | Inhalt |
 |---|---|

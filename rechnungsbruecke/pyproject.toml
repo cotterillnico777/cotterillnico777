@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rechnungsbruecke"
+version = "1.0.0"
+description = "CSV-Rechnungsexporte in XRechnung/ZUGFeRD umwandeln, E-Rechnungen lesen und prüfen"
+requires-python = ">=3.10"
+dependencies = ["lxml>=4.9", "reportlab>=4.0", "pypdf>=4.0", "factur-x>=3.0", "pillow>=10.0", "cryptography>=41"]
+
+[project.optional-dependencies]
+offiziell = ["saxonche>=12.4"]
+
+[project.scripts]
+rechnungsbruecke = "rechnungsbruecke.cli:main"
+
+[tool.setuptools]
+packages = ["rechnungsbruecke"]
+
+[tool.setuptools.package-data]
+rechnungsbruecke = ["beispiele/*"]

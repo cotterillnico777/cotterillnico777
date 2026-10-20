@@ -1,0 +1,25 @@
+{
+  "verkaeufer": {
+    "name": "Muster Metallbau GmbH",
+    "strasse": "Industriestraße 5",
+    "plz": "70173",
+    "ort": "Stuttgart",
+    "land": "DE",
+    "ust_id": "DE123456789",
+    "steuernummer": "99/815/08150",
+    "registernummer": "HRB 123456, Amtsgericht Stuttgart",
+    "email": "rechnung@muster-metallbau.de",
+    "kontakt_name": "Erika Muster",
+    "kontakt_telefon": "+49 711 123456",
+    "kontakt_email": "buchhaltung@muster-metallbau.de"
+  },
+  "bank": {
+    "iban": "DE02 1203 0000 0000 2020 51",
+    "bic": "BYLADEM1001",
+    "kontoinhaber": "Muster Metallbau GmbH"
+  },
+  "zahlungsziel_tage": 14,
+  "ust_satz": 19,
+  "kleinunternehmer": false,
+  "zahlungsbedingungen": "Zahlbar innerhalb von {tage} Tagen ohne Abzug"
+}

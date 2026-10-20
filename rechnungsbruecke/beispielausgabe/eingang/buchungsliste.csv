@@ -1,0 +1,2 @@
+﻿rechnungsnummer;rechnungsdatum;faelligkeit;lieferant;lieferant_ust_id;iban;steuerkategorie;ust_satz;netto;ust;brutto;waehrung
+LF-778;12.10.2026;11.11.2026;Stahlhandel Nord GmbH;DE333333333;DE89370400440532013000;S;19;751,00;142,69;893,69;EUR

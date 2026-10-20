@@ -1,0 +1,18 @@
+{
+  "_zahlenformat": "de",
+  "rechnungsnummer": "BelegNr",
+  "rechnungsdatum": "Belegdatum",
+  "leistungsdatum": "LiefDatum",
+  "kunde_name": "Kunde",
+  "kunde_strasse": "Strasse",
+  "kunde_plz": "PLZ",
+  "kunde_ort": "Ort",
+  "kunde_ustid": "UStID",
+  "kunde_email": "Mail",
+  "kunde_referenz": "KdNr",
+  "bezeichnung": "Artikeltext",
+  "menge": "Anzahl",
+  "einheit": "ME",
+  "einzelpreis": "EP netto",
+  "ust_satz": "MwSt"
+}

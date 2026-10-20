@@ -1,0 +1,76 @@
+{
+  "_hinweis": "Planannahmen, netto in EUR (B2B, Preise zzgl. USt). Monat 1 = November 2026. Szenarien überschreiben nur die genannten Werte. Stufenwerte: [[ab_monat, wert], ...].",
+  "monate": 36,
+  "startmonat": "2026-11",
+
+  "nachfrage": {
+    "organisch_free_start": 40,
+    "organisch_wachstum_mtl": 0.08,
+    "organisch_free_max": 300,
+    "stichtag_faktor": [[1, 1.6], [4, 1.0], [9, 1.4], [11, 2.0], [15, 1.1], [18, 1.0]],
+    "werbebudget": [[1, 500], [7, 1200], [13, 2000], [25, 2500]],
+    "kosten_je_free_installation": 25
+  },
+
+  "conversion": {
+    "free_pool_zu_bezahlt_mtl": 0.008,
+    "free_pool_abgang_mtl": 0.12,
+    "churn_bezahlt_mtl": 0.025,
+    "tarifmix": {"starter": 0.50, "business": 0.40, "unternehmen": 0.10},
+    "preise": {"starter": 39, "business": 99, "unternehmen": 249},
+    "rabatt_jahreszahlung_effektiv": 0.10
+  },
+
+  "partner": {
+    "start_monat": 4,
+    "neukunden_mtl": [[4, 0.5], [7, 1.5], [13, 3], [25, 4]],
+    "provision": 0.25
+  },
+
+  "einrichtung": {
+    "anteil_neukunden_business_plus": 0.40,
+    "preis": 590
+  },
+
+  "kosten": {
+    "zahlungsgebuehren": 0.03,
+    "support_je_kunde_mtl": 4,
+    "einmalig_monat_1": 3500,
+    "website_hosting_tools": 110,
+    "steuerberatung": 200,
+    "versicherung_it_haftpflicht": 60,
+    "freelancer_entwicklung": [[1, 0], [7, 1500]],
+    "support_teilzeit": [[1, 0], [13, 2000], [25, 3000]],
+    "unternehmerlohn": [[1, 0], [7, 2500], [19, 4500]]
+  },
+
+  "steuer_ruecklage_satz": 0.30,
+
+  "szenarien": {
+    "pessimistisch": {
+      "nachfrage.organisch_wachstum_mtl": 0.05,
+      "nachfrage.kosten_je_free_installation": 40,
+      "conversion.free_pool_zu_bezahlt_mtl": 0.005,
+      "conversion.churn_bezahlt_mtl": 0.035,
+      "partner.neukunden_mtl": [[4, 0.25], [7, 0.75], [13, 1.5], [25, 2]]
+    },
+    "pessimistisch_gegensteuern": {
+      "nachfrage.organisch_wachstum_mtl": 0.05,
+      "nachfrage.kosten_je_free_installation": 40,
+      "conversion.free_pool_zu_bezahlt_mtl": 0.005,
+      "conversion.churn_bezahlt_mtl": 0.035,
+      "partner.neukunden_mtl": [[4, 0.25], [7, 0.75], [13, 1.5], [25, 2]],
+      "nachfrage.werbebudget": [[1, 500], [7, 300]],
+      "kosten.freelancer_entwicklung": [[1, 0]],
+      "kosten.support_teilzeit": [[1, 0]],
+      "kosten.unternehmerlohn": [[1, 0], [13, 1500], [25, 2500]]
+    },
+    "basis": {},
+    "optimistisch": {
+      "nachfrage.organisch_wachstum_mtl": 0.10,
+      "nachfrage.kosten_je_free_installation": 18,
+      "conversion.free_pool_zu_bezahlt_mtl": 0.012,
+      "partner.neukunden_mtl": [[4, 1], [7, 2.5], [13, 5], [25, 7]]
+    }
+  }
+}
