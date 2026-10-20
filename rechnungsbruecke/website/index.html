@@ -1,0 +1,372 @@
+<title>Rechnungsbrücke</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Rechnungsbrücke macht aus dem CSV-Export Ihres bestehenden Rechnungsprogramms eine gültige XRechnung oder ZUGFeRD-Rechnung – lokal, ohne Systemwechsel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: ein Beleg. Links schmale Randspalte mit Feldbezeichnungen, rechts der Inhalt; der Hero zeigt die Umwandlung einer CSV-Zeile in XRechnung. */
+:root {
+  --paper: #f3f6f5;
+  --sheet: #ffffff;
+  --ink: #13202a;
+  --muted: #56636c;
+  --line: #d3dbd9;
+  --accent: #0b6b6f;
+  --accent-ink: #ffffff;
+  --signal: #a8681a;
+  --ok: #2c7a4b;
+  --code-bg: #eaf0ee;
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --s-1: 0.8125rem; --s0: 1rem; --s1: 1.25rem; --s2: 1.6rem; --s3: 2.2rem; --s4: clamp(2rem, 6.4vw, 4.1rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e161b; --sheet: #141f25; --ink: #e4ebe9; --muted: #95a3a9; --line: #27363d;
+    --accent: #4fb2b4; --accent-ink: #062224; --signal: #e0a54a; --ok: #66bf8b; --code-bg: #10242a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e161b; --sheet: #141f25; --ink: #e4ebe9; --muted: #95a3a9; --line: #27363d;
+  --accent: #4fb2b4; --accent-ink: #062224; --signal: #e0a54a; --ok: #66bf8b; --code-bg: #10242a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 400 var(--s0)/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); font-stretch: 85%; line-height: 1.08; text-wrap: balance; margin: 0; }
+h1 { font-size: var(--s4); font-weight: 800; letter-spacing: -0.01em; hyphens: auto; overflow-wrap: break-word; }
+h2 { font-size: var(--s3); font-weight: 760; }
+h3 { font-size: var(--s1); font-weight: 700; font-stretch: 95%; }
+p { margin: 0; max-width: 62ch; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--f-mono); font-size: 0.92em; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Kopfzeile */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; flex-wrap: wrap; }
+.brand { font-family: var(--f-display); font-weight: 800; font-stretch: 80%; font-size: var(--s1); color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+.brand svg { flex: none; }
+.top nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: var(--s-1); }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover { color: var(--ink); }
+
+/* Abschnitte als Belegfelder: Feldname links, Inhalt rechts */
+.feld { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 32px; padding-block: 56px; border-top: 1px solid var(--line); }
+.feld > .label { font-family: var(--f-mono); font-size: var(--s-1); color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; padding-top: 6px; }
+.feld > .inhalt { display: grid; gap: 24px; min-width: 0; }
+@media (max-width: 760px) { .feld { grid-template-columns: minmax(0, 1fr); gap: 12px; padding-block: 40px; } }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 40px; align-items: center; padding-block: 32px 64px; }
+@media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+.hero .lead { font-size: var(--s1); color: var(--muted); }
+.frist { display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: var(--s-1); color: var(--signal); font-weight: 600; letter-spacing: 0.02em; }
+.frist strong { font-family: var(--f-display); font-size: var(--s2); font-stretch: 75%; font-variant-numeric: tabular-nums; }
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 6px; font-weight: 600; text-decoration: none; border: 1.5px solid var(--accent); transition: transform .15s ease; }
+.btn.primaer { background: var(--accent); color: var(--accent-ink); }
+.btn.sekundaer { color: var(--accent); background: transparent; }
+.btn:hover { transform: translateY(-1px); }
+.hero-text { display: grid; gap: 22px; min-width: 0; }
+
+/* Umwandlungs-Demo */
+.demo { margin: 0; min-width: 0; background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 18px 40px -28px rgba(10, 30, 35, .45); }
+.demo .kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font: 500 var(--s-1) var(--f-mono); color: var(--muted); }
+.demo pre { margin: 0; padding: 14px; font: 400 0.78rem/1.55 var(--f-mono); overflow-x: auto; background: var(--code-bg); color: var(--ink); }
+.demo .pfeil { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: var(--s-1); color: var(--muted); border-block: 1px solid var(--line); }
+.demo .pfeil svg { color: var(--accent); flex: none; }
+.demo .ergebnis { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); }
+.stempel { display: inline-flex; align-items: center; gap: 6px; font: 500 0.75rem var(--f-mono); color: var(--ok); border: 1.5px solid var(--ok); border-radius: 4px; padding: 3px 8px; }
+.x-tag { color: var(--accent); }
+.x-wert { color: var(--signal); }
+@media (prefers-reduced-motion: no-preference) {
+  .demo .xml { animation: einblenden .9s ease-out .3s both; }
+  .demo .stempel { animation: stempeln .45s cubic-bezier(.2, 1.6, .4, 1) both; }
+  .demo .stempel:nth-child(1) { animation-delay: 1.1s; }
+  .demo .stempel:nth-child(2) { animation-delay: 1.3s; }
+  .demo .stempel:nth-child(3) { animation-delay: 1.5s; }
+  @keyframes einblenden { from { opacity: .35; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes stempeln { from { opacity: .3; transform: scale(1.25) rotate(-4deg); } to { opacity: 1; transform: none; } }
+}
+
+/* Zeitleiste der Fristen */
+.zeitleiste { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); }
+.zeitleiste li { padding: 20px; display: grid; gap: 6px; align-content: start; }
+.zeitleiste li + li { border-left: 1px solid var(--line); }
+.zeitleiste .datum { font: 500 var(--s-1) var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.zeitleiste .jetzt { color: var(--signal); }
+.zeitleiste .jetzt .datum { color: var(--signal); }
+@media (max-width: 700px) { .zeitleiste { grid-template-columns: minmax(0, 1fr); } .zeitleiste li + li { border-left: 0; border-top: 1px solid var(--line); } }
+.hinweis { font-size: var(--s-1); color: var(--muted); }
+
+/* Ablauf */
+.schritte { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; counter-reset: s; }
+.schritte li { display: grid; gap: 8px; align-content: start; counter-increment: s; }
+.schritte li::before { content: counter(s); font: 800 var(--s2)/1 var(--f-display); font-stretch: 70%; color: var(--accent); }
+@media (max-width: 760px) { .schritte { grid-template-columns: minmax(0, 1fr); } }
+
+/* Prüfliste */
+.pruefungen { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.pruefungen > div { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; }
+.pruefungen > div:nth-child(odd) { padding-right: 24px; }
+.pruefungen > div:nth-child(even) { padding-left: 24px; border-left: 1px solid var(--line); }
+.pruefungen .regel { font: 500 var(--s-1) var(--f-mono); color: var(--accent); padding-top: 2px; }
+.pruefungen p { font-size: 0.95rem; }
+@media (max-width: 760px) {
+  .pruefungen { grid-template-columns: minmax(0, 1fr); }
+  .pruefungen > div:nth-child(odd), .pruefungen > div:nth-child(even) { padding-left: 0; padding-right: 0; border-left: 0; }
+}
+
+/* Zwei-Spalten-Text */
+.spalten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.spalten > div { display: grid; gap: 8px; align-content: start; min-width: 0; }
+@media (max-width: 760px) { .spalten { grid-template-columns: minmax(0, 1fr); } }
+
+/* Preise */
+.tabelle-wrap { overflow-x: auto; }
+table.preise { width: 100%; border-collapse: collapse; min-width: 560px; background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; }
+.preise th, .preise td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.preise thead th { font: 500 var(--s-1) var(--f-mono); color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.preise td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.preise .tarif { font-family: var(--f-display); font-weight: 700; font-stretch: 90%; font-size: 1.1rem; }
+.preise tr.empfohlen td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.preise tr:last-child td { border-bottom: 0; }
+.chip { display: inline-block; margin-left: 8px; font: 500 0.7rem var(--f-mono); color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 8px; vertical-align: middle; }
+
+/* Pilot */
+.pilot { background: var(--sheet); border: 1.5px solid var(--accent); border-radius: 10px; padding: 28px; display: grid; gap: 18px; }
+.pilot ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.kontakt { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.kontakt output { font: 500 var(--s0) var(--f-mono); background: var(--code-bg); padding: 8px 12px; border-radius: 6px; user-select: all; overflow-wrap: anywhere; }
+.kontakt button { font: 600 var(--s-1) var(--f-body); color: var(--accent); background: none; border: 1.5px solid var(--accent); border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+.kontakt .status { font-size: var(--s-1); color: var(--ok); min-height: 1.2em; }
+
+/* FAQ */
+details { border-bottom: 1px solid var(--line); padding-block: 14px; }
+details summary { cursor: pointer; font-weight: 600; list-style-position: outside; }
+details p { margin-top: 8px; color: var(--muted); }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: var(--s-1); color: var(--muted); }
+footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
+footer a { color: var(--muted); }
+</style>
+
+<div class="wrap" lang="de">
+  <header class="top">
+    <a class="brand" href="#start" aria-label="Rechnungsbrücke, zum Seitenanfang">
+      <svg width="34" height="20" viewBox="0 0 34 20" aria-hidden="true"><path d="M1 18 C 9 2, 25 2, 33 18" fill="none" stroke="var(--accent)" stroke-width="2.5"/><path d="M1 18 H33" fill="none" stroke="var(--ink)" stroke-width="2.5"/><path d="M9 18 V10 M17 18 V6.5 M25 18 V10" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>
+      Rechnungsbrücke
+    </a>
+    <nav aria-label="Seitennavigation">
+      <a href="#fristen">Fristen</a>
+      <a href="#ablauf">So funktioniert es</a>
+      <a href="#preise">Preise</a>
+      <a href="#pilot">Pilotprogramm</a>
+    </nav>
+  </header>
+
+  <main id="start">
+    <section class="hero" aria-labelledby="titel">
+      <div class="hero-text">
+        <div class="frist" role="note">
+          <span>Versandpflicht für E-Rechnungen ab 01.01.2027 · noch</span>
+          <strong id="tage">73 Tage</strong>
+        </div>
+        <h1 id="titel">Ihr Rechnungsprogramm bleibt. Ihre Rechnungen werden E-Rechnungen.</h1>
+        <p class="lead">Die Rechnungsbrücke macht aus dem CSV-Export Ihres bestehenden Systems eine gültige
+          XRechnung oder ZUGFeRD-Rechnung. Sie läuft bei Ihnen im Haus, die Rechnungsdaten verlassen die Firma nicht.</p>
+        <div class="ctas">
+          <a class="btn primaer" href="#pilot">Pilotplatz anfragen</a>
+          <a class="btn sekundaer" href="#ablauf">So funktioniert es</a>
+        </div>
+      </div>
+
+      <figure class="demo" aria-label="Beispiel: Eine CSV-Zeile wird zur XRechnung">
+        <div class="kopf"><span>export.csv</span><span>aus Ihrem System</span></div>
+<pre>BelegNr;Kunde;Artikeltext;Anzahl;ME;EP netto;MwSt
+20261001;Müller &amp; Söhne GmbH;Schweißarbeiten;3,5;Std;72,00;19
+20261001;Müller &amp; Söhne GmbH;Flachstahl 40x5;1.250;kg;1,89;19</pre>
+        <div class="pfeil">
+          <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 3 V18 M5 12 L11 18 L17 12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          <span><code>rechnungsbruecke konvertieren export.csv</code></span>
+        </div>
+        <div class="kopf"><span>20261001.xml</span><span>XRechnung 3.0 · CII</span></div>
+<pre class="xml"><span class="x-tag">&lt;ram:BilledQuantity</span> unitCode="KGM"<span class="x-tag">&gt;</span><span class="x-wert">1250</span><span class="x-tag">&lt;/…&gt;</span>
+<span class="x-tag">&lt;ram:LineTotalAmount&gt;</span><span class="x-wert">2362.50</span><span class="x-tag">&lt;/…&gt;</span>
+<span class="x-tag">&lt;ram:TaxTotalAmount</span> currencyID="EUR"<span class="x-tag">&gt;</span><span class="x-wert">496.76</span><span class="x-tag">&lt;/…&gt;</span>
+<span class="x-tag">&lt;ram:GrandTotalAmount&gt;</span><span class="x-wert">3111.26</span><span class="x-tag">&lt;/…&gt;</span></pre>
+        <figcaption class="ergebnis">
+          <span class="stempel">✓ EN 16931</span>
+          <span class="stempel">✓ XRechnung 3.0</span>
+          <span class="stempel">✓ Summen geprüft</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="feld" id="fristen" aria-labelledby="h-fristen">
+      <div class="label">Fristen</div>
+      <div class="inhalt">
+        <h2 id="h-fristen">Die E-Rechnung kommt in drei Stufen</h2>
+        <ol class="zeitleiste">
+          <li><span class="datum">seit 01.01.2025</span><h3>Empfangen</h3><p>Alle Unternehmen müssen E-Rechnungen annehmen und verarbeiten können.</p></li>
+          <li class="jetzt"><span class="datum">ab 01.01.2027</span><h3>Versenden ab 800.000 € Umsatz</h3><p>Wer im Vorjahr mehr als 800.000 € umgesetzt hat, schreibt B2B-Rechnungen nur noch elektronisch.</p></li>
+          <li><span class="datum">ab 01.01.2028</span><h3>Versenden für alle</h3><p>Die Pflicht gilt für fast alle Unternehmen im B2B-Inland. Ausnahmen gibt es etwa für Kleinbetragsrechnungen bis 250 €.</p></li>
+        </ol>
+        <p class="hinweis">Grundlage: Wachstumschancengesetz, § 14 UStG. Stand Oktober 2026. Ein PDF per E-Mail ist keine E-Rechnung im Sinne des Gesetzes.</p>
+      </div>
+    </section>
+
+    <section class="feld" id="ablauf" aria-labelledby="h-ablauf">
+      <div class="label">Ablauf</div>
+      <div class="inhalt">
+        <h2 id="h-ablauf">Drei Schritte, ohne Systemwechsel</h2>
+        <ol class="schritte">
+          <li><h3>Exportieren</h3><p>Ihr Programm exportiert die Rechnungen als CSV-Datei, mit einer Zeile je Position. Fast jedes System kann das, auch alte.</p></li>
+          <li><h3>Umwandeln</h3><p>Die Rechnungsbrücke ordnet Ihre Spalten zu, rechnet nach EN 16931 und prüft jede Rechnung, bevor sie geschrieben wird.</p></li>
+          <li><h3>Versenden</h3><p>Sie erhalten eine XRechnung (XML) oder ein ZUGFeRD-PDF und verschicken es wie gewohnt per E-Mail oder Portal.</p></li>
+        </ol>
+        <p>Im Business-Tarif läuft das automatisch: Ihr System legt den Export in einem Ordner ab, die Rechnungsbrücke erzeugt daraus die E-Rechnungen.</p>
+      </div>
+    </section>
+
+    <section class="feld" aria-labelledby="h-pruefung">
+      <div class="label">Prüfung</div>
+      <div class="inhalt">
+        <h2 id="h-pruefung">Fehler fallen vor dem Versand auf, nicht beim Kunden</h2>
+        <div class="pruefungen">
+          <div><span class="regel">BR-CO-15</span><p>Summen, Steuerbeträge und Rundung werden nach EN 16931 berechnet und abgeglichen.</p></div>
+          <div><span class="regel">BR-DE-15</span><p>Pflichtangaben der XRechnung wie die Käuferreferenz (bei Behörden die Leitweg-ID) werden geprüft.</p></div>
+          <div><span class="regel">IBAN</span><p>Die IBAN-Prüfziffer wird kontrolliert, bevor eine Zahlungsanweisung in die Rechnung kommt.</p></div>
+          <div><span class="regel">1.250</span><p>Mehrdeutige Zahlen werden abgelehnt statt geraten. Heißt das 1.250 kg oder 1,25 kg? Sie legen das Format einmal fest.</p></div>
+          <div><span class="regel">AE · K</span><p>Bei Reverse Charge und innergemeinschaftlicher Lieferung werden USt-IdNr. und Lieferland geprüft.</p></div>
+          <div><span class="regel">Schematron</span><p>Optional prüft die Rechnungsbrücke jede Rechnung gegen die offiziellen EN-16931- und XRechnung-Regelwerke.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="feld" aria-label="Weitere Funktionen">
+      <div class="label">Außerdem</div>
+      <div class="inhalt">
+        <div class="spalten">
+          <div><h3>Eingehende E-Rechnungen lesen</h3><p>XRechnung und ZUGFeRD von Lieferanten (CII oder UBL, als XML oder PDF) werden zu einer lesbaren Ansicht, mit Rechenkontrolle und einer Buchungsliste für Ihre Buchhaltung.</p></div>
+          <div><h3>Ihre Daten bleiben im Haus</h3><p>Die Rechnungsbrücke läuft auf Ihrem Rechner oder Server unter Windows, Linux oder macOS. Es gibt keine Cloud und keinen Upload. Ein Vertrag zur Auftragsverarbeitung ist nicht nötig.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="feld" id="preise" aria-labelledby="h-preise">
+      <div class="label">Preise</div>
+      <div class="inhalt">
+        <h2 id="h-preise">Monatlich kündbar, ohne Einrichtungsprojekt</h2>
+        <div class="tabelle-wrap">
+          <table class="preise">
+            <thead><tr><th scope="col">Tarif</th><th scope="col">Rechnungen pro Monat</th><th scope="col">Enthalten</th><th scope="col" class="n">Preis netto</th></tr></thead>
+            <tbody>
+              <tr><td class="tarif">Free</td><td>25</td><td>XRechnung, ZUGFeRD, Prüfung</td><td class="n">0 €</td></tr>
+              <tr><td class="tarif">Starter</td><td>300</td><td>wie Free</td><td class="n">39 € / Monat</td></tr>
+              <tr class="empfohlen"><td class="tarif">Business<span class="chip">häufigste Wahl</span></td><td>3.000</td><td>+ automatischer Ordner-Betrieb</td><td class="n">99 € / Monat</td></tr>
+              <tr><td class="tarif">Unternehmen</td><td>unbegrenzt</td><td>+ mehrere Firmen, priorisierter Support</td><td class="n">249 € / Monat</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="hinweis">Eingehende E-Rechnungen lesen und prüfen ist in allen Tarifen unbegrenzt. Bei Jahreszahlung sind 2 Monate gratis. Einrichtung auf Ihren Export auf Wunsch für einmalig 590 €.</p>
+      </div>
+    </section>
+
+    <section class="feld" id="pilot" aria-labelledby="h-pilot">
+      <div class="label">Pilotprogramm</div>
+      <div class="inhalt">
+        <div class="pilot">
+          <h2 id="h-pilot">10 Pilotplätze vor dem Stichtag</h2>
+          <p>Wir richten die Rechnungsbrücke kostenlos für den Export Ihres Rechnungsprogramms ein und erstellen gemeinsam die ersten E-Rechnungen. Im Gegenzug bitten wir um ehrliches Feedback.</p>
+          <ul>
+            <li>Sie schicken einen Export mit 2–3 Testrechnungen, gern mit Fantasie-Kundennamen.</li>
+            <li>Sie erhalten die fertigen E-Rechnungen innerhalb von 2 Werktagen zur Prüfung.</li>
+            <li>Die Einrichtung ist kostenlos. Danach gilt ein Tarif Ihrer Wahl, monatlich kündbar.</li>
+          </ul>
+          <div>
+            <p><strong>Pilotplatz anfragen per E-Mail:</strong></p>
+            <div class="kontakt">
+              <output id="email" data-platzhalter="true">kontakt@ihre-domain.de</output>
+              <button type="button" id="kopieren">Adresse kopieren</button>
+              <span class="status" id="kopiert" role="status" aria-live="polite"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="feld" aria-labelledby="h-faq">
+      <div class="label">Fragen</div>
+      <div class="inhalt">
+        <h2 id="h-faq">Häufige Fragen</h2>
+        <div>
+          <details><summary>Muss ich mein Rechnungsprogramm wechseln?</summary><p>Nein. Sie brauchen nur einen Export der Rechnungsdaten als CSV-Datei. Heißen die Spalten anders, ordnen wir sie einmal zu.</p></details>
+          <details><summary>Was ist der Unterschied zwischen XRechnung und ZUGFeRD?</summary><p>Beide erfüllen die E-Rechnungspflicht. Die XRechnung ist eine reine XML-Datei und bei Behörden üblich. ZUGFeRD ist ein PDF mit eingebettetem XML: Menschen sehen eine normale Rechnung, die Software Ihres Kunden liest die Daten automatisch.</p></details>
+          <details><summary>Mein Programm kann gar nichts exportieren. Was nun?</summary><p>Viele Programme können Rechnungslisten oder Buchungsdaten exportieren, auch wenn es nicht „CSV“ heißt. Schicken Sie uns, was Ihr System ausgibt. Wir sagen Ihnen ehrlich, ob es passt.</p></details>
+          <details><summary>Bin ich als Kleinunternehmer betroffen?</summary><p>Empfangen müssen alle Unternehmen E-Rechnungen können. Ob Sie selbst versenden müssen, klären Sie bitte mit Ihrer Steuerberatung. Die kostenlose Version der Rechnungsbrücke reicht für kleine Mengen.</p></details>
+          <details><summary>Wo werden meine Rechnungsdaten verarbeitet?</summary><p>Ausschließlich auf Ihrem eigenen Rechner oder Server. Die Lizenz wird offline geprüft, es werden keine Daten an uns übertragen.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>© 2026 Rechnungsbrücke · Software für E-Rechnungen nach EN 16931</span>
+    <nav aria-label="Rechtliches">
+      <a href="#impressum">Impressum</a>
+      <a href="#datenschutz">Datenschutz</a>
+      <a href="#agb">AGB</a>
+    </nav>
+  </footer>
+</div>
+
+<script>
+(function () {
+  // Verbleibende Tage bis zum Stichtag 01.01.2027 (Ortszeit)
+  var ziel = new Date(2027, 0, 1);
+  var heute = new Date();
+  heute.setHours(0, 0, 0, 0);
+  var tage = Math.round((ziel - heute) / 86400000);
+  var el = document.getElementById("tage");
+  if (el) {
+    if (tage > 1) el.textContent = tage + " Tage";
+    else if (tage === 1) el.textContent = "1 Tag";
+    else el.parentElement.innerHTML = "<span>Die Versandpflicht ab 800.000 € Umsatz gilt seit 01.01.2027</span>";
+  }
+
+  var knopf = document.getElementById("kopieren");
+  var adresse = document.getElementById("email");
+  var status = document.getElementById("kopiert");
+  if (knopf && adresse) {
+    knopf.addEventListener("click", function () {
+      var text = adresse.textContent.trim();
+      var markieren = function () {
+        var r = document.createRange();
+        r.selectNodeContents(adresse);
+        var s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+        status.textContent = "Adresse markiert, bitte mit Strg+C kopieren.";
+      };
+      try {
+        navigator.clipboard.writeText(text).then(function () {
+          status.textContent = "Adresse kopiert.";
+        }, markieren);
+      } catch (e) {
+        markieren();
+      }
+    });
+  }
+})();
+</script>
