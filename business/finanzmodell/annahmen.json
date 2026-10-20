@@ -1,0 +1,98 @@
+{
+  "_hinweis": "Alle Werte sind Planannahmen (netto, EUR, pro Monat sofern nicht anders angegeben). Konsumentenpreise sind brutto inkl. 19 % USt angegeben und werden im Modell auf netto umgerechnet. Szenarien überschreiben nur die dort genannten Werte.",
+  "monate": 36,
+  "ust_satz": 0.19,
+
+  "publikum": {
+    "organisch_neu_start": 150,
+    "organisch_wachstum_mtl": 0.06,
+    "organisch_neu_max": 1500,
+    "free_churn_mtl": 0.03,
+    "werbebudget_start_monat": 4,
+    "werbebudget_mtl": [[4, 300], [7, 600], [13, 1200], [25, 1800]],
+    "cac_free_abonnent": 2.5
+  },
+
+  "plus_abo": {
+    "start_monat": 3,
+    "preis_monat_brutto": 6.90,
+    "preis_jahr_brutto": 59.00,
+    "anteil_jahresabo": 0.40,
+    "conversion_free_zu_plus_mtl": 0.0035,
+    "churn_mtl": 0.045,
+    "stripe_prozent": 0.015,
+    "stripe_fix": 0.25
+  },
+
+  "digitale_produkte": {
+    "ebook_start_monat": 4,
+    "ebook_preis_brutto": 29.00,
+    "ebook_conversion_neue_free": 0.025,
+    "kurs_start_monat": 9,
+    "kurs_preis_brutto": 149.00,
+    "kurs_conversion_free_list_mtl": 0.0006,
+    "kurs_conversion_plus_mtl": 0.008
+  },
+
+  "sponsoring": {
+    "ab_free_abonnenten": 2000,
+    "ausgaben_pro_monat": 4,
+    "cpm_eur": 30,
+    "auslastung": [[1, 0.4], [13, 0.6], [25, 0.75]]
+  },
+
+  "b2b": {
+    "start_monat": 7,
+    "neukunden_mtl": [[7, 0.34], [13, 0.75], [25, 1.25]],
+    "lizenz_jahreswert": 3600,
+    "kunden_churn_mtl": 0.018,
+    "workshops_mtl": [[7, 0.5], [13, 1.0], [25, 1.5]],
+    "workshop_preis": 1200,
+    "workshop_direktkosten": 150
+  },
+
+  "kosten": {
+    "einmalig_monat_1": 2500,
+    "newsletter_software": [[0, 0], [2500, 49], [10000, 99], [25000, 219]],
+    "ki_und_daten": 80,
+    "hosting_domain_tools": 35,
+    "steuerberatung": 180,
+    "versicherung": 45,
+    "freelancer_design_video": [[1, 0], [4, 300], [13, 900], [25, 1500]],
+    "teilzeit_redaktion": [[1, 0], [19, 1800]],
+    "unternehmerlohn": [[1, 0], [13, 2500], [25, 4000]]
+  },
+
+  "steuer_ruecklage_satz": 0.30,
+
+  "szenarien": {
+    "pessimistisch": {
+      "publikum.organisch_wachstum_mtl": 0.035,
+      "publikum.cac_free_abonnent": 3.5,
+      "plus_abo.conversion_free_zu_plus_mtl": 0.002,
+      "plus_abo.churn_mtl": 0.06,
+      "b2b.neukunden_mtl": [[7, 0.2], [13, 0.5], [25, 0.75]],
+      "sponsoring.cpm_eur": 22
+    },
+    "pessimistisch_gegensteuern": {
+      "publikum.organisch_wachstum_mtl": 0.035,
+      "publikum.cac_free_abonnent": 3.5,
+      "plus_abo.conversion_free_zu_plus_mtl": 0.002,
+      "plus_abo.churn_mtl": 0.06,
+      "b2b.neukunden_mtl": [[7, 0.2], [13, 0.5], [25, 0.75]],
+      "sponsoring.cpm_eur": 22,
+      "publikum.werbebudget_mtl": [[4, 300]],
+      "kosten.freelancer_design_video": [[1, 0], [4, 300]],
+      "kosten.teilzeit_redaktion": [[1, 0]],
+      "kosten.unternehmerlohn": [[1, 0], [13, 1000], [25, 2000]]
+    },
+    "basis": {},
+    "optimistisch": {
+      "publikum.organisch_wachstum_mtl": 0.08,
+      "publikum.cac_free_abonnent": 2.0,
+      "plus_abo.conversion_free_zu_plus_mtl": 0.005,
+      "plus_abo.churn_mtl": 0.035,
+      "b2b.neukunden_mtl": [[7, 0.5], [13, 1.0], [25, 1.75]]
+    }
+  }
+}
