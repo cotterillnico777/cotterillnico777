@@ -5,6 +5,7 @@
   settle                        offene Wetten mit Ergebnissen abrechnen
   report                        Bilanz (Gewinn, ROI, CLV)
   backtest                      Walk-Forward-Test der Prognosegüte (CL)
+  roi-backtest --matches DATEI  Rendite-Test mit historischen Quoten (16 Ligen)
   ranking                       Teamstärken
 """
 from __future__ import annotations
@@ -16,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import backtest, data, ledger, odds as odds_mod
+from . import backtest, data, ledger, odds as odds_mod, roi
 from .model import DixonColes
 from .value import Settings, find_value, select_bets
 
@@ -136,6 +137,21 @@ def cmd_backtest(a):
     print(backtest.calibration(pred).round(3).to_string())
 
 
+def cmd_roi(a):
+    cfg = Settings()
+    bets, unmatched = roi.run(data.load_all(), roi.load_matches(a.matches, a.start), cfg)
+    if unmatched:
+        print(f"{len(unmatched)} Teams ohne Zuordnung übersprungen (meist Aufsteiger ohne Historie)")
+    out = {"gesamt": roi.summary(bets)} | {m: roi.summary(g) for m, g in bets.groupby("markt")}
+    sim = roi.simulate(bets, cfg.bankroll, cfg)
+    if len(sim):
+        out["bankroll"] = {"start": cfg.bankroll, "ende": round(float(sim.bankroll.iloc[-1]), 2),
+                           "minimum": round(float(sim.bankroll.min()), 2)}
+    print(json.dumps(out, indent=2, ensure_ascii=False))
+    if a.out:
+        bets.to_csv(a.out, index=False)
+
+
 def cmd_ranking(a):
     df, model = _fit()
     r = model.ranking()
@@ -164,6 +180,12 @@ def main(argv=None):
     bt = sub.add_parser("backtest")
     bt.add_argument("--start", default="2024-09-01")
     bt.set_defaults(fn=cmd_backtest)
+    rb = sub.add_parser("roi-backtest")
+    rb.add_argument("--matches", required=True,
+                    help="Matches.csv aus github.com/xgabora/Club-Football-Match-Data-2000-2025")
+    rb.add_argument("--start", default="2024-10-01")
+    rb.add_argument("--out", help="alle simulierten Wetten als CSV")
+    rb.set_defaults(fn=cmd_roi)
     rk = sub.add_parser("ranking")
     rk.add_argument("--top", type=int, default=40)
     rk.set_defaults(fn=cmd_ranking)
