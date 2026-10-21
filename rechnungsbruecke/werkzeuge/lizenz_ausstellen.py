@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Anbieter-Werkzeug: Schlüsselpaar erzeugen und Lizenzdateien ausstellen.
 
-  python3 lizenz_ausstellen.py schluessel --privat privat.pem
-      erzeugt ein Ed25519-Schlüsselpaar. Den ausgegebenen öffentlichen Schlüssel in
-      rechnungsbruecke/lizenz.py (OEFFENTLICHER_SCHLUESSEL) eintragen.
-      privat.pem NIEMALS weitergeben oder ins Repository einchecken.
+  python3 lizenz_ausstellen.py schluessel --privat /sicherer/ort/privat.pem --eintragen
+      erzeugt ein Ed25519-Schlüsselpaar und trägt den öffentlichen Schlüssel in
+      rechnungsbruecke/lizenz.py ein (ohne --eintragen wird er nur ausgegeben).
+      privat.pem NIEMALS weitergeben oder ins Repository einchecken; offline sichern
+      (z. B. verschlüsselter USB-Stick + Passwortmanager). Ohne ihn können keine Lizenzen
+      mehr ausgestellt werden; ein neuer Schlüssel macht alle bisherigen Lizenzen ungültig.
 
   python3 lizenz_ausstellen.py ausstellen --privat privat.pem --kunde "Firma GmbH" \\
       --tarif business --bis 2027-12-31 --ziel lizenz.json
@@ -44,6 +46,7 @@ def main():
     sub = ap.add_subparsers(dest="befehl", required=True)
     s = sub.add_parser("schluessel")
     s.add_argument("--privat", required=True, type=Path)
+    s.add_argument("--eintragen", action="store_true", help="öffentlichen Schlüssel in rechnungsbruecke/lizenz.py eintragen")
     a = sub.add_parser("ausstellen")
     a.add_argument("--privat", required=True, type=Path)
     a.add_argument("--kunde", required=True)
@@ -60,7 +63,16 @@ def main():
                                                      serialization.NoEncryption()))
         args.privat.chmod(0o600)
         print(f"Privater Schlüssel: {args.privat} (geheim halten, sicher sichern)")
-        print(f'OEFFENTLICHER_SCHLUESSEL = "{oeffentlich_b64(privat)}"')
+        zeile = f'OEFFENTLICHER_SCHLUESSEL = "{oeffentlich_b64(privat)}"'
+        print(zeile)
+        if args.eintragen:
+            ziel = Path(__file__).resolve().parent.parent / "rechnungsbruecke" / "lizenz.py"
+            inhalt = ziel.read_text(encoding="utf-8")
+            if inhalt.count('OEFFENTLICHER_SCHLUESSEL = "REPLACE_WITH_YOUR_ED25519_PUBLIC_KEY"') != 1:
+                raise SystemExit(f"{ziel}: Platzhalter nicht gefunden – ist bereits ein Schlüssel eingetragen?")
+            ziel.write_text(inhalt.replace('OEFFENTLICHER_SCHLUESSEL = "REPLACE_WITH_YOUR_ED25519_PUBLIC_KEY"', zeile),
+                            encoding="utf-8")
+            print(f"Eingetragen in {ziel}. Danach Tests ausführen und das Windows-Paket neu bauen.")
     else:
         lizenz = ausstellen(lade_privat(args.privat), args.kunde, args.tarif, args.bis)
         args.ziel.write_text(json.dumps(lizenz, ensure_ascii=False, indent=2), encoding="utf-8")

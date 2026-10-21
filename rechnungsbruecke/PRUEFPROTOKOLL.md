@@ -1,4 +1,4 @@
-# Prüfprotokoll Rechnungsbrücke 1.2.0
+# Prüfprotokoll Rechnungsbrücke 1.2.1
 
 Stand: 21.10.2026 · Prüfgegenstand: `beispielausgabe/` (erzeugt aus `rechnungsbruecke/beispiele/rechnungen.csv`, Format „beide“)
 
@@ -42,7 +42,7 @@ selben Ergebnis.
 
 ## Automatische Tests
 
-52 Tests (`python -m unittest discover tests`); 6 davon benötigen die offiziellen Regeln (`RB_REGELN`).
+56 Tests (`python -m unittest discover tests`); 6 davon benötigen die offiziellen Regeln (`RB_REGELN`).
 Letzter Lauf (21.10.2026, Linux, Python 3.13): alle bestanden, mit und ohne `RB_REGELN`; Abnahmelauf
 `werkzeuge/abnahme.sh` mit der Testkopie bestanden, Gegenprobe mit falscher Regelversion korrekt abgelehnt.
 
@@ -58,6 +58,25 @@ Letzter Lauf (21.10.2026, Linux, Python 3.13): alle bestanden, mit und ohne `RB_
 | fehlende Käuferreferenz (XRechnung) | BR-DE-15 → nicht buchbar |
 | ZUGFeRD MINIMUM / BASIC WL | als „keine E-Rechnung“ abgelehnt |
 | ohne eingerichtete Regeln | „ungeprüft“, nicht buchbar |
+
+## XML-Sicherheit (neu in 1.2.1)
+
+Befund im Review: Saxon löst externe Entities selbst auf (nachgewiesen mit einer XXE-Testdatei). In 1.2.0 war das
+nicht ausnutzbar, weil die XSD-Prüfung vorher abbrach – darauf sollte man sich nicht verlassen. Seit 1.2.1 läuft
+jedes fremde XML durch `xmlsicher.py`: DOCTYPE/ENTITY werden abgelehnt (auch in UTF-16), Saxon und XSD-Prüfung
+erhalten nur neu serialisiertes XML ohne DTD.
+
+| Angriff | Ergebnis |
+|---|---|
+| XXE (externe Entity auf lokale Datei) | abgelehnt, Quarantäne, kein Dateiinhalt in Bericht oder Meldung |
+| XXE in UTF-16 | abgelehnt (zweite Sicherung über `docinfo`) |
+| Entity-Expansion („Billion Laughs“) | abgelehnt |
+
+## Lizenzschlüssel
+
+Der Ablauf Schlüssel erzeugen → eintragen → Lizenz ausstellen → vom Programm akzeptiert → Tests → Paketbau wurde
+in einer Projektkopie mit einem Wegwerf-Schlüssel geprüft (danach gelöscht). Im Repository steht weiterhin der
+Platzhalter; der Paketbau verweigert damit Auslieferungspakete.
 
 ## Noch nicht geprüft
 

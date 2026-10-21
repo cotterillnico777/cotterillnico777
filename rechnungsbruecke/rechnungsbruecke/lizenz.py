@@ -14,6 +14,12 @@ from pathlib import Path
 # Vor dem Verkauf mit `python3 werkzeuge/lizenz_ausstellen.py schluessel` ein eigenes
 # Schlüsselpaar erzeugen und den öffentlichen Schlüssel hier eintragen.
 OEFFENTLICHER_SCHLUESSEL = "REPLACE_WITH_YOUR_ED25519_PUBLIC_KEY"
+PLATZHALTER = "REPLACE_WITH_YOUR_ED25519_PUBLIC_KEY"
+
+
+def schluessel_eingebaut() -> bool:
+    """False, solange nur der Platzhalter eingetragen ist: dann ist ausschließlich der Free-Tarif nutzbar."""
+    return OEFFENTLICHER_SCHLUESSEL != PLATZHALTER
 
 TARIFE = {
     "free": {"rechnungen_monat": 25, "hotfolder": False, "preis_monat": 0},
@@ -63,6 +69,9 @@ def pruefe_lizenzdatei(pfad: Path, heute: date | None = None) -> Lizenz:
         signatur = base64.b64decode(d["signatur"])
         schluessel = Ed25519PublicKey.from_public_bytes(base64.b64decode(OEFFENTLICHER_SCHLUESSEL))
     except (OSError, ValueError, KeyError) as e:
+        if not schluessel_eingebaut():
+            raise LizenzFehler("Diese Programmversion enthält noch keinen Lizenzschlüssel des Anbieters; "
+                               "es ist nur der Free-Tarif nutzbar.") from None
         raise LizenzFehler(f"Lizenzdatei {pfad} ist nicht lesbar: {e}") from None
     try:
         schluessel.verify(signatur, nutzdaten(d["kunde"], d["tarif"], d["gueltig_bis"]))

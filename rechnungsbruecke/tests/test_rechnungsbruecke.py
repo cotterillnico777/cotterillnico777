@@ -342,6 +342,13 @@ class LizenzTest(MitDatenverzeichnis):
         self.assertEqual(len(erg.erzeugt), 1)
         self.assertTrue(any("Monatskontingent" in f for f in erg.fehler))
 
+    def test_ohne_anbieterschluessel_klare_meldung(self):
+        datei = self.lizenzdatei()
+        with mock.patch.object(lizenzmodul, "OEFFENTLICHER_SCHLUESSEL", lizenzmodul.PLATZHALTER):
+            self.assertFalse(lizenzmodul.schluessel_eingebaut())
+            with self.assertRaisesRegex(LizenzFehler, "nur der Free-Tarif"):
+                pruefe_lizenzdatei(datei)
+
     def test_hotfolder_nicht_im_free_tarif(self):
         with self.assertRaisesRegex(LizenzFehler, "Hotfolder"):
             hotfolder_durchlauf(self.tmp, self.tmp / "ziel", None, FREE)
@@ -612,6 +619,51 @@ class EingangTest(MitDatenverzeichnis):
         self.assertEqual(p.status, "fehler")
         self.assertTrue(any("BR-DE-15" in b for b in p.befunde))
 
+
+class XmlSicherheitTest(MitDatenverzeichnis):
+    UBL = (HIER / "daten" / "ubl_eingang.xml").read_text(encoding="utf-8")
+
+    def angriffe(self):
+        geheim = self.tmp / "geheim.txt"
+        geheim.write_text("GEHEIM-123")
+        xxe = self.UBL.replace('<?xml version="1.0" encoding="UTF-8"?>',
+                               '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE ubl:Invoice '
+                               f'[<!ENTITY xxe SYSTEM "file://{geheim}">]>').replace("Vielen Dank", "&xxe;")
+        return {
+            "xxe": xxe.encode("utf-8"),
+            "xxe_utf16": xxe.replace('encoding="UTF-8"', 'encoding="UTF-16"').encode("utf-16"),
+            "entity_bombe": b'<?xml version="1.0"?><!DOCTYPE r [<!ENTITY a "aaaaaaaaaa">'
+                            b'<!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;">]><r>&b;</r>',
+        }
+
+    def test_leser_und_eingang_lehnen_ab(self):
+        from rechnungsbruecke.eingang import pruefe_eingang
+
+        for name, xml in self.angriffe().items():
+            with self.subTest(name):
+                with self.assertRaises(LeseFehler):
+                    lies(xml)
+                with self.assertRaises(ValueError):
+                    pruefe_eingang(xml, None, None, ohne_offizielle_pruefung=True)
+
+    def test_offizielle_pruefung_gibt_saxon_kein_dtd(self):
+        from rechnungsbruecke.offiziell import pruefe_xsd
+        from rechnungsbruecke.xmlsicher import UnsicheresXML, bereinigt
+
+        for name, xml in self.angriffe().items():
+            with self.subTest(name):
+                with self.assertRaises(UnsicheresXML):
+                    pruefe_xsd(xml, eingang=True)
+        self.assertNotIn(b"DOCTYPE", bereinigt(self.UBL.encode("utf-8")))
+
+    def test_quarantaene_statt_absturz(self):
+        datei = self.tmp / "angriff.xml"
+        datei.write_bytes(self.angriffe()["xxe"])
+        erg = konvertiere_lesen(datei, self.tmp / "ziel", self.tmp / "liste.csv")
+        self.assertFalse(erg.ok)
+        bericht = next((self.tmp / "ziel" / "quarantaene").glob("*.quarantaene.json")).read_text(encoding="utf-8")
+        self.assertIn("DOCTYPE", bericht)
+        self.assertNotIn("GEHEIM", bericht + "".join(erg.fehler))
 
 def konvertiere_lesen(datei, ziel, liste):
     from rechnungsbruecke.verarbeitung import lese_eingang

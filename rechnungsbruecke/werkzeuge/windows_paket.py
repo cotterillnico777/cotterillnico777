@@ -8,6 +8,7 @@ Ergebnis: dist/Rechnungsbruecke-<version>-windows-x64.zip mit
   python/Lib/site-packages/   Rechnungsbrücke und alle festgeschriebenen Abhängigkeiten, bereits installiert
   Rechnungsbruecke starten.cmd   startet die Oberfläche im Browser
   Rechnungsbruecke Kommandozeile.cmd   öffnet eine Eingabeaufforderung mit dem Befehl `rechnungsbruecke`
+  Beispiele/                  Beispiel-Export, Firmendaten, Spaltenzuordnung, Eingangsrechnung (für Test und Abnahme)
   LIESMICH.txt                Anleitung für Anwender
 
 Auf dem Zielrechner ist keine Installation und kein Internet nötig: entpacken, Doppelklick, fertig.
@@ -97,11 +98,19 @@ def gepinnte_abhaengigkeiten() -> list[str]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--ziel", type=Path, default=PROJEKT / "dist")
+    ap.add_argument("--nur-free", action="store_true",
+                    help="Testpaket ohne Anbieter-Lizenzschlüssel bauen (nur Free-Tarif nutzbar, nicht zur Auslieferung)")
     args = ap.parse_args()
+    lizenzcode = (PROJEKT / "rechnungsbruecke" / "lizenz.py").read_text(encoding="utf-8")
+    ohne_schluessel = re.search(r'^OEFFENTLICHER_SCHLUESSEL = "REPLACE_WITH_YOUR_ED25519_PUBLIC_KEY"$', lizenzcode, re.M)
+    if ohne_schluessel and not args.nur_free:
+        raise SystemExit("In rechnungsbruecke/lizenz.py ist noch kein Lizenzschlüssel eingetragen. Zuerst "
+                         "`python3 werkzeuge/lizenz_ausstellen.py schluessel --privat <pfad> --eintragen`, "
+                         "oder mit --nur-free ein Testpaket bauen.")
 
     version = re.search(r'__version__ = "([^"]+)"',
                         (PROJEKT / "rechnungsbruecke" / "__init__.py").read_text(encoding="utf-8")).group(1)
-    name = f"Rechnungsbruecke-{version}-windows-x64"
+    name = f"Rechnungsbruecke-{version}-windows-x64" + ("-NUR-FREE-TEST" if args.nur_free else "")
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         paket = tmp / name
@@ -130,6 +139,9 @@ def main() -> int:
                         *[str(w) for w in raeder.glob("*.whl")]], check=True)
 
         installiert = sorted(p.name for p in site.glob("*.dist-info"))
+        beispiele = paket / "Beispiele"
+        shutil.copytree(PROJEKT / "rechnungsbruecke" / "beispiele", beispiele)
+        shutil.copy(PROJEKT / "tests" / "daten" / "ubl_eingang.xml", beispiele / "eingangsrechnung_ubl.xml")
         (paket / "Rechnungsbruecke starten.cmd").write_text(STARTEN.replace("\n", "\r\n"), encoding="cp1252")
         (paket / "Rechnungsbruecke Kommandozeile.cmd").write_text(KOMMANDOZEILE.replace("\n", "\r\n"),
                                                                     encoding="cp1252")

@@ -3,9 +3,10 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
 
-from lxml import etree
 
 from .modell import runden
+from .xmlsicher import UnsicheresXML
+from .xmlsicher import parse as sicher_parsen
 
 CII = {
     "rsm": "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100",
@@ -218,9 +219,9 @@ def xml_aus_datei(pfad: Path) -> bytes:
 
 def lies(xml: bytes) -> Eingangsrechnung:
     try:
-        root = etree.fromstring(xml, parser=etree.XMLParser(resolve_entities=False, no_network=True))
-    except etree.XMLSyntaxError as e:
-        raise LeseFehler(f"Kein gültiges XML: {e}") from None
+        root = sicher_parsen(xml)
+    except UnsicheresXML as e:
+        raise LeseFehler(str(e)) from None
     if root.tag == f"{{{CII['rsm']}}}CrossIndustryInvoice":
         return _lies_cii(root)
     if root.tag in (f"{{{UBL['inv']}}}Invoice", f"{{{UBL['cn']}}}CreditNote"):

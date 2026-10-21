@@ -11,6 +11,7 @@ from pathlib import Path
 from lxml import etree
 
 from .regeln import Regelwerk, lade
+from .xmlsicher import bereinigt, parse
 
 SVRL = {"svrl": "http://purl.oclc.org/dsdl/svrl"}
 _SAXON = None
@@ -26,7 +27,7 @@ class Befund:
 
 
 def _syntax(xml: bytes) -> str:
-    root = etree.fromstring(xml)
+    root = parse(xml)
     return "UBL" if root.tag.endswith("}Invoice") or root.tag.endswith("}CreditNote") else "CII"
 
 
@@ -55,7 +56,8 @@ def pruefe_xsd(xml: bytes, eingang: bool = False) -> list[Befund]:
     werden UBL und das ZUGFeRD-Profil erkannt (BASIC, EN 16931, EXTENDED)."""
     from facturx import get_level, xml_check_xsd
 
-    root = etree.fromstring(xml)
+    xml = bereinigt(xml)
+    root = parse(xml)
     if _syntax(xml) == "UBL":
         if not eingang:
             return []
@@ -92,6 +94,7 @@ def _stylesheet(pfad: Path):
 
 
 def pruefe_schematron(xml: bytes, werk: Regelwerk) -> list[Befund]:
+    xml = bereinigt(xml)  # Saxon würde externe Entities sonst selbst auflösen
     _stylesheet(regelwerke_fuer(xml, werk)[0])  # stellt sicher, dass der Prozessor existiert
     quelle = _SAXON.parse_xml(xml_text=xml.decode("utf-8"))
     befunde = []

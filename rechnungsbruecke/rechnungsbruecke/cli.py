@@ -133,6 +133,10 @@ def cmd_info(a) -> int:
               f"{werk.manifest.get('eingerichtet_am') or '–'} · XRechnung {werk.manifest['xrechnung_version']}")
     else:
         print("Prüfregeln: nicht eingerichtet (rechnungsbruecke regeln-einrichten <KoSIT-Konfiguration.zip>)")
+    from .lizenz import schluessel_eingebaut
+
+    print("Lizenzschlüssel des Anbieters: " + ("eingebaut" if schluessel_eingebaut()
+                                               else "NICHT eingebaut – nur Free-Tarif nutzbar"))
     from importlib.metadata import PackageNotFoundError, version
     for paket in ("lxml", "reportlab", "pypdf", "factur-x", "pillow", "cryptography", "saxonche"):
         try:

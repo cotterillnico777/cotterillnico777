@@ -150,9 +150,18 @@ auf die getesteten Versionen festgelegt. Nachweise und externe Prüfung (veraPDF
 
 Lesen und Prüfen eingehender Rechnungen ist in allen Tarifen unbegrenzt. `rechnungsbruecke lizenz` zeigt Tarif und
 Verbrauch. Die Lizenzdatei (`~/.rechnungsbruecke/lizenz.json` oder `--lizenz`) ist mit Ed25519 signiert und wird
-offline geprüft. Anbieterseitig: [`werkzeuge/lizenz_ausstellen.py`](werkzeuge/lizenz_ausstellen.py) – vor dem
-ersten Verkauf ein eigenes Schlüsselpaar erzeugen und den öffentlichen Schlüssel in `rechnungsbruecke/lizenz.py`
-eintragen.
+offline geprüft. Anbieterseitig: [`werkzeuge/lizenz_ausstellen.py`](werkzeuge/lizenz_ausstellen.py).
+
+**Vor dem ersten zahlenden Kunden** (einmalig, auf einem eigenen Rechner):
+
+```bash
+python3 werkzeuge/lizenz_ausstellen.py schluessel --privat /sicherer/ort/privat.pem --eintragen
+python3 -m unittest discover tests && python3 werkzeuge/windows_paket.py
+```
+
+Den privaten Schlüssel offline sichern (z. B. verschlüsselter USB-Stick und Passwortmanager), nie ins Repository.
+Solange der Platzhalter eingetragen ist, zeigt `rechnungsbruecke info` „nur Free-Tarif nutzbar“ und der
+Paketbau verweigert die Auslieferung (Testpakete nur mit `--nur-free`).
 
 ## Grenzen (Version 1.2)
 
@@ -162,10 +171,11 @@ eintragen.
 - Die Oberfläche ist für einen Arbeitsplatz gedacht (kein Mehrbenutzerbetrieb, keine Anmeldung)
 - Lizenzkontrolle offline: Der Monatszähler ist eine lokale Datei, die Gültigkeit hängt an der Systemzeit. Für den Pilot ausreichend, vor breitem Verkauf härten
 - Das Windows-Paket ist nicht code-signiert (SmartScreen-Hinweis beim ersten Start)
+- Fremde XML-Dateien mit DOCTYPE-/ENTITY-Deklaration werden grundsätzlich abgelehnt (Schutz vor XXE); E-Rechnungen enthalten so etwas nie
 
 ## Entwicklung
 
 ```bash
-python3 -m unittest discover tests                    # 52 Tests
+python3 -m unittest discover tests                    # 56 Tests
 RB_REGELN=/pfad/zu/regeln python3 -m unittest discover tests   # inkl. Prüfung gegen offizielle Regeln
 ```
