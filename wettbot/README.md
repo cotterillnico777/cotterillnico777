@@ -5,6 +5,11 @@ höher ist, als sie nach unserer Wahrscheinlichkeitsschätzung sein müsste.
 Er tippt nicht „wer gewinnt“, sondern rechnet, **wo der Preis falsch ist** – und
 setzt dann kontrolliert (Viertel-Kelly mit harten Limits).
 
+> **Ergebnis des Rendite-Backtests (siehe unten):** Mit echten historischen Quoten
+> aus 16 Ligen ist **kein dauerhafter Gewinn nachweisbar**. Die beste Einstellung
+> lag zwei Jahre lang bei +1,6 % ROI – statistisch nicht von Null unterscheidbar.
+> Die ursprüngliche, modellgetriebene Einstellung hätte 86 % der Bankroll verloren.
+>
 > **Ehrlicher Hinweis vorweg:** Kein Wettbot kann Gewinn garantieren.
 > Buchmacher haben 3–8 % Marge eingebaut; die Mehrheit aller Wettenden verliert
 > langfristig. Dieser Bot ist so gebaut, dass er nur bei messbarem Vorteil wettet,
@@ -23,10 +28,13 @@ Ergebnisse (openfootball)        Quoten (CSV oder The Odds API)
  (Teams + Ligastärke,            (Power-Methode, Mittel über Buchmacher)
   Zeitgewichtung)                            │
           │                                  │
-          └──── p = 35 % Modell + 65 % Markt ┘
+          │      p = Markt (Modell nur Veto) ┘
+          │                         │
+          └──► Veto: Modell muss Wette ebenfalls positiv sehen
+               und darf nicht > 12 Pkt. vom Markt abweichen
                          │
-          EV = p × beste Quote − 1  ≥ 3 % ?
-          Modell & Markt nicht > 12 Pkt. uneinig?
+          EV = p × beste Quote − 1  ≥ 2 % ?
+          beste Quote ≤ 110 % des Buchmacher-Medians?
                          │
           Einsatz = ¼-Kelly, max. 2 %/Wette, 3 %/Spiel, 10 %/Tag
                          │
@@ -41,12 +49,11 @@ wenig Daten werden zum Ligamittel gezogen, Länder ohne Ligadaten (Norwegen,
 Ukraine, …) zu einem gemeinsamen Kleinligen-Mittel. Eigenes Torniveau für
 Europapokalspiele. Daten: ~12 500 Spiele aus 17 Ligen + CL/EL/ECL seit 2022.
 
-**Warum Mischung mit dem Markt?** Der Markt kennt Verletzungen, Aufstellungen
-und Rotation – das Modell nicht. Ein reines Statistikmodell, das blind gegen den
-Markt wettet, verliert in Top-Wettbewerben fast immer. Value entsteht hier aus
-(1) **Line-Shopping** – immer die beste Quote mehrerer Buchmacher nehmen – und
-(2) der unabhängigen Modellmeinung als Zünglein an der Waage. Weicht das Modell
-stark ab, ist das ein **Warnsignal** (fehlende Information), kein Value.
+**Warum nur Veto?** Der Markt kennt Verletzungen, Aufstellungen und Rotation –
+das Modell nicht. Im Rendite-Backtest hat *jedes* Modellgewicht > 0 die Rendite
+verschlechtert (siehe unten). Übrig bleibt **Line-Shopping**: die faire
+Wahrscheinlichkeit kommt aus dem margenbereinigten Markt, gewettet wird nur, wo
+ein einzelner Buchmacher klar mehr zahlt – und auch das Modell nicht widerspricht.
 
 ## Schnellstart
 
@@ -65,11 +72,13 @@ python -m wettbot picks --api --date 2026-11-04 --bankroll 500 --save
 python -m wettbot settle                     # nach dem Spieltag: abrechnen
 python -m wettbot report                     # Bilanz: Gewinn, ROI, CLV
 python -m wettbot backtest                   # Prognosegüte prüfen
+git clone https://github.com/xgabora/Club-Football-Match-Data-2000-2025 /tmp/odds
+python -m wettbot roi-backtest --matches /tmp/odds/data/Matches.csv   # Rendite-Test
 python -m wettbot ranking --top 30           # Teamstärken
 ```
 
 Alle Grenzwerte sind per Option änderbar, z. B. `--min-edge 0.05`,
-`--kelly-fraction 0.2`, `--model-weight 0.3`, `--max-disagreement 0.10`.
+`--kelly-fraction 0.2`, `--max-price-ratio 1.05`, `--max-disagreement 0.10`.
 
 ### Ablauf an einem CL-Abend
 
@@ -79,34 +88,55 @@ Alle Grenzwerte sind per Option änderbar, z. B. `--min-edge 0.05`,
 3. Schlussquote in `data/ledger.csv` (Spalte `schlussquote`) eintragen.
 4. Ergebnisse in `data/results_manual.csv` anhängen, `settle` ausführen.
 
-## Ist der Bot profitabel? So prüfst du es
+## Ist der Bot profitabel? Was die Daten sagen
 
-* **Backtest** (Walk-Forward, CL 2024/25 – heute, 423 Spiele, Modell sieht nie
-  die Zukunft):
+### 1. Prognosegüte (CL, Walk-Forward 2024/25 – heute, 423 Spiele)
 
-  | Markt | Modell (Log-Loss) | Basisrate |
-  |---|---|---|
-  | 1X2 | **0,888** | 0,996 |
-  | Über/Unter 2,5 | 0,633 | 0,641 |
-  | Beide treffen | 0,675 | 0,686 |
+| Markt | Modell (Log-Loss) | Basisrate |
+|---|---|---|
+| 1X2 | **0,888** | 0,996 |
+| Über/Unter 2,5 | 0,633 | 0,641 |
+| Beide treffen | 0,675 | 0,686 |
 
-  Parameter (Halbwertszeit 450 Tage, Ridge 4, Europapokal-Gewicht 2,
-  1X2-Schärfung 1,15) wurden auf diesem Zeitraum gewählt – die Zahlen sind
-  daher leicht optimistisch. Das Modell hat echte Vorhersagekraft; Buchmacher
-  liegen in der CL typischerweise bei ≈ 0,87–0,89, das Modell allein schlägt
-  den Markt also nicht – deshalb die Mischung. Eine **Rendite**-Simulation braucht historische Quoten; die waren in
-  der Entwicklungsumgebung nicht abrufbar.
-* **Closing Line Value**: Liegt die genommene Quote im Schnitt über der
-  Schlussquote (`report` → `clv` > 0), hast du einen echten Vorteil. Das ist nach
-  ~100 Wetten aussagekräftiger als der Kontostand nach 100 Wetten.
-* **Erwartung realistisch halten**: Selbst gute Value-Bettor erzielen 2–5 % ROI
-  auf den Umsatz, mit langen Durststrecken. Bei ¼-Kelly und ~2 % Einsatz pro
-  Wette schwankt die Bankroll trotzdem deutlich.
+Das Modell hat echte Vorhersagekraft – aber Buchmacher sind besser.
+
+### 2. Rendite mit echten Quoten (`roi-backtest`)
+
+16 Ligen (Top-5 + 2. Ligen, NL, PT, BE, TR, GR, SCO), Okt. 2024 – Sep. 2026,
+~16 000 Spiele. Markt = bet365 margenbereinigt, Wettquote = Höchstquote aus ~17
+Büchern. Modell wöchentlich neu trainiert, sieht nie die Zukunft. Daten:
+[xgabora/Club-Football-Match-Data-2000-2025](https://github.com/xgabora/Club-Football-Match-Data-2000-2025).
+
+| Einstellung | Wetten | ROI (flach) | 95 %-Intervall | 1 000 € werden zu |
+|---|---|---|---|---|
+| ursprünglich (35 % Modell, EV ≥ 3 %) | 3 740 | **−9,3 %** | −14 % … −5 % | **139 €** |
+| nur Modell | 14 678 | −7,1 % | −9 % … −5 % | – |
+| **aktuell** (Markt + Modell-Veto, EV ≥ 2 %, Quote ≤ 110 % Median) | 204 | **+1,6 %** | −15 % … +17 % | 1 016 € (Tief 965 €) |
+
+Out-of-sample-Prüfung: Regeln auf 2024/25 gewählt, auf 2025/26 – 2026/27
+getestet. Die auf dem Training beste modellgetriebene Regel (+9,6 %) fiel im
+Test auf −9,4 % – klassische Überanpassung. Nur die marktbasierte Variante war in
+beiden Zeiträumen leicht positiv (+0,3 % / +2,0 %).
+
+**Fazit:** Der Bot verliert in dieser Form kaum Geld und meidet die Fehler, die
+typische Tipp-Bots ruinieren – ein nachgewiesener Gewinn ist das nicht. Echte
+Vorteile im Fußball brauchen Informationen, die der Markt noch nicht hat
+(schnelle Aufstellungs-/Verletzungsnews), oder Zugang zu scharfen Quoten
+(Pinnacle, Wettbörsen) als Referenz – beides fehlt in den frei verfügbaren Daten.
+
+Hinweis: Die Höchstquoten im Datensatz sind nicht immer wirklich wettbar
+(veraltete Linien, Kontolimits). Wetten mit Höchstquote > 110 % des Marktes
+verloren 19 % – deshalb der Filter.
+
+### 3. Selbst nachprüfen: Closing Line Value
+
+Liegt die genommene Quote im Schnitt über der Schlussquote (`report` → `clv` > 0),
+ist ein Vorteil wahrscheinlich – das ist nach ~100 Wetten aussagekräftiger als der
+Kontostand. Bei negativem CLV: aufhören.
 
 ## Grenzen
 
-* Keine Verletzungs-/Aufstellungsdaten → genau dafür die Marktmischung und der
-  Abweichungs-Filter.
+* Keine Verletzungs-/Aufstellungsdaten → deshalb Markt als Basis und Modell nur als Veto.
 * openfootball wird mit Verzögerung aktualisiert; aktuelle CL-Ergebnisse stehen
   in `data/results_manual.csv` und sollten nach jedem Spieltag ergänzt werden.
 * Kontolimits: Buchmacher beschränken erfolgreiche Kunden. Line-Shopping über
@@ -124,7 +154,8 @@ Alle Grenzwerte sind per Option änderbar, z. B. `--min-edge 0.05`,
 | `wettbot/markets.py` | Märkte (1X2, Über/Unter, BTTS), Margenbereinigung |
 | `wettbot/value.py` | Value-Erkennung, Kelly, Limits |
 | `wettbot/ledger.py` | Journal, Abrechnung, ROI, CLV |
-| `wettbot/backtest.py` | Walk-Forward-Backtest |
+| `wettbot/backtest.py` | Walk-Forward-Backtest der Prognosegüte |
+| `wettbot/roi.py` | Rendite-Backtest mit historischen Quoten |
 | `data/results_manual.csv` | CL 2026/27 Ergebnisse (manuell) |
 | `data/odds/` | Quoten-Snapshots |
 | `reports/` | Tagesberichte |

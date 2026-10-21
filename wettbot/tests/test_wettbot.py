@@ -151,3 +151,17 @@ def test_select_bets_limits_and_one_per_market():
     assert (bets["einsatz"] <= 1000 * cfg.max_stake_pct + 1e-9).all()
     assert bets["einsatz"].sum() <= 1000 * cfg.max_day_pct + 1e-9
     assert (bets["ev"] >= cfg.min_edge).all()
+
+
+def test_roi_rules_filter_outlier_prices_and_veto():
+    from wettbot.roi import apply_rules, summary
+    base = dict(date=pd.Timestamp("2025-01-01"), liga="ENG1", heim="X", gast="Y", markt="1X2",
+                marge=0.05, abweichung=0.05, gewonnen=True)
+    c = pd.DataFrame([
+        base | dict(tipp="H", quote=2.20, ref_quote=2.05, p_modell=0.50, p_markt=0.48),  # +5,6 % EV
+        base | dict(gast="Z", tipp="H", quote=2.60, ref_quote=2.05, p_modell=0.50, p_markt=0.48),  # Ausreißer
+        base | dict(gast="W", tipp="H", quote=2.20, ref_quote=2.05, p_modell=0.40, p_markt=0.48),  # Modell-Veto
+    ])
+    b = apply_rules(c, Settings())
+    assert list(b["gast"]) == ["Y"]
+    assert summary(b)["roi_flat"] == pytest.approx(1.2)

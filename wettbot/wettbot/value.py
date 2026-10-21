@@ -24,10 +24,12 @@ from .names import Resolver, key
 @dataclass
 class Settings:
     bankroll: float = 1000.0
-    model_weight: float = 0.35     # Anteil Modell an p (1X2)
-    model_weight_goals: float = 0.20  # Tormärkte: Modell nur knapp besser als Basisrate
+    # Rendite-Backtest (16 Ligen, 2024–2026, echte Quoten): jedes Modellgewicht > 0
+    # verschlechterte den ROI out-of-sample. Das Modell dient daher nur als Veto.
+    model_weight: float = 0.0      # Anteil Modell an p (1X2)
+    model_weight_goals: float = 0.0
     sharpen: float = 1.15          # Kalibrierung der 1X2-Modellwerte (Backtest)
-    min_edge: float = 0.03         # mind. +3 % Erwartungswert
+    min_edge: float = 0.02         # mind. +2 % Erwartungswert ggü. margenbereinigtem Markt
     min_odds: float = 1.30
     max_odds: float = 8.0
     kelly_fraction: float = 0.25   # Viertel-Kelly: robuster gegen Schätzfehler
@@ -39,6 +41,9 @@ class Settings:
     # Rotation) – das ist kein Value, sondern ein Warnsignal.
     max_disagreement: float = 0.12
     allow_mixed: float = 0.0       # 1 = auch ohne vollständigen Quotensatz eines Buchmachers
+    # Liegt die beste Quote > 10 % über dem Median der Bücher, ist sie meist veraltet
+    # oder ein Fehler und wird storniert (Backtest: −19 % ROI auf solchen Wetten).
+    max_price_ratio: float = 1.10
 
 
 def market_fair(odds: pd.DataFrame, market: str) -> tuple[dict | None, str]:
@@ -85,10 +90,12 @@ def find_value(model: DixonColes, odds: pd.DataFrame, known_names, cfg: Settings
                 if cand.empty:
                     continue
                 best = cand.loc[cand["odds"].idxmax()]
+                ratio = best["odds"] / cand["odds"].median()
                 pm = mp[market][sel]
                 row = dict(datum=d, anstoss=ko, spiel=f"{home} – {away}", heim=home, gast=away,
                            xg=f"{lh:.2f}:{la:.2f}", markt=market, tipp=sel, quote=best["odds"],
-                           buchmacher=best["bookmaker"], p_modell=pm, quelle=src)
+                           buchmacher=best["bookmaker"], p_modell=pm, quelle=src,
+                           quotenverhaeltnis=ratio)
                 if fair is None:
                     row.update(p_markt=np.nan, p=np.nan, ev=np.nan, ev_modell=np.nan,
                                hinweis="Marktquote unvollständig")
@@ -111,7 +118,8 @@ def select_bets(cands: pd.DataFrame, cfg: Settings) -> pd.DataFrame:
     market_diff = diff.groupby([cands["spiel"], cands["markt"]]).transform("max")
     ok = ((cands["ev"] >= cfg.min_edge) & (cands["ev_modell"] > 0)
           & cands["quote"].between(cfg.min_odds, cfg.max_odds)
-          & (market_diff <= cfg.max_disagreement))
+          & (market_diff <= cfg.max_disagreement)
+          & (cands["quotenverhaeltnis"] <= cfg.max_price_ratio))
     if not cfg.allow_mixed:
         ok &= cands["quelle"] != "gemischt"
     c = cands[ok].copy()

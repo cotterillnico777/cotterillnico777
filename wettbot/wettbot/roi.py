@@ -92,8 +92,10 @@ def map_teams(matches: pd.DataFrame, model_df: pd.DataFrame) -> dict[tuple[str, 
     return out
 
 
-def run(model_df: pd.DataFrame, matches: pd.DataFrame, cfg: Settings,
-        refit: str = "W", **model_kw) -> tuple[pd.DataFrame, list]:
+def candidates(model_df: pd.DataFrame, matches: pd.DataFrame, sharpen_k: float = 1.15,
+               refit: str = "W", **model_kw) -> tuple[pd.DataFrame, list]:
+    """Alle Selektionen aller Spiele mit Modell-, Markt- und Quoteninfo – noch ohne Wettregeln.
+    So lassen sich Regeln später ohne erneutes Modelltraining vergleichen."""
     teams = map_teams(matches, model_df)
     unmatched = sorted({(g, n) for g, n in zip(pd.concat([matches.grp, matches.grp]),
                                                pd.concat([matches.HomeTeam, matches.AwayTeam]))
@@ -101,42 +103,55 @@ def run(model_df: pd.DataFrame, matches: pd.DataFrame, cfg: Settings,
     matches = matches.assign(hk=[teams.get((g, n)) for g, n in zip(matches.grp, matches.HomeTeam)],
                              ak=[teams.get((g, n)) for g, n in zip(matches.grp, matches.AwayTeam)])
     matches = matches.dropna(subset=["hk", "ak"])
-    bets = []
+    rows = []
     for _, chunk in matches.groupby(matches["date"].dt.to_period(refit)):
         model = DixonColes(**model_kw).fit(model_df, as_of=chunk["date"].min())
         grp = model.params["grp"]
-        day_bets = []
         for r in chunk.itertuples():
             if r.hk not in grp or r.ak not in grp:
                 continue
             mp = market_probs(model.score_matrix(r.hk, r.ak, euro=False))
-            mp["1X2"] = sharpen(mp["1X2"], cfg.sharpen)
+            mp["1X2"] = sharpen(mp["1X2"], sharpen_k)
             books = {"1X2": (("H", "D", "A"), (r.OddHome, r.OddDraw, r.OddAway),
                              (r.MaxHome, r.MaxDraw, r.MaxAway))}
             if not np.isnan(r.Over25) and not np.isnan(r.MaxOver25):
                 books["OU2.5"] = (("O", "U"), (r.Over25, r.Under25), (r.MaxOver25, r.MaxUnder25))
             for market, (sels, ref, best) in books.items():
                 fair = devig(ref)
-                if np.sum(1 / np.asarray(ref)) - 1 > cfg.max_overround:
-                    continue
-                w = cfg.model_weight if market == "1X2" else cfg.model_weight_goals
+                margin = float(np.sum(1 / np.asarray(ref)) - 1)
                 pm = np.array([mp[market][s] for s in sels])
-                if np.max(np.abs(pm - fair)) > cfg.max_disagreement:
-                    continue
-                p = w * pm + (1 - w) * fair
-                ev = p * np.asarray(best) - 1
-                i = int(np.argmax(ev))
-                o = best[i]
-                if ev[i] < cfg.min_edge or pm[i] * o - 1 <= 0 or not cfg.min_odds <= o <= cfg.max_odds:
-                    continue
-                frac = min(kelly(p[i], o) * cfg.kelly_fraction, cfg.max_stake_pct)
-                won = outcome(market, sels[i], int(r.FTHome), int(r.FTAway))
-                day_bets.append(dict(date=r.date, liga=r.grp, heim=r.HomeTeam, gast=r.AwayTeam,
-                                     markt=market, tipp=sels[i], quote=o, ref_quote=ref[i],
-                                     p=p[i], p_modell=pm[i], p_markt=fair[i], ev=ev[i],
-                                     anteil=frac, gewonnen=won))
-        bets += day_bets
-    return pd.DataFrame(bets), unmatched
+                dis = float(np.max(np.abs(pm - fair)))
+                for i, s in enumerate(sels):
+                    rows.append(dict(date=r.date, liga=r.grp, heim=r.HomeTeam, gast=r.AwayTeam,
+                                     markt=market, tipp=s, quote=best[i], ref_quote=ref[i],
+                                     p_modell=pm[i], p_markt=fair[i], marge=margin, abweichung=dis,
+                                     gewonnen=outcome(market, s, int(r.FTHome), int(r.FTAway))))
+    return pd.DataFrame(rows), unmatched
+
+
+def apply_rules(c: pd.DataFrame, cfg: Settings, max_price_ratio: float | None = None) -> pd.DataFrame:
+    """Exakt die Wettregeln des Bots (value.select_bets) auf Kandidaten anwenden.
+    max_price_ratio: Höchstquote / bet365-Quote – Ausreißer sind oft nicht wettbar."""
+    max_price_ratio = cfg.max_price_ratio if max_price_ratio is None else max_price_ratio
+    if c.empty:
+        return c
+    w = np.where(c["markt"] == "1X2", cfg.model_weight, cfg.model_weight_goals)
+    c = c.assign(p=w * c["p_modell"] + (1 - w) * c["p_markt"])
+    c = c.assign(ev=c["p"] * c["quote"] - 1, ev_modell=c["p_modell"] * c["quote"] - 1)
+    ok = ((c["marge"] <= cfg.max_overround) & (c["abweichung"] <= cfg.max_disagreement)
+          & (c["ev"] >= cfg.min_edge) & (c["ev_modell"] > 0)
+          & c["quote"].between(cfg.min_odds, cfg.max_odds)
+          & (c["quote"] / c["ref_quote"] <= max_price_ratio))
+    b = c[ok].sort_values("ev", ascending=False).drop_duplicates(["date", "heim", "gast", "markt"])
+    b = b.assign(anteil=[min(kelly(p, o) * cfg.kelly_fraction, cfg.max_stake_pct)
+                         for p, o in zip(b["p"], b["quote"])])
+    return b.sort_values("date").reset_index(drop=True)
+
+
+def run(model_df: pd.DataFrame, matches: pd.DataFrame, cfg: Settings,
+        refit: str = "W", **model_kw) -> tuple[pd.DataFrame, list]:
+    c, unmatched = candidates(model_df, matches, cfg.sharpen, refit, **model_kw)
+    return apply_rules(c, cfg), unmatched
 
 
 def simulate(bets: pd.DataFrame, bankroll: float = 1000.0, cfg: Settings | None = None) -> pd.DataFrame:
@@ -158,7 +173,7 @@ def simulate(bets: pd.DataFrame, bankroll: float = 1000.0, cfg: Settings | None 
 def summary(bets: pd.DataFrame) -> dict:
     """Kennzahlen bei flachem Einsatz (1 Einheit) – unabhängig von Kelly-Pfadabhängigkeit."""
     if bets.empty:
-        return {"wetten": 0}
+        return {"wetten": 0, "roi_flat": None}
     pnl = np.where(bets["gewonnen"], bets["quote"] - 1, -1.0)
     # Bootstrap: wie sicher ist ROI > 0?
     rng = np.random.default_rng(0)
