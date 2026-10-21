@@ -1,0 +1,47 @@
+# CL Spieltag 3, Mittwoch 21.10.2026 - Anstoß in deutscher Zeit (MESZ).
+# Quoten aus Vorberichten vom 19.-21.10. (Covers/rg.org, Flashscore/bet365, Sportytrader/1xBet,
+# africasoccer/1xBet, Gainblers/DraftKings, Mr Fixit/bet365, BetUS). SNAPSHOT - vor jeder Wette
+# aktuelle Quoten holen (python -m wettbot odds-api ...) oder diese Datei aktualisieren.
+# Sporting-LASK: keine vollständige 1X2-Quote gefunden (Remis fehlt) -> Bot überspringt das Spiel.
+date,kickoff,home,away,market,selection,odds,bookmaker
+2026-10-21,18:45,Como,Manchester United,1X2,H,2.30,bet365
+2026-10-21,18:45,Como,Manchester United,1X2,D,3.60,bet365
+2026-10-21,18:45,Como,Manchester United,1X2,A,2.90,bet365
+2026-10-21,18:45,Lille,Galatasaray,1X2,H,2.12,1xBet
+2026-10-21,18:45,Lille,Galatasaray,1X2,D,3.70,1xBet
+2026-10-21,18:45,Lille,Galatasaray,1X2,A,3.25,1xBet
+2026-10-21,21:00,Bayern Munich,Arsenal,1X2,H,2.15,US-Konsens
+2026-10-21,21:00,Bayern Munich,Arsenal,1X2,D,3.65,US-Konsens
+2026-10-21,21:00,Bayern Munich,Arsenal,1X2,A,3.00,US-Konsens
+2026-10-21,21:00,Bayern Munich,Arsenal,1X2,H,2.25,LetsBetMD
+2026-10-21,21:00,Bayern Munich,Arsenal,1X2,D,3.75,DraftKings
+2026-10-21,21:00,Bayern Munich,Arsenal,1X2,A,3.15,BetRivers
+2026-10-21,21:00,Real Madrid,RB Leipzig,1X2,H,1.22,Range-niedrig
+2026-10-21,21:00,Real Madrid,RB Leipzig,1X2,D,7.30,Range-niedrig
+2026-10-21,21:00,Real Madrid,RB Leipzig,1X2,A,10.00,Range-niedrig
+2026-10-21,21:00,Real Madrid,RB Leipzig,1X2,H,1.26,Range-hoch
+2026-10-21,21:00,Real Madrid,RB Leipzig,1X2,D,7.80,Range-hoch
+2026-10-21,21:00,Real Madrid,RB Leipzig,1X2,A,11.10,Range-hoch
+2026-10-21,21:00,Inter,Shakhtar Donetsk,1X2,H,1.20,BetUS
+2026-10-21,21:00,Inter,Shakhtar Donetsk,1X2,D,7.75,BetUS
+2026-10-21,21:00,Inter,Shakhtar Donetsk,1X2,A,13.50,BetUS
+2026-10-21,21:00,Aston Villa,Viking,1X2,H,1.22,1xBet
+2026-10-21,21:00,Aston Villa,Viking,1X2,D,7.00,1xBet
+2026-10-21,21:00,Aston Villa,Viking,1X2,A,11.00,1xBet
+2026-10-21,21:00,Aston Villa,Viking,1X2,H,1.26,DraftKings
+2026-10-21,21:00,Aston Villa,Viking,1X2,D,5.25,DraftKings
+2026-10-21,21:00,Aston Villa,Viking,1X2,A,12.00,DraftKings
+2026-10-21,21:00,Aston Villa,Viking,1X2,H,1.25,bet365
+2026-10-21,21:00,Aston Villa,Viking,1X2,D,5.75,bet365
+2026-10-21,21:00,Aston Villa,Viking,1X2,A,11.00,bet365
+2026-10-21,21:00,Sporting CP,LASK,1X2,H,1.25,Oddslot
+2026-10-21,21:00,Sporting CP,LASK,1X2,A,8.50,Oddslot
+2026-10-21,21:00,Club Brugge,Lens,1X2,H,2.04,Sportytrader-Schnitt
+2026-10-21,21:00,Club Brugge,Lens,1X2,D,3.90,Sportytrader-Schnitt
+2026-10-21,21:00,Club Brugge,Lens,1X2,A,3.20,Sportytrader-Schnitt
+2026-10-21,21:00,Club Brugge,Lens,1X2,H,2.12,1xBet
+2026-10-21,21:00,Club Brugge,Lens,1X2,D,4.03,1xBet
+2026-10-21,21:00,Club Brugge,Lens,1X2,A,3.39,1xBet
+2026-10-21,21:00,Real Betis,Feyenoord,1X2,H,1.61,1xBet
+2026-10-21,21:00,Real Betis,Feyenoord,1X2,D,4.93,888Starz
+2026-10-21,21:00,Real Betis,Feyenoord,1X2,A,5.80,888Starz

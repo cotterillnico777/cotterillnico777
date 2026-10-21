@@ -1,0 +1,48 @@
+# Champions League 2026/27, Ligaphase - Ergebnisse nach 90 Minuten.
+# Quellen: UEFA-Spielplan, ESPN, CBS Sports (Stand 21.10.2026). Neue Ergebnisse einfach anhängen.
+date,home,away,hg,ag,comp,neutral,home_country,away_country
+2026-09-08,AEK Athens,LASK,1,0,UCL,False,GRE,AUT
+2026-09-08,Club Brugge,Aston Villa,2,3,UCL,False,BEL,ENG
+2026-09-08,Borussia Dortmund,Villarreal,3,2,UCL,False,GER,ESP
+2026-09-08,FC Porto,Manchester City,0,2,UCL,False,POR,ENG
+2026-09-08,Lille,Real Betis,2,3,UCL,False,FRA,ESP
+2026-09-08,Real Madrid,Inter,2,1,UCL,False,ESP,ITA
+2026-09-09,Barcelona,Feyenoord,5,1,UCL,False,ESP,NED
+2026-09-09,VfB Stuttgart,Viking FK,3,1,UCL,False,GER,NOR
+2026-09-09,Liverpool,Atletico Madrid,2,1,UCL,False,ENG,ESP
+2026-09-09,Paris Saint-Germain,Slovan Bratislava,6,1,UCL,False,FRA,SVK
+2026-09-09,Sporting CP,Galatasaray,3,1,UCL,False,POR,TUR
+2026-09-09,Napoli,Arsenal,0,1,UCL,False,ITA,ENG
+2026-09-10,Fenerbahce,Roma,1,1,UCL,False,TUR,ITA
+2026-09-10,PSV,Shakhtar Donetsk,1,1,UCL,False,NED,UKR
+2026-09-10,Como,RB Leipzig,4,1,UCL,False,ITA,GER
+2026-09-10,Bayern Munich,Bodo/Glimt,5,0,UCL,False,GER,NOR
+2026-09-10,Manchester United,Sabah FK,4,0,UCL,False,ENG,AZE
+2026-09-10,Slavia Praha,Lens,2,3,UCL,False,CZE,FRA
+2026-10-13,Lens,Sporting CP,0,2,UCL,False,FRA,POR
+2026-10-13,Sabah FK,Slavia Praha,2,0,UCL,False,AZE,CZE
+2026-10-13,Arsenal,Lille,3,0,UCL,False,ENG,FRA
+2026-10-13,Atletico Madrid,Manchester United,2,0,UCL,False,ESP,ENG
+2026-10-13,Inter,Club Brugge,3,4,UCL,False,ITA,BEL
+2026-10-13,Galatasaray,Barcelona,1,4,UCL,False,TUR,ESP
+2026-10-13,RB Leipzig,PSV,1,0,UCL,False,GER,NED
+2026-10-13,Viking FK,Bayern Munich,3,3,UCL,False,NOR,GER
+2026-10-13,Villarreal,Napoli,3,1,UCL,False,ESP,ITA
+2026-10-14,Feyenoord,Como,3,2,UCL,False,NED,ITA
+2026-10-14,LASK,Liverpool,3,6,UCL,False,AUT,ENG
+2026-10-14,Roma,Real Madrid,3,4,UCL,False,ITA,ESP
+2026-10-14,Aston Villa,Fenerbahce,6,0,UCL,False,ENG,TUR
+2026-10-14,Shakhtar Donetsk,AEK Athens,3,1,UCL,False,UKR,GRE
+2026-10-14,Bodo/Glimt,Borussia Dortmund,1,0,UCL,False,NOR,GER
+2026-10-14,Manchester City,Paris Saint-Germain,2,4,UCL,False,ENG,FRA
+2026-10-14,Real Betis,FC Porto,3,2,UCL,False,ESP,POR
+2026-10-14,Slovan Bratislava,VfB Stuttgart,0,3,UCL,False,SVK,GER
+2026-10-20,Paris Saint-Germain,Barcelona,4,2,UCL,False,FRA,ESP
+2026-10-20,Napoli,Bodo/Glimt,4,3,UCL,False,ITA,NOR
+2026-10-20,VfB Stuttgart,Atletico Madrid,1,1,UCL,False,GER,ESP
+2026-10-20,Manchester City,AEK Athens,5,1,UCL,False,ENG,GRE
+2026-10-20,Liverpool,Villarreal,4,3,UCL,False,ENG,ESP
+2026-10-20,Sabah FK,Borussia Dortmund,1,2,UCL,False,AZE,GER
+2026-10-20,Roma,Slovan Bratislava,4,0,UCL,False,ITA,SVK
+2026-10-20,FC Porto,PSV,0,1,UCL,False,POR,NED
+2026-10-20,Fenerbahce,Slavia Praha,2,2,UCL,False,TUR,CZE
