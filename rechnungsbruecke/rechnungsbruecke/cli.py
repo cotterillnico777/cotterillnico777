@@ -66,7 +66,7 @@ def cmd_ueberwachen(a) -> int:
 
 
 def cmd_lesen(a) -> int:
-    erg = lese_eingang(a.datei, a.ziel, a.buchungsliste)
+    erg = lese_eingang(a.datei, a.ziel, a.buchungsliste, _regelwerk(a), a.ohne_offizielle_pruefung, a.bestaetigt)
     _bericht(erg)
     return 0 if erg.ok else 2
 
@@ -187,10 +187,14 @@ def parser() -> argparse.ArgumentParser:
     u.add_argument("--einmal", action="store_true", help="nur ein Durchlauf (z. B. für Aufgabenplanung/cron)")
     u.set_defaults(fn=cmd_ueberwachen)
 
-    le = sub.add_parser("lesen", help="Eingehende E-Rechnung (XML/PDF) lesbar machen")
+    le = sub.add_parser("lesen", help="Eingehende E-Rechnung (XML/PDF) prüfen, lesbar machen und optional buchen")
     le.add_argument("datei", type=Path)
     le.add_argument("--ziel", type=Path, default=Path("."))
-    le.add_argument("--buchungsliste", type=Path, help="CSV-Datei, an die eine Buchungszeile angehängt wird")
+    le.add_argument("--buchungsliste", type=Path,
+                    help="nur bei bestandener Prüfung buchen; sonst Ablage in <ziel>/quarantaene")
+    le.add_argument("--bestaetigt", action="store_true", help="Dublettenverdacht bewusst bestätigen und trotzdem buchen")
+    le.add_argument("--regeln", type=Path)
+    le.add_argument("--ohne-offizielle-pruefung", action="store_true", help="nur zum Testen")
     le.set_defaults(fn=cmd_lesen)
 
     p = sub.add_parser("pruefen", help="E-Rechnung prüfen (Rechenprüfung, optional offizielle Regeln)")

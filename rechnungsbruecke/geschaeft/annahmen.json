@@ -89,6 +89,33 @@
       "kosten.lohn_nur_aus_gewinn": true,
       "nachfrage.werbebudget": [[1, 0]]
     },
+    "worst_case": {
+      "nachfrage.organisch_wachstum_mtl": 0.03,
+      "nachfrage.organisch_free_max": 120,
+      "nachfrage.kosten_je_free_installation": 60,
+      "conversion.free_pool_zu_bezahlt_mtl": 0.003,
+      "conversion.churn_bezahlt_mtl": 0.04,
+      "conversion.tarifmix": {"starter": 0.75, "business": 0.22, "unternehmen": 0.03},
+      "partner.neukunden_mtl": [[4, 0]],
+      "kosten.support_je_kunde_mtl": 10
+    },
+    "worst_case_minimalkapital": {
+      "nachfrage.organisch_wachstum_mtl": 0.03,
+      "nachfrage.organisch_free_max": 120,
+      "nachfrage.kosten_je_free_installation": 60,
+      "conversion.free_pool_zu_bezahlt_mtl": 0.003,
+      "conversion.churn_bezahlt_mtl": 0.04,
+      "conversion.tarifmix": {"starter": 0.75, "business": 0.22, "unternehmen": 0.03},
+      "partner.neukunden_mtl": [[4, 0]],
+      "kosten.support_je_kunde_mtl": 10,
+      "kosten.einmalig_monat_1": 500,
+      "kosten.website_hosting_tools": 60,
+      "kosten.steuerberatung": 100,
+      "kosten.freelancer_entwicklung": [[1, 0]],
+      "kosten.support_teilzeit": [[1, 0]],
+      "kosten.lohn_nur_aus_gewinn": true,
+      "nachfrage.werbebudget": [[1, 0]]
+    },
     "optimistisch": {
       "nachfrage.organisch_wachstum_mtl": 0.10,
       "nachfrage.kosten_je_free_installation": 18,

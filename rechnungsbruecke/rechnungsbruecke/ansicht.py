@@ -22,7 +22,7 @@ def menge(d: Decimal) -> str:
     return format(d.normalize(), "f").replace(".", ",")
 
 
-def als_html(r: Eingangsrechnung) -> str:
+def als_html(r: Eingangsrechnung, pruefung=None) -> str:
     e = lambda s: html.escape(str(s or ""))  # noqa: E731
     zeilen = "".join(
         f"<tr><td>{i}</td><td>{e(z.bezeichnung)}</td><td class=n>{menge(z.menge)} {e(EINHEIT_TEXT.get(z.einheit, z.einheit))}</td>"
@@ -33,9 +33,19 @@ def als_html(r: Eingangsrechnung) -> str:
         f"<tr><td colspan=5>USt {menge(s.satz)} % auf {eur(s.basis, r.waehrung)}"
         f"{' – ' + e(s.grund) if s.grund else ''}</td><td class=n>{eur(s.steuer, r.waehrung)}</td></tr>"
         for s in r.steuern)
-    probleme = r.plausibilitaet()
-    warnung = ("<div class=warn><strong>Achtung, Rechenfehler:</strong><ul>"
-               + "".join(f"<li>{e(p)}</li>" for p in probleme) + "</ul></div>") if probleme else ""
+    if pruefung is None:
+        probleme = r.plausibilitaet()
+        warnung = ("<div class=warn><strong>Achtung, Rechenfehler:</strong><ul>"
+                   + "".join(f"<li>{e(p)}</li>" for p in probleme) + "</ul></div>") if probleme else ""
+    elif pruefung.status == "bestanden":
+        test = " (Testmodus ohne offizielle Prüfregeln)" if pruefung.testmodus else ""
+        warnung = f"<div class=ok><strong>Prüfung bestanden{e(test)}:</strong> formal gültig, Summen korrekt.</div>"
+        if pruefung.dubletten:
+            warnung += ("<div class=warn><strong>Möglicherweise doppelt:</strong><ul>"
+                        + "".join(f"<li>{e(d.text)}</li>" for d in pruefung.dubletten) + "</ul></div>")
+    else:
+        warnung = ("<div class=warn><strong>Prüfung nicht bestanden – nicht buchen:</strong><ul>"
+                   + "".join(f"<li>{e(b)}</li>" for b in pruefung.befunde) + "</ul></div>")
     bem = "".join(f"<p>{e(b)}</p>" for b in r.bemerkungen)
     return f"""<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -49,6 +59,7 @@ h1{{font-size:22px;margin:0 0 4px}} .meta{{color:#555;margin-bottom:20px}}
 table{{width:100%;border-collapse:collapse}} th,td{{padding:6px 4px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}}
 .n{{text-align:right;white-space:nowrap}} tfoot td{{font-weight:600}}
 .warn{{background:#fff3cd;border:1px solid #e0b100;padding:8px 12px;border-radius:6px;margin-bottom:16px}}
+.ok{{background:#e5f2ea;border:1px solid #2c7a4b;padding:8px 12px;border-radius:6px;margin-bottom:16px}}
 @media (max-width:600px){{.grid{{grid-template-columns:1fr}}}}
 </style></head><body><div class="w">
 <h1>{e(TYPEN.get(r.typ, 'Rechnung ' + r.typ))} {e(r.nummer)}</h1>

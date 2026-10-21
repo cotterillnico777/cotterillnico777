@@ -513,7 +513,18 @@ class OberflaecheTest(MitDatenverzeichnis):
 
         ubl = (HIER / "daten" / "ubl_eingang.xml").read_bytes()
         status, d = self.json("/api/lesen?buchen=1&name=ubl.xml", ubl)
-        self.assertEqual((d["nummer"], d["probleme"], d["gebucht"]), ("LF-778", [], True))
+        self.assertEqual((d["rechnung"]["nummer"], d["status"], d["gebucht"]), ("LF-778", "bestanden", True))
+        self.assertEqual(d["testmodus"], REGELN is None)  # mit RB_REGELN wird echt geprüft
+        # dieselbe Datei erneut: wird erkannt und nicht doppelt gebucht
+        status, d = self.json("/api/lesen?buchen=1&name=ubl.xml", ubl)
+        self.assertEqual(status, 409)
+        self.assertIn("bereits gebucht", d["fehler"])
+        # Rechenfehler: Quarantäne, nicht buchbar
+        kaputt = ubl.replace(b"<cbc:TaxInclusiveAmount currencyID=\"EUR\">893.69", b"<cbc:TaxInclusiveAmount currencyID=\"EUR\">993.69")
+        status, d = self.json("/api/lesen?name=kaputt.xml", kaputt)
+        self.assertEqual((d["status"], d["buchbar"]), ("fehler", False))
+        self.assertTrue(d["quarantaene"].startswith("gelesen/quarantaene/"))
+        self.assertEqual(self.anfrage("/api/lesen?buchen=1&name=kaputt.xml", kaputt)[0], 409)
         self.assertEqual(self.anfrage("/api/datei?pfad=gelesen/buchungsliste.csv")[0], 200)
         self.assertEqual(self.anfrage("/api/lesen?name=x.xml", b"<foo/>")[0], 422)
 
@@ -522,6 +533,90 @@ class OberflaecheTest(MitDatenverzeichnis):
         self.assertEqual(self.json("/api/mapping", mapping)[0], 200)
         self.assertEqual(self.json("/api/mapping")[1]["_zahlenformat"], "de")
         self.assertEqual(self.anfrage("/api/mapping", b"[1,2]")[0], 400)
+
+
+class EingangTest(MitDatenverzeichnis):
+    UBL = (HIER / "daten" / "ubl_eingang.xml").read_bytes()
+
+    def setUp(self):
+        super().setUp()
+        self.liste = self.tmp / "buchungsliste.csv"
+
+    def pruefe(self, xml, testmodus=True):
+        from rechnungsbruecke.eingang import pruefe_eingang
+
+        return pruefe_eingang(xml, None, self.liste, ohne_offizielle_pruefung=testmodus)
+
+    def test_ohne_regeln_nicht_buchbar(self):
+        from rechnungsbruecke.eingang import BuchungsFehler, buche
+
+        p = self.pruefe(self.UBL, testmodus=False)
+        self.assertEqual((p.status, p.buchbar), ("ungeprüft", False))
+        with self.assertRaises(BuchungsFehler):
+            buche(p, self.liste)
+        self.assertFalse(self.liste.exists())
+
+    def test_rechenfehler_quarantaene(self):
+        kaputt = self.UBL.replace(b'<cbc:TaxInclusiveAmount currencyID="EUR">893.69',
+                                  b'<cbc:TaxInclusiveAmount currencyID="EUR">993.69')
+        datei = self.tmp / "kaputt.xml"
+        datei.write_bytes(kaputt)
+        erg = konvertiere_lesen(datei, self.tmp / "ziel", self.liste)
+        self.assertFalse(erg.ok)
+        self.assertFalse(self.liste.exists())
+        berichte = list((self.tmp / "ziel" / "quarantaene").glob("*.quarantaene.json"))
+        self.assertEqual(len(berichte), 1)
+        self.assertIn("Rechenfehler", berichte[0].read_text(encoding="utf-8"))
+
+    def test_dubletten(self):
+        from rechnungsbruecke.eingang import BuchungsFehler, buche
+
+        buche(self.pruefe(self.UBL), self.liste)
+        # identische Datei: nie erneut buchen
+        p = self.pruefe(self.UBL)
+        self.assertEqual([d.art for d in p.dubletten], ["identisch"])
+        self.assertFalse(p.buchbar)
+        # gleiche Nummer, andere Datei (z. B. erneut zugestellt): nur mit Bestätigung
+        anders = self.UBL.replace(b"Vielen Dank", b"Erneut zugestellt. Vielen Dank")
+        p = self.pruefe(anders)
+        self.assertEqual([d.art for d in p.dubletten], ["verdacht"])
+        with self.assertRaisesRegex(BuchungsFehler, "bestätigen"):
+            buche(p, self.liste)
+        buche(p, self.liste, bestaetigt=True)
+        # anderer Nummernkreis, aber gleicher Lieferant, Datum und Betrag
+        p = self.pruefe(self.UBL.replace(b"<cbc:ID>LF-778</cbc:ID>", b"<cbc:ID>LF-779</cbc:ID>"))
+        self.assertTrue(any("gleicher Betrag" in d.text for d in p.dubletten))
+        self.assertEqual(len(self.liste.read_text(encoding="utf-8-sig").splitlines()), 3)  # Kopf + 2 Buchungen
+
+    def test_unzulaessige_profile(self):
+        from rechnungsbruecke.offiziell import pruefe_xsd
+
+        xml = (BEISPIELE.parent.parent / "beispielausgabe" / "RE-2026-1001.xml").read_bytes()
+        xr = b"urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0"
+        for urn in (b"urn:factur-x.eu:1p0:minimum", b"urn:factur-x.eu:1p0:basicwl"):
+            befunde = pruefe_xsd(xml.replace(xr, urn), eingang=True)
+            self.assertEqual([b.regel for b in befunde], ["PROFIL"])
+        self.assertEqual(pruefe_xsd(xml, eingang=True), [])
+        self.assertEqual(pruefe_xsd(self.UBL, eingang=True), [])
+        self.assertEqual([b.regel for b in pruefe_xsd(self.UBL.replace(b"<cbc:ID>LF-778", b"<cbc:Foo/><cbc:ID>LF-778"),
+                                                       eingang=True)], ["XSD"])
+
+    @unittest.skipUnless(REGELN, "RB_REGELN nicht gesetzt")
+    def test_offizielle_pruefung_eingang(self):
+        from rechnungsbruecke.eingang import pruefe_eingang
+
+        werk = lade(REGELN)
+        self.assertEqual(pruefe_eingang(self.UBL, werk, self.liste).status, "bestanden")
+        ohne_referenz = self.UBL.replace(b"<cbc:BuyerReference>LIEF-0042</cbc:BuyerReference>", b"")
+        p = pruefe_eingang(ohne_referenz, werk, self.liste)
+        self.assertEqual(p.status, "fehler")
+        self.assertTrue(any("BR-DE-15" in b for b in p.befunde))
+
+
+def konvertiere_lesen(datei, ziel, liste):
+    from rechnungsbruecke.verarbeitung import lese_eingang
+
+    return lese_eingang(datei, ziel, liste, None, ohne_offizielle_pruefung=True)
 
 
 class CliTest(MitDatenverzeichnis):

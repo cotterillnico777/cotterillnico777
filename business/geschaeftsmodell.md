@@ -15,7 +15,7 @@ Stand: 20.10.2026 · Alle Zahlen stammen aus dem Finanzmodell in [`finanzmodell/
 | **Wie Geld verdient wird** | 1. Abo Finlyra Plus · 2. digitale Produkte (E-Book, Kurs) · 3. gekennzeichnetes Sponsoring im kostenlosen Newsletter · 4. B2B-Lizenzen und Workshops |
 | **Vorteil gegenüber anderen** | Die Inhalte entstehen schon heute täglich und automatisiert (`briefings/` und `scripts/`). Der Aufwand für ein weiteres Stück Inhalt ist fast null. Wir decken eine Nische ab, die Finfluencer selten bedienen: Psychologie statt Hype. |
 | **Finanzen (Basis)** | Umsatz J1 11 T€ → J2 72 T€ → **J3 170 T€** · Ergebnis J3 **+50 T€ nach Unternehmerlohn** (48 T€ Lohn in J3) · dauerhaft profitabel ab **Monat 21** · Kapitalbedarf höchstens **≈ 8 T€** |
-| **Worst Case** | Bremst man bei schwachem Wachstum rechtzeitig die Kosten (Szenario „pessimistisch_gegensteuern“), ist Finlyra trotzdem ab Monat 9 profitabel, mit 45 T€ Ergebnis in J3. Der Kapitalbedarf liegt dann bei ≈ 6 T€. |
+| **Pessimistisches Gegensteuerungsszenario** | Bremst man bei schwachem Wachstum rechtzeitig die Kosten (Szenario „pessimistisch_gegensteuern“), ist Finlyra trotzdem ab Monat 9 profitabel, mit 45 T€ Ergebnis in J3. Der Kapitalbedarf liegt dann bei ≈ 6 T€. |
 
 ---
 

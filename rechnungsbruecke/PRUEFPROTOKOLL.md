@@ -1,6 +1,6 @@
-# Prüfprotokoll Rechnungsbrücke 1.1.0
+# Prüfprotokoll Rechnungsbrücke 1.2.0
 
-Stand: 20.10.2026 · Prüfgegenstand: `beispielausgabe/` (erzeugt aus `rechnungsbruecke/beispiele/rechnungen.csv`, Format „beide“)
+Stand: 21.10.2026 · Prüfgegenstand: `beispielausgabe/` (erzeugt aus `rechnungsbruecke/beispiele/rechnungen.csv`, Format „beide“)
 
 ## Ergebnis
 
@@ -42,5 +42,26 @@ selben Ergebnis.
 
 ## Automatische Tests
 
-47 Tests (`python -m unittest discover tests`); 5 davon benötigen die offiziellen Regeln (`RB_REGELN`).
-Letzter Lauf: alle bestanden, mit und ohne `RB_REGELN`.
+52 Tests (`python -m unittest discover tests`); 6 davon benötigen die offiziellen Regeln (`RB_REGELN`).
+Letzter Lauf (21.10.2026, Linux, Python 3.13): alle bestanden, mit und ohne `RB_REGELN`; Abnahmelauf
+`werkzeuge/abnahme.sh` mit der Testkopie bestanden, Gegenprobe mit falscher Regelversion korrekt abgelehnt.
+
+## Eingangsrechnungen (neu in 1.2)
+
+| Fall | Ergebnis |
+|---|---|
+| gültige UBL-XRechnung | Prüfung bestanden, gebucht |
+| dieselbe Datei erneut | „bereits gebucht“, Buchung gesperrt |
+| gleiche Rechnungsnummer, andere Datei | Dublettenverdacht, Buchung nur mit Bestätigung |
+| gleicher Lieferant, Datum, Betrag, andere Nummer | Dublettenverdacht |
+| falsche Gesamtsumme | BR-CO-15/16 + Rechenfehler → Quarantäne, nicht buchbar |
+| fehlende Käuferreferenz (XRechnung) | BR-DE-15 → nicht buchbar |
+| ZUGFeRD MINIMUM / BASIC WL | als „keine E-Rechnung“ abgelehnt |
+| ohne eingerichtete Regeln | „ungeprüft“, nicht buchbar |
+
+## Noch nicht geprüft
+
+- Lauf mit dem **originalen** KoSIT-Paket (`werkzeuge/abnahme.sh`)
+- Windows-Paket auf einem sauberen Windows-Rechner (`vertrieb/windows_abnahme.md`); gebaut und inhaltlich geprüft
+  (CPython 3.13.16 von NuGet, ausschließlich Windows-Binärdateien), aber nicht unter Windows ausgeführt
+- Interoperabilität mit der Buchhaltungssoftware der Pilotkunden (DATEV, Lexware, sevdesk)

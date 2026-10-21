@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rechnungsbruecke"
-version = "1.1.0"
+version = "1.2.0"
 description = "CSV-Rechnungsexporte in XRechnung/ZUGFeRD umwandeln, E-Rechnungen lesen und prüfen"
 requires-python = ">=3.10"
 # Exakt die getesteten Versionen. Aktualisierung nur bewusst: Version ändern, alle Tests inklusive

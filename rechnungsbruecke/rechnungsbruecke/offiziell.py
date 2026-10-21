@@ -4,6 +4,7 @@ Die Regeln werden über `regeln.py` eingerichtet und vor der Verwendung gegen ih
 geprüft. Kompilierte Stylesheets werden pro Prozess zwischengespeichert, damit Stapel- und
 Hotfolder-Läufe nicht jede Rechnung neu kompilieren.
 """
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -46,13 +47,33 @@ def regelwerke_fuer(xml: bytes, werk: Regelwerk) -> list[Path]:
     return dateien
 
 
-def pruefe_xsd(xml: bytes) -> list[Befund]:
-    from facturx import xml_check_xsd
+KEINE_E_RECHNUNG = {"minimum": "MINIMUM", "basicwl": "BASIC WL"}
 
-    if _syntax(xml) != "CII":
-        return []
+
+def pruefe_xsd(xml: bytes, eingang: bool = False) -> list[Befund]:
+    """XSD-Prüfung. Ausgangsrechnungen sind immer CII im Profil EN 16931; bei Eingangsrechnungen
+    werden UBL und das ZUGFeRD-Profil erkannt (BASIC, EN 16931, EXTENDED)."""
+    from facturx import get_level, xml_check_xsd
+
+    root = etree.fromstring(xml)
+    if _syntax(xml) == "UBL":
+        if not eingang:
+            return []
+        flavor = "ubl-2.1-creditnote" if root.tag.endswith("}CreditNote") else "ubl-2.1-invoice"
+        level = "autodetect"
+    else:
+        flavor, level = "factur-x", "en16931"
+        if eingang:
+            try:
+                level = get_level(root, flavor="factur-x")
+            except ValueError:
+                level = "en16931"
+            if level in KEINE_E_RECHNUNG:
+                return [Befund("PROFIL", "fatal", f"Das ZUGFeRD-Profil {KEINE_E_RECHNUNG[level]} enthält nicht alle "
+                               f"Pflichtangaben und gilt nicht als E-Rechnung. Bitte beim Lieferanten eine "
+                               f"Rechnung im Profil EN 16931 (COMFORT), EXTENDED oder als XRechnung anfordern.")]
     try:
-        xml_check_xsd(xml, flavor="factur-x", level="en16931")
+        xml_check_xsd(xml, flavor=flavor, level=level)
     except Exception as e:  # factur-x wirft für XSD-Fehler eine generische Exception
         return [Befund("XSD", "fatal", str(e))]
     return []
@@ -77,11 +98,16 @@ def pruefe_schematron(xml: bytes, werk: Regelwerk) -> list[Befund]:
     for xsl in regelwerke_fuer(xml, werk):
         svrl = etree.fromstring(_stylesheet(xsl).transform_to_string(xdm_node=quelle).encode("utf-8"))
         for fa in svrl.iterfind(".//svrl:failed-assert", SVRL):
+            regel = fa.get("id", "?")
             text = " ".join(fa.findtext("svrl:text", "", SVRL).split())
-            befunde.append(Befund(fa.get("id", "?"), fa.get("flag", "fatal"), text, fa.get("location", "")))
+            text = re.sub(rf"^\[{re.escape(regel)}\]-?\s*", "", text)  # Regelkennung steht schon in `regel`
+            befunde.append(Befund(regel, fa.get("flag", "fatal"), text, fa.get("location", "")))
     return befunde
 
 
-def pruefe_offiziell(xml: bytes, regeln: Regelwerk | Path) -> list[Befund]:
+def pruefe_offiziell(xml: bytes, regeln: Regelwerk | Path, eingang: bool = False) -> list[Befund]:
     werk = regeln if isinstance(regeln, Regelwerk) else lade(Path(regeln))
-    return pruefe_xsd(xml) + pruefe_schematron(xml, werk)
+    xsd = pruefe_xsd(xml, eingang)
+    if any(b.regel == "PROFIL" for b in xsd):
+        return xsd
+    return xsd + pruefe_schematron(xml, werk)

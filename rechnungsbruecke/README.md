@@ -3,7 +3,7 @@
 **Macht aus dem Rechnungsexport Ihres bestehenden Systems gültige E-Rechnungen – lokal, ohne Cloud, ohne ERP-Wechsel.**
 
 - **Ausgang:** CSV-Export (eine Zeile je Position) → **XRechnung 3.0** (CII-XML) und/oder **ZUGFeRD/Factur-X** (PDF/A-3 mit eingebettetem XML, Profil EN 16931)
-- **Eingang:** XRechnung/ZUGFeRD (CII oder UBL, als XML oder PDF) → lesbare HTML-Ansicht + Buchungsliste (CSV)
+- **Eingang:** XRechnung/ZUGFeRD (CII oder UBL, als XML oder PDF) → offizielle Prüfung, Rechenkontrolle, Dublettenerkennung → lesbare HTML-Ansicht; gebucht wird nur nach bestandener Prüfung, sonst Quarantäne
 - **Prüfung:** verständliche Vorprüfung auf Deutsch und **verpflichtend** die Prüfung gegen die offiziellen EN-16931- und XRechnung-Regeln, bevor eine Rechnung geschrieben wird; je Rechnung ein Prüfbericht
 - **Grafische Oberfläche** im Browser für die Buchhaltung, ohne Kommandozeile
 - **Hotfolder:** Das Altsystem legt CSV-Dateien ab, die Rechnungsbrücke erzeugt automatisch die E-Rechnungen
@@ -100,11 +100,38 @@ ab und verweigert die Arbeit, wenn Dateien später verändert wurden. `rechnungs
 
 Ohne eingerichtete Regeln werden keine Rechnungen erzeugt. Nur für Tests gibt es `--ohne-offizielle-pruefung`.
 
+## Eingangsrechnungen: Prüfung, Quarantäne, Dubletten
+
+Eingehende E-Rechnungen durchlaufen dieselbe offizielle Prüfung wie Ausgangsrechnungen (XSD, EN 16931, bei
+XRechnung die XRechnung-Regeln; UBL und CII; ZUGFeRD-Profile werden erkannt, MINIMUM und BASIC WL als
+„keine E-Rechnung“ abgelehnt) und danach eine Rechenkontrolle. **Gebucht wird nur, was beides besteht.**
+Nicht bestandene oder unlesbare Rechnungen werden mit Begründung in `quarantaene/` abgelegt
+(`<datei>.quarantaene.json`), nie in die Buchungsliste.
+
+Dubletten: Jede Buchung wird im Buchungsregister (`buchungsliste.register.jsonl`) festgehalten.
+- **identische Datei** bereits gebucht → wird nie erneut gebucht,
+- **gleicher Lieferant + gleiche Rechnungsnummer** (z. B. zweite Zustellung, Korrektur) oder **gleicher Lieferant +
+  Datum + Betrag** → Buchung nur nach ausdrücklicher Bestätigung (`--bestaetigt` bzw. Häkchen in der Oberfläche);
+  im Hotfolder automatisch Quarantäne.
+
 ## Käuferreferenz (BT-10)
 
 XRechnung verlangt eine Käuferreferenz. Sie wird **vom Kunden vergeben**: bei Behörden die Leitweg-ID, sonst z. B.
 das Bestellzeichen. Die Rechnungsbrücke erfindet sie nie, auch nicht aus Rechnungs- oder Kundennummer. Fehlt sie,
 wird die XRechnung abgelehnt (ZUGFeRD ist ohne möglich). Leitweg-IDs werden auf ihre Prüfziffer kontrolliert.
+
+## Windows-Paket
+
+`python3 werkzeuge/windows_paket.py` baut `dist/Rechnungsbruecke-<version>-windows-x64.zip`: portabler Ordner mit
+offiziellem CPython für Windows (NuGet) und allen festgeschriebenen Abhängigkeiten, ohne Installation und ohne
+Internet nutzbar; Start per Doppelklick auf „Rechnungsbruecke starten.cmd“. Vor der Auslieferung auf einem sauberen
+Windows-Rechner nach [`vertrieb/windows_abnahme.md`](vertrieb/windows_abnahme.md) prüfen.
+
+## Abnahme vor Release / Produktivbetrieb
+
+`werkzeuge/abnahme.sh <validator-configuration-xrechnung.zip>` richtet die übergebenen Regeln frisch ein, führt alle
+Tests gegen sie aus (übersprungene Tests gelten als Fehler), erzeugt die Beispielrechnungen neu, prüft sie mit veraPDF
+und Mustang und archiviert Protokolle, Ausgaben und die SHA-256 des Regel-ZIPs unter `abnahme/<Zeitstempel>/`.
 
 ## Festgeschriebene Versionen
 
@@ -127,16 +154,18 @@ offline geprüft. Anbieterseitig: [`werkzeuge/lizenz_ausstellen.py`](werkzeuge/l
 ersten Verkauf ein eigenes Schlüsselpaar erzeugen und den öffentlichen Schlüssel in `rechnungsbruecke/lizenz.py`
 eintragen.
 
-## Grenzen (Version 1.1)
+## Grenzen (Version 1.2)
 
 - Keine Zu-/Abschläge auf Belegebene und kein strukturiertes Skonto (Skonto als Text in den Zahlungsbedingungen möglich)
 - Steuerkategorie „nicht steuerbar“ (O) und Fremdwährungs-Steuerausweis werden nicht unterstützt
 - Kein Versand (E-Mail/Peppol) – die Dateien werden über die vorhandenen Wege verschickt
 - Die Oberfläche ist für einen Arbeitsplatz gedacht (kein Mehrbenutzerbetrieb, keine Anmeldung)
+- Lizenzkontrolle offline: Der Monatszähler ist eine lokale Datei, die Gültigkeit hängt an der Systemzeit. Für den Pilot ausreichend, vor breitem Verkauf härten
+- Das Windows-Paket ist nicht code-signiert (SmartScreen-Hinweis beim ersten Start)
 
 ## Entwicklung
 
 ```bash
-python3 -m unittest discover tests                    # 47 Tests
+python3 -m unittest discover tests                    # 52 Tests
 RB_REGELN=/pfad/zu/regeln python3 -m unittest discover tests   # inkl. Prüfung gegen offizielle Regeln
 ```

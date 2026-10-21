@@ -2,7 +2,10 @@
 
 **E-Rechnungspflicht ohne ERP-Wechsel: Der vorhandene Rechnungsexport wird lokal zu einer gültigen XRechnung oder ZUGFeRD-Rechnung.**
 
-Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](geschaeft/finanzmodell.py) und lassen sich mit einem Befehl neu berechnen. Das Produkt selbst ist in diesem Ordner fertig umgesetzt und getestet ([`README.md`](README.md)).
+Stand: 21.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](geschaeft/finanzmodell.py) und lassen sich mit einem Befehl neu berechnen. **Version 1.2 ist als Pilot-MVP umgesetzt.** Produktivfreigabe nach finaler KoSIT-Validierung, Pilot-Interoperabilität und Release-/Installationsprüfung ([`README.md`](README.md)).
+
+> **Status: GO für kontrollierte Pilotkunden · NO-GO für breiten öffentlichen Verkauf.**
+> Alle Finanzzahlen sind Modellrechnungen aus Annahmen (Kosten je Installation, Conversion, Kündigungsrate, Supportaufwand, Partnerakquise), kein erwartbarer Business Case. Belastbar werden sie erst mit Daten aus 5–10 Pilotunternehmen mit echten Exporten.
 
 ---
 
@@ -15,9 +18,10 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 | **Warum wir** | Wir erzeugen die Rechnung **aus Daten**, nicht per KI aus einem PDF wie viele Konkurrenten. Dadurch gibt es keine Lesefehler. Geprüft wird gegen die **offiziellen Regeln** (in Tests über 1.600 EN-16931-Regeln plus BR-DE). Die Software läuft **on-premises**, Rechnungsdaten verlassen das Haus nicht. Die Preise sind transparent, ohne Projektgeschäft. |
 | **Erlöse** | Lizenz-Abo in 4 Stufen (0 / 39 / 99 / 249 € netto pro Monat) + Einrichtung (590 €) + Partnerkanal (IT-Systemhäuser, 25 % Provision) |
 | **Finanzen (Basis)** | Umsatz J1 19 T€ → J2 125 T€ → **J3 294 T€** · Ergebnis J3 **+116 T€ nach Unternehmerlohn** · dauerhaft profitabel ab **Monat 21** · Kapitalbedarf **≈ 37 T€** |
-| **Worst Case** | Bremst man die Kosten rechtzeitig (Szenario „pessimistisch_gegensteuern“), ist das Geschäft trotzdem **ab Monat 14 profitabel**, bei nur ≈ 7 T€ Kapitalbedarf. |
+| **Pessimistisches Gegensteuerungsszenario** | Bremst man die Kosten rechtzeitig (Szenario „pessimistisch_gegensteuern“), ist das Geschäft trotzdem **ab Monat 14 profitabel**, bei nur ≈ 7 T€ Kapitalbedarf. |
+| **Echter Worst Case** | Keine Partner, schwache Conversion, hohe Supportlast, teure Werbung, Kunden bleiben bei ihrer Software: Mit Basis-Kosten ≈ **265 T€ Verlust**. Mit den Minimalkapital-Regeln ≈ **1.600 € Verlust**, aber nur ≈ 18 T€ Gehalt in drei Jahren – dann ist es ein Nebenprojekt (Kapitel 7b). |
 | **Minimalkapital** | Wenn du nur Gehalt entnimmst, was schon verdient ist, und vor dem ersten Umsatz kein Geld für Werbung oder Personal ausgibst, sinkt der Kapitalbedarf auf **unter 1.000 €**. Das gilt im Basis- **und** im pessimistischen Szenario (siehe Kapitel 7a). |
-| **Stand** | Version 1.1, bereit für Pilotkunden: grafische Oberfläche, Pflichtprüfung jeder Rechnung mit Prüfbericht, festgeschriebene Versionen, 47 automatische Tests. ZUGFeRD-PDFs extern bestätigt mit veraPDF (PDF/A-3b) und Mustang. Vor dem Produktivbetrieb: offizielle KoSIT-Regeln einrichten ([`PRUEFPROTOKOLL.md`](PRUEFPROTOKOLL.md)). |
+| **Stand** | Version 1.2 (Pilot-MVP): grafische Oberfläche, Pflichtprüfung jeder Aus- und Eingangsrechnung mit Prüfbericht bzw. Quarantäne, Dublettenerkennung, festgeschriebene Versionen, portables Windows-Paket, 52 automatische Tests. ZUGFeRD-PDFs extern bestätigt mit veraPDF (PDF/A-3b) und Mustang. Vor dem Produktivbetrieb: offizielle KoSIT-Regeln einrichten ([`PRUEFPROTOKOLL.md`](PRUEFPROTOKOLL.md)). |
 
 ---
 
@@ -55,7 +59,7 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 
 ---
 
-## 4. Produkt (umgesetzt in Version 1.1)
+## 4. Produkt (umgesetzt in Version 1.2, Pilot-MVP)
 
 | Funktion | Nutzen |
 |---|---|
@@ -63,7 +67,7 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 | Zuordnung beliebiger Spaltennamen per Mapping, Windows-1252 und deutsches Zahlenformat, Ablehnung mehrdeutiger Zahlen | Funktioniert mit dem vorhandenen Export des Altsystems, ohne Anpassungen dort |
 | Vorprüfung mit deutschen Klartext-Meldungen (IBAN-Prüfziffer, Pflichtfelder, Steuerlogik für Reverse Charge, innergemeinschaftliche Lieferung, Kleinunternehmer) | Fehler fallen vor dem Versand auf, nicht erst beim Kunden |
 | Pflichtprüfung gegen die offiziellen EN-16931- und XRechnung-Regeln vor jedem Schreiben | Gleiche Prüftiefe wie beim Validator der KoSIT |
-| Lesen eingehender E-Rechnungen (CII/UBL, XML/PDF) → HTML + Buchungsliste, mit Rechenkontrolle | Erfüllt die Empfangspflicht und spart das Abtippen in der Buchhaltung |
+| Lesen eingehender E-Rechnungen (CII/UBL, XML/PDF): offizielle Prüfung, Rechenkontrolle, Dublettenerkennung; gebucht wird nur nach bestandener Prüfung, fehlerhafte Rechnungen gehen in die Quarantäne | Erfüllt die Empfangspflicht, spart das Abtippen und verhindert Doppelzahlungen |
 | Hotfolder für automatischen Betrieb | Vollautomatisch: Das Altsystem exportiert, die E-Rechnung entsteht von selbst |
 | Signierte Offline-Lizenzen, Monatskontingente | Lizenzierung ohne Server und ohne Datenabfluss |
 | Grafische Oberfläche im Browser (lokal) | Buchhaltung arbeitet ohne Kommandozeile: Export ablegen, prüfen, erzeugen |
@@ -112,6 +116,8 @@ Stand: 20.10.2026 · Die Zahlen stammen aus [`geschaeft/finanzmodell.py`](gescha
 ---
 
 ## 7. Finanzplan
+
+> Modellrechnung aus Annahmen, keine Prognose. Nach den Pilotgesprächen die Annahmen in `geschaeft/annahmen.json` durch gemessene Werte ersetzen und neu rechnen.
 
 Vollständige Ergebnisse: [`geschaeft/ergebnisse/zusammenfassung.md`](geschaeft/ergebnisse/zusammenfassung.md), Monatswerte als CSV je Szenario.
 
@@ -175,6 +181,25 @@ nicht mehr Geld, sondern deine Zeit: etwa 10–15 Stunden pro Woche im ersten Ja
 
 ---
 
+## 7b. Echter Worst Case
+
+Annahmen (Szenarien `worst_case` und `worst_case_minimalkapital`): **kein** Partnerkanal, organisches Wachstum nur 3 %
+pro Monat (höchstens 120 Installationen), 60 € Werbekosten je Installation, nur 0,3 % der Free-Nutzer zahlen pro Monat,
+4 % Kündigungen pro Monat, Tarifmix überwiegend Starter, 10 € Supportkosten je Kunde und Monat.
+
+| Kennzahl | Worst Case mit Basis-Kosten | Worst Case mit Minimalkapital-Regeln |
+|---|---:|---:|
+| Zahlende Kunden Monat 36 | 44 | 32 |
+| Umsatz Jahr 3 | 24.797 € | 18.200 € |
+| Max. Kapitalbedarf (= Verlust) | **264.533 €** | **1.557 €** |
+| Entnommenes Gehalt über 36 Monate | 111.000 € | 17.761 € |
+
+**Folgerung:** Der Verlust hängt fast nur davon ab, ob Geld ausgegeben wird, bevor Kunden zahlen. Mit den
+Minimalkapital-Regeln ist das finanzielle Risiko auf rund 1.600 € begrenzt; das eigentliche Risiko ist dann die
+investierte Zeit. Deshalb gelten die Stop-/Go-Kriterien in Kapitel 10 und keine Ausgaben vor den Pilotergebnissen.
+
+---
+
 ## 8. Rechtliches und Compliance (Checkliste)
 
 > Orientierung, keine Rechtsberatung. Budget für Kanzlei und Steuerberatung ist im Modell enthalten (3.500 € einmalig).
@@ -200,7 +225,7 @@ nicht mehr Geld, sondern deine Zeit: etwa 10–15 Stunden pro Woche im ersten Ja
 | Große Rechnungsprogramme kopieren die Funktion | mittel | mittel | Unsere Nische sind Kunden, die *nicht* wechseln wollen. Partnerkanal und Lösungen für Altsysteme lassen sich schlecht kopieren |
 | Haftung für fehlerhafte Rechnungen | gering | hoch | Offizielle Regelprüfung vor dem Schreiben, Ablehnung mehrdeutiger Zahlen, AGB mit Haftungsbegrenzung, Haftpflichtversicherung |
 | Neue XRechnung-Versionen (jährlich) | sicher | mittel | Freelancer-Budget für Pflege. Die Regeln sind austauschbar, sodass Prüfungen ohne neues Release aktualisiert werden können |
-| Kontingente werden umgangen | mittel | gering | Signierte Lizenzen, Prüfrecht in den AGB. B2B-Kunden halten Lizenzen in der Regel ein |
+| Kontingente werden umgangen (Zähler ist eine lokale Datei, Gültigkeit hängt an der Systemzeit) | mittel | gering im Pilot, mittel ab ~300 Kunden | Signierte Lizenzen, Prüfrecht in den AGB; nach dem Pilot härten: signierter Zähler, optionale Online-Aktivierung, Plausibilitätsprüfung der Systemzeit. Offline lässt sich Lizenzkontrolle nie perfekt durchsetzen |
 | Bedienung zu technisch für Fachanwender | mittel | mittel | Grafische Oberfläche (v1.1), Einrichtung als Service, Hotfolder; als Nächstes ein Windows-Installationspaket |
 | Reichweite zu gering | mittel | hoch | Stop-/Go-Kriterien (Kapitel 10), Partnerkanal, Kostenbremse im Szenario „gegensteuern“ |
 

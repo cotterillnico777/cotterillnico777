@@ -128,10 +128,15 @@ details > summary { cursor: pointer; font-weight: 600; }
         <span class="hinweis" id="name-lesen">CII und UBL werden erkannt. Die Summen werden nachgerechnet.</span>
         <input type="file" id="datei-lesen" accept=".xml,.pdf" hidden>
       </label>
+      <label id="bestaetigung" hidden style="display:flex;gap:8px;align-items:flex-start;font-size:14px">
+        <input type="checkbox" id="chk-bestaetigt" style="margin-top:3px">
+        <span>Ich habe geprüft: Diese Rechnung ist keine doppelte Buchung (z. B. eine Korrekturrechnung) und soll gebucht werden.</span>
+      </label>
       <div class="knoepfe">
-        <button class="k" id="btn-buchen" disabled>Zur Buchungsliste hinzufügen</button>
+        <button class="k primaer" id="btn-buchen" disabled>Zur Buchungsliste hinzufügen</button>
         <button class="k" id="btn-buchungsliste">Buchungsliste herunterladen</button>
       </div>
+      <p class="hinweis">Gebucht wird nur, was die offizielle Prüfung und die Rechenkontrolle besteht. Fehlerhafte Rechnungen werden mit Begründung in die Quarantäne gelegt.</p>
     </div>
     <div class="karte" id="ergebnis-lesen" hidden></div>
   </section>
@@ -315,17 +320,45 @@ details > summary { cursor: pointer; font-weight: 600; }
   $("btn-erzeugen").addEventListener("click", function () { verarbeiten("/api/erzeugen", $("btn-erzeugen")); });
 
   // Lesen
+  var lesestand = null;
+  function zeigeLesen(d, meldung) {
+    var box = $("ergebnis-lesen"), r = d.rechnung;
+    var html = "<h2>" + esc(r.lieferant) + " · Rechnung " + esc(r.nummer) + " · " + euro(r.brutto) + "</h2>";
+    if (d.status === "bestanden") {
+      html += '<div class="banner ok">Prüfung bestanden' + (d.testmodus ? " (Testmodus ohne offizielle Prüfregeln)" : "") +
+        ": formal gültig (" + esc(r.syntax) + "), Summen korrekt.</div>";
+    } else {
+      html += '<div class="banner err"><strong>' + (d.status === "ungeprüft" ? "Nicht geprüft" : "Prüfung nicht bestanden") +
+        " – wird nicht gebucht.</strong><br>" + d.befunde.map(esc).join("<br>") +
+        (d.quarantaene ? "<br><br>In Quarantäne abgelegt: <span class=mono>" + esc(d.quarantaene) + "</span>" : "") + "</div>";
+    }
+    if (d.warnungen.length) html += '<div class="banner warn">' + d.warnungen.map(esc).join("<br>") + "</div>";
+    if (d.dubletten.length) html += '<div class="banner ' + (d.buchbar ? "warn" : "err") + '"><strong>' +
+      (d.buchbar ? "Möglicherweise doppelt:" : "Bereits gebucht:") + "</strong><br>" + d.dubletten.map(function (x) { return esc(x.text); }).join("<br>") + "</div>";
+    if (meldung) html += meldung;
+    html += '<iframe sandbox="" title="Rechnungsansicht"></iframe>';
+    box.innerHTML = html; box.querySelector("iframe").srcdoc = d.html; box.hidden = false;
+    lesestand = d;
+    $("bestaetigung").hidden = !(d.buchbar && d.bestaetigung_noetig && !d.gebucht);
+    $("chk-bestaetigt").checked = false;
+    buchenKnopf();
+  }
+  function buchenKnopf() {
+    var d = lesestand;
+    $("btn-buchen").disabled = !d || d.gebucht || !d.buchbar || (d.bestaetigung_noetig && !$("chk-bestaetigt").checked);
+    $("btn-buchen").textContent = d && d.gebucht ? "Gebucht" : (d && d.buchbar && d.bestaetigung_noetig ? "Trotzdem buchen" : "Zur Buchungsliste hinzufügen");
+  }
+  $("chk-bestaetigt").addEventListener("change", buchenKnopf);
   function lesen(buchen) {
     var box = $("ergebnis-lesen");
-    hochladen("/api/lesen?buchen=" + (buchen ? 1 : 0), leseDatei).then(function (d) {
-      var html = "<h2>" + esc(d.verkaeufer) + " · Rechnung " + esc(d.nummer) + " · " + euro(d.brutto) + "</h2>";
-      if (d.probleme.length) html += '<div class="banner err"><strong>Rechenfehler in der Rechnung:</strong><br>' + d.probleme.map(esc).join("<br>") + "</div>";
-      else html += '<div class="banner ok">Summen und Steuerbeträge sind rechnerisch korrekt.</div>';
-      if (d.gebucht) html += '<div class="banner ok">Zur Buchungsliste hinzugefügt.</div>';
-      html += '<iframe sandbox="" title="Rechnungsansicht"></iframe>';
-      box.innerHTML = html; box.querySelector("iframe").srcdoc = d.html; box.hidden = false;
-      $("btn-buchen").disabled = d.gebucht;
-    }).catch(function (e) { box.hidden = false; banner(box, "err", esc(e.message)); $("btn-buchen").disabled = true; });
+    var bestaetigt = buchen && $("chk-bestaetigt").checked ? 1 : 0;
+    hochladen("/api/lesen?buchen=" + (buchen ? 1 : 0) + "&bestaetigt=" + bestaetigt, leseDatei).then(function (d) {
+      zeigeLesen(d, d.gebucht ? '<div class="banner ok">Zur Buchungsliste hinzugefügt.</div>' : "");
+      if (d.gebucht) { d.gebucht = true; buchenKnopf(); }
+    }).catch(function (e) {
+      if (buchen && lesestand) { zeigeLesen(lesestand, '<div class="banner err">' + esc(e.message) + "</div>"); return; }
+      lesestand = null; box.hidden = false; banner(box, "err", esc(e.message)); buchenKnopf();
+    });
   }
   $("btn-buchen").addEventListener("click", function () { if (leseDatei) lesen(true); });
   $("btn-buchungsliste").addEventListener("click", function () {

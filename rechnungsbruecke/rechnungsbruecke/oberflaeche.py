@@ -7,7 +7,8 @@ Der Server lauscht nur auf 127.0.0.1. Schutz gegen Zugriffe fremder Webseiten:
 
 Arbeitsordner (Standard ~/Rechnungsbruecke):
   stammdaten.json, mapping.json (optional), eingang/ (hochgeladene Exporte), ausgabe/JJJJ-MM/ (E-Rechnungen),
-  gelesen/ (Ansichten eingegangener Rechnungen) und gelesen/buchungsliste.csv
+  gelesen/ (Ansichten eingegangener Rechnungen), gelesen/buchungsliste.csv mit Buchungsregister und
+  gelesen/quarantaene/ (nicht bestandene Eingangsrechnungen mit Begründung)
 """
 import io
 import json
@@ -23,9 +24,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import __version__
-from .ansicht import als_html, buchungszeilen, schreibe_buchungsliste
+from .ansicht import als_html, buchungszeilen
 from .csv_import import ImportFehler, Stammdaten
-from .leser import LeseFehler, lies, xml_aus_datei
+from .eingang import BuchungsFehler, buche, in_quarantaene, pruefe_eingang
+from .leser import LeseFehler, xml_aus_datei
 from .lizenz import LizenzFehler, Nutzung, aktuelle_lizenz, datenverzeichnis, pruefe_lizenzdatei
 from .regeln import RegelFehler, aktuelles_regelwerk, einrichten
 from .standards import XRECHNUNG_VERSION, ZUGFERD_PROFIL
@@ -135,22 +137,37 @@ def _konvertieren(ordner: Arbeitsordner, daten: bytes, name: str, format: str, n
     }
 
 
-def _lesen(ordner: Arbeitsordner, daten: bytes, name: str, buchen: bool) -> dict:
+def _lesen(ordner: Arbeitsordner, daten: bytes, name: str, buchen: bool, bestaetigt: bool) -> dict:
+    """Prüft eine Eingangsrechnung; fehlerhafte kommen in die Quarantäne, gebucht wird nur nach Freigabe."""
+    quarantaene = ordner.pfad / "gelesen" / "quarantaene"
     with tempfile.TemporaryDirectory() as tmp:
         pfad = Path(tmp) / (dateiname(Path(name).name) or "rechnung.xml")
         pfad.write_bytes(daten)
         try:
-            r = lies(xml_aus_datei(pfad))
+            werk = aktuelles_regelwerk()
+            pruefung = pruefe_eingang(xml_aus_datei(pfad), werk, ordner.buchungsliste, ordner.ohne_offizielle_pruefung)
+        except RegelFehler as e:
+            raise Anfragefehler(HTTPStatus.CONFLICT, str(e)) from None
         except (LeseFehler, ValueError) as e:
-            raise Anfragefehler(HTTPStatus.UNPROCESSABLE_ENTITY, str(e)) from None
-    html = als_html(r)
+            ablage = in_quarantaene(quarantaene, name, daten, [str(e)])
+            raise Anfragefehler(HTTPStatus.UNPROCESSABLE_ENTITY,
+                                f"{e} (in Quarantäne abgelegt: {ablage.relative_to(ordner.pfad)})") from None
+    r = pruefung.rechnung
+    html = als_html(r, pruefung)
     ansicht = ordner.pfad / "gelesen" / f"{dateiname(r.verkaeufer)[:40]}_{dateiname(r.nummer)}.html"
     ansicht.write_text(html, encoding="utf-8")
+    antwort = {**pruefung.als_dict(), "html": html, "buchungen": buchungszeilen(r), "gebucht": False,
+               "quarantaene": None, "ansicht": str(ansicht.relative_to(ordner.pfad))}
+    if pruefung.status != "bestanden":
+        antwort["quarantaene"] = str(in_quarantaene(quarantaene, name, daten, pruefung.befunde, pruefung)
+                                     .relative_to(ordner.pfad))
     if buchen:
-        schreibe_buchungsliste(ordner.buchungsliste, [r])
-    return {"html": html, "nummer": r.nummer, "verkaeufer": r.verkaeufer, "brutto": f"{r.brutto:.2f}",
-            "waehrung": r.waehrung, "probleme": r.plausibilitaet(), "buchungen": buchungszeilen(r),
-            "gebucht": buchen, "ansicht": str(ansicht.relative_to(ordner.pfad))}
+        try:
+            buche(pruefung, ordner.buchungsliste, bestaetigt)
+        except BuchungsFehler as e:
+            raise Anfragefehler(HTTPStatus.CONFLICT, str(e)) from None
+        antwort["gebucht"] = True
+    return antwort
 
 
 def _zip(ordner: Arbeitsordner, dateien: list[str]) -> bytes:
@@ -250,7 +267,8 @@ def baue_handler(ordner: Arbeitsordner, token: str, port_ref: list):
                     self._json(HTTPStatus.OK, _konvertieren(ordner, daten, name, q.get("format", ["xrechnung"])[0],
                                                             nur_pruefen=url.path == "/api/pruefen"))
                 elif url.path == "/api/lesen":
-                    self._json(HTTPStatus.OK, _lesen(ordner, daten, name, q.get("buchen", ["0"])[0] == "1"))
+                    self._json(HTTPStatus.OK, _lesen(ordner, daten, name, q.get("buchen", ["0"])[0] == "1",
+                                                     q.get("bestaetigt", ["0"])[0] == "1"))
                 elif url.path == "/api/zip":
                     inhalt = _zip(ordner, json.loads(daten)["dateien"])
                     self._senden(HTTPStatus.OK, inhalt, "application/zip",

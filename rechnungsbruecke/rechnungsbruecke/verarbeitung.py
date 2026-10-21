@@ -7,10 +7,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
-from .ansicht import als_html, schreibe_buchungsliste
+from .ansicht import als_html
 from .cii import erzeuge_cii
 from .csv_import import ImportFehler, Stammdaten, importiere
-from .leser import LeseFehler, lies_datei
+from .eingang import BuchungsFehler, buche, in_quarantaene, pruefe_eingang
+from .leser import LeseFehler, xml_aus_datei
 from .lizenz import Lizenz, LizenzFehler, Nutzung
 from .regeln import Regelwerk
 from .vorpruefung import pruefe
@@ -132,22 +133,39 @@ def konvertiere(csv_pfad: Path, stamm: Stammdaten, ziel: Path, lizenz: Lizenz, f
     return erg
 
 
-def lese_eingang(datei: Path, ziel: Path, buchungsliste: Path | None = None) -> Ergebnis:
-    """Macht eine eingehende E-Rechnung lesbar (HTML) und ergänzt optional die Buchungsliste."""
+def lese_eingang(datei: Path, ziel: Path, buchungsliste: Path | None = None, regeln: Regelwerk | None = None,
+                 ohne_offizielle_pruefung: bool = False, bestaetigt: bool = False) -> Ergebnis:
+    """Prüft eine eingehende E-Rechnung und macht sie lesbar (HTML).
+
+    Mit `buchungsliste` wird sie nur gebucht, wenn sie die offizielle Prüfung und die Rechenkontrolle
+    bestanden hat und keine Dublette ist (Verdacht: nur mit `bestaetigt`). Sonst landet sie mit
+    Begründung in `ziel/quarantaene/`.
+    """
     erg = Ergebnis()
+    inhalt = datei.read_bytes()
+    quarantaene = ziel / "quarantaene"
     try:
-        r = lies_datei(datei)
+        pruefung = pruefe_eingang(xml_aus_datei(datei), regeln, buchungsliste, ohne_offizielle_pruefung)
     except (LeseFehler, ValueError) as e:
         erg.fehler.append(f"{datei.name}: {e}")
+        if buchungsliste:
+            erg.erzeugt.append(in_quarantaene(quarantaene, datei.name, inhalt, [str(e)]))
         return erg
+    r = pruefung.rechnung
     ziel.mkdir(parents=True, exist_ok=True)
     html_pfad = ziel / f"{dateiname(r.verkaeufer)[:40]}_{dateiname(r.nummer)}.html"
-    html_pfad.write_text(als_html(r), encoding="utf-8")
+    html_pfad.write_text(als_html(r, pruefung), encoding="utf-8")
     erg.erzeugt.append(html_pfad)
-    erg.hinweise += [f"{datei.name}: {p}" for p in r.plausibilitaet()]
-    if buchungsliste:
-        schreibe_buchungsliste(buchungsliste, [r])
+    erg.hinweise += [f"{datei.name}: {w}" for w in pruefung.warnungen]
+    if not buchungsliste:
+        erg.fehler += [f"{datei.name}: {b}" for b in pruefung.befunde]
+        return erg
+    try:
+        buche(pruefung, buchungsliste, bestaetigt)
         erg.erzeugt.append(buchungsliste)
+    except BuchungsFehler as e:
+        erg.fehler.append(f"{datei.name}: {e}")
+        erg.erzeugt.append(in_quarantaene(quarantaene, datei.name, inhalt, [str(e)], pruefung))
     return erg
 
 
@@ -168,7 +186,8 @@ def hotfolder_durchlauf(eingang: Path, ziel: Path, stamm: Stammdaten | None, liz
     """Ein Durchlauf: CSV → Ausgangsrechnungen, XML/PDF → Eingangsrechnungen.
 
     Erfolgreich verarbeitete Dateien landen in `eingang/verarbeitet`, fehlerhafte in
-    `eingang/fehler` (mit .log). Dateien, die jünger als `mindestalter_s` sind, werden
+    `eingang/fehler` (mit .log). Eingangsrechnungen, die die Prüfung nicht bestehen oder Dubletten
+    sein könnten, werden nicht gebucht, sondern in `ziel/eingang/quarantaene/` abgelegt. Dateien, die jünger als `mindestalter_s` sind, werden
     übersprungen, damit noch laufende Exporte nicht halb gelesen werden.
     """
     if not lizenz.hotfolder:
@@ -186,7 +205,8 @@ def hotfolder_durchlauf(eingang: Path, ziel: Path, stamm: Stammdaten | None, liz
                 erg = konvertiere(datei, stamm, ziel / "ausgang", lizenz, format, mapping, regeln,
                                   ohne_offizielle_pruefung=ohne_offizielle_pruefung)
         elif endung in (".xml", ".pdf"):
-            erg = lese_eingang(datei, ziel / "eingang", ziel / "eingang" / "buchungsliste.csv")
+            erg = lese_eingang(datei, ziel / "eingang", ziel / "eingang" / "buchungsliste.csv", regeln,
+                               ohne_offizielle_pruefung)
         else:
             continue
         if erg.ok:
