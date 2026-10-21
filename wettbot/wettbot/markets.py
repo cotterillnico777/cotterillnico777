@@ -30,6 +30,14 @@ def market_probs(m: np.ndarray) -> dict[str, dict[str, float]]:
     return out
 
 
+def sharpen(probs: dict[str, float], k: float) -> dict[str, float]:
+    """p_i^k normalisiert. k > 1 macht Prognosen entschiedener; das regularisierte
+    Modell ist leicht unterkonfident (Backtest-Optimum k ≈ 1,15)."""
+    q = {s: p ** k for s, p in probs.items()}
+    t = sum(q.values())
+    return {s: v / t for s, v in q.items()}
+
+
 def devig(odds, method: str = "power") -> np.ndarray:
     """Faire Wahrscheinlichkeiten aus einem vollständigen Quotensatz.
 

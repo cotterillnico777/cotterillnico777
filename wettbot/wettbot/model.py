@@ -25,14 +25,15 @@ MAX_GOALS = 10
 
 @dataclass
 class DixonColes:
-    half_life_days: float = 240.0
-    ridge_team: float = 0.5
+    # Werte per Walk-Forward-Backtest (CL 2024/25–2026/27) gewählt, siehe README
+    half_life_days: float = 450.0
+    ridge_team: float = 4.0
     ridge_group: float = 0.05
     # Länder ohne Ligadaten (Norwegen, Ukraine, …) kennt das Modell nur über 1–3 Klubs.
     # Ihr Offset wird stark zu einem gemeinsamen "Kleinligen"-Mittel gezogen, sonst
     # erbt z. B. Viking die Stärke von Bodø/Glimt.
     ridge_minor: float = 8.0
-    euro_weight: float = 1.5  # Europapokalspiele verknüpfen die Ligen -> etwas mehr Gewicht
+    euro_weight: float = 2.0  # Europapokalspiele verknüpfen die Ligen -> etwas mehr Gewicht
 
     teams: list = field(default_factory=list)
     groups: list = field(default_factory=list)

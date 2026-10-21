@@ -81,10 +81,20 @@ Alle Grenzwerte sind per Option änderbar, z. B. `--min-edge 0.05`,
 
 ## Ist der Bot profitabel? So prüfst du es
 
-* **Backtest** (Walk-Forward, CL 2024/25 – heute, 420+ Spiele, Modell sieht nie
-  die Zukunft): 1X2-Log-Loss ≈ 0,896 gegenüber 0,996 für die Basisrate.
-  Das Modell hat also echte Vorhersagekraft – für den Markt reicht das allein
-  aber nicht. Eine **Rendite**-Simulation braucht historische Quoten; die waren in
+* **Backtest** (Walk-Forward, CL 2024/25 – heute, 423 Spiele, Modell sieht nie
+  die Zukunft):
+
+  | Markt | Modell (Log-Loss) | Basisrate |
+  |---|---|---|
+  | 1X2 | **0,888** | 0,996 |
+  | Über/Unter 2,5 | 0,633 | 0,641 |
+  | Beide treffen | 0,675 | 0,686 |
+
+  Parameter (Halbwertszeit 450 Tage, Ridge 4, Europapokal-Gewicht 2,
+  1X2-Schärfung 1,15) wurden auf diesem Zeitraum gewählt – die Zahlen sind
+  daher leicht optimistisch. Das Modell hat echte Vorhersagekraft; Buchmacher
+  liegen in der CL typischerweise bei ≈ 0,87–0,89, das Modell allein schlägt
+  den Markt also nicht – deshalb die Mischung. Eine **Rendite**-Simulation braucht historische Quoten; die waren in
   der Entwicklungsumgebung nicht abrufbar.
 * **Closing Line Value**: Liegt die genommene Quote im Schnitt über der
   Schlussquote (`report` → `clv` > 0), hast du einen echten Vorteil. Das ist nach

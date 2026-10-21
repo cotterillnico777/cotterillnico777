@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from .markets import MARKETS, devig, market_probs, overround
+from .markets import MARKETS, devig, market_probs, overround, sharpen
 from .model import DixonColes
 from .names import Resolver, key
 
@@ -25,7 +25,8 @@ from .names import Resolver, key
 class Settings:
     bankroll: float = 1000.0
     model_weight: float = 0.35     # Anteil Modell an p (1X2)
-    model_weight_goals: float = 0.20  # Tormärkte: Modell im Backtest kaum besser als Basisrate
+    model_weight_goals: float = 0.20  # Tormärkte: Modell nur knapp besser als Basisrate
+    sharpen: float = 1.15          # Kalibrierung der 1X2-Modellwerte (Backtest)
     min_edge: float = 0.03         # mind. +3 % Erwartungswert
     min_odds: float = 1.30
     max_odds: float = 8.0
@@ -75,6 +76,7 @@ def find_value(model: DixonColes, odds: pd.DataFrame, known_names, cfg: Settings
             continue
         hk, ak = key(h), key(a)
         mp = market_probs(model.score_matrix(hk, ak))
+        mp["1X2"] = sharpen(mp["1X2"], cfg.sharpen)
         lh, la = model.expected_goals(hk, ak)
         for market in g["market"].unique():
             fair, src = market_fair(g, market)
@@ -128,4 +130,5 @@ def select_bets(cands: pd.DataFrame, cfg: Settings) -> pd.DataFrame:
         c["anteil"] *= cfg.max_day_pct / tot
     c["einsatz"] = (c["anteil"] * cfg.bankroll).round(2)
     c["erw_gewinn"] = (c["einsatz"] * c["ev"]).round(2)
+    c["mindestquote"] = ((1 + cfg.min_edge) / c["p"]).round(2)  # darunter nicht mehr setzen
     return c[c["einsatz"] >= 1.0].sort_values(["anstoss", "spiel"]).reset_index(drop=True)

@@ -72,7 +72,8 @@ def cmd_picks(a):
     print(f"\n{len(bets)} Value-Wette(n), Bankroll {cfg.bankroll:.0f} €:\n")
     for r in bets.itertuples():
         print(f"  {r.anstoss}  {r.spiel:<34} {_label(r.markt, r.tipp):<22} @ {r.quote:<5} "
-              f"({r.buchmacher})  p={r.p:.1%}  EV={r.ev:+.1%}  Einsatz {r.einsatz:.2f} €")
+              f"({r.buchmacher})  p={r.p:.1%}  EV={r.ev:+.1%}  Einsatz {r.einsatz:.2f} €  "
+              f"[nur ab Quote {r.mindestquote:.2f}]")
     if len(bets):
         print(f"\n  Gesamteinsatz {bets.einsatz.sum():.2f} €, erwarteter Gewinn {bets.erw_gewinn.sum():+.2f} €")
 
@@ -89,13 +90,14 @@ def write_report(cands, bets, cfg, as_of, path: Path):
              f"Modellgewicht {cfg.model_weight:.0%} (1X2)", "",
              "## Value-Wetten", ""]
     if len(bets):
-        lines += ["| Anstoß | Spiel | Tipp | Quote | Buchmacher | p | EV | Einsatz |",
-                  "|---|---|---|---|---|---|---|---|"]
+        lines += ["| Anstoß | Spiel | Tipp | Quote | Buchmacher | p | EV | Einsatz | Mindestquote |",
+                  "|---|---|---|---|---|---|---|---|---|"]
         for r in bets.itertuples():
             lines.append(f"| {r.anstoss} | {r.spiel} | {_label(r.markt, r.tipp)} | {r.quote:.2f} | "
-                         f"{r.buchmacher} | {r.p:.1%} | {r.ev:+.1%} | {r.einsatz:.2f} € |")
+                         f"{r.buchmacher} | {r.p:.1%} | {r.ev:+.1%} | {r.einsatz:.2f} € | {r.mindestquote:.2f} |")
         lines += ["", f"Gesamteinsatz **{bets.einsatz.sum():.2f} €**, erwarteter Gewinn "
-                      f"**{bets.erw_gewinn.sum():+.2f} €**."]
+                      f"**{bets.erw_gewinn.sum():+.2f} €**.", "",
+                  "Mindestquote: Bietet dein Buchmacher weniger, ist die Wette kein Value mehr – auslassen."]
     else:
         lines.append("Keine Wette erfüllt die Kriterien – kein Einsatz ist dann die richtige Entscheidung.")
     lines += ["", "## Alle Spiele (1X2, Modell vs. margenbereinigter Markt)", "",
