@@ -18,7 +18,51 @@ setzt dann kontrolliert (Viertel-Kelly mit harten Limits).
 > Verlust du verkraften kannst. Hilfe bei Spielsucht: BZgA 0800 1 37 27 00
 > (kostenlos, anonym) · www.check-dein-spiel.de
 
-## So funktioniert er
+## Analyse-Tool: Wahrscheinlichkeiten für jedes Spiel
+
+```bash
+python -m wettbot analyse --spiele data/fixtures/2026-11-cl-md4.csv     # CL-Spieltag 4
+python -m wettbot analyse --spiele meine_ligaspiele.csv --liga          # Ligaspiele
+python -m wettbot analyse-train                                         # neu lernen (~5 Min.)
+```
+
+Spielplan-CSV: `date,kickoff,home,away`. Ergebnis: Konsolenübersicht + Bericht in
+`reports/` (Beispiel: `reports/analyse-cl-spieltag4.md`) mit je Spiel:
+
+* **Kennzahlen beider Teams:** Form (letzte 5), Tore/Gegentore (letzte 10),
+  Torschüsse und Ecken für/gegen, Anteil Tore nach der Pause, Elo, Torerwartung
+* **Wahrscheinlichkeiten:** 1X2, Doppelte Chance, die 6 wahrscheinlichsten
+  Ergebnisse, über 0,5–4,5 Tore, beide treffen, Tor in 1./2. Halbzeit, mehr Tore
+  in der 2. Halbzeit, Halbzeitstand, erwartete Ecken und über 7,5–11,5 Ecken
+
+**Datenquellen:** openfootball (Ergebnisse + Halbzeitstände, Ligen + Europapokal),
+xgabora/football-data.co.uk (Schüsse, Torschüsse, Ecken, Karten aus 16 Ligen),
+ClubElo (Elo-Ratings). Zusammen ~20 000 Spiele seit 2022.
+
+**Der „beste Mittelwert“ wird gelernt, nicht geschätzt:** Logistische
+Regressionen auf ~10 000 vergangenen Spielen bestimmen, wie stark jede Kennzahl
+zählt. Danach wird auf ungesehenen Spielen geprüft (Log-Loss, kleiner = besser):
+
+| Markt | CL: Torprognose | CL: Kombi | Liga: Kombi | Liga: Torprognose | Basisrate (Liga) |
+|---|---|---|---|---|---|
+| 1X2 | **0,879** | 0,953 | **1,006** | 1,010 | 1,076 |
+| Über/Unter 2,5 | **0,617** | 0,625 | **0,680** | 0,683 | 0,692 |
+| Beide treffen | **0,668** | 0,670 | **0,685** | 0,689 | 0,689 |
+
+Was die Daten zeigen:
+* **Ligaspiele:** Die Kombination ist am besten. Am meisten bringen die
+  Torschuss-Bilanz, Elo und die Ecken-Bilanz. Form und Tordifferenz sind schon
+  in der Torprognose enthalten und bringen nichts zusätzlich.
+* **Champions League:** Die Torprognose allein ist genauer. Die an Ligaspielen
+  gelernten Gewichte übertragen sich nicht auf Duelle zwischen Ligen. Das Tool
+  nutzt deshalb für CL-Spiele die Torprognose und zeigt die übrigen Kennzahlen
+  als Hintergrund.
+* **Halbzeiten:** 55 % der Tore fallen nach der Pause. Teamspezifische Werte
+  verbesserten die Prognose nicht, deshalb gilt der Durchschnitt.
+* **Ecken:** Kaum vorhersagbar (mittlere Abweichung 2,69 statt 2,71 mit dem
+  Ligamittel). In der CL beruhen die Eckenwerte auf Ligadaten.
+
+## So funktioniert der Wett-Teil
 
 ```
 Ergebnisse (openfootball)        Quoten (CSV oder The Odds API)
@@ -156,6 +200,11 @@ Kontostand. Bei negativem CLV: aufhören.
 | `wettbot/ledger.py` | Journal, Abrechnung, ROI, CLV |
 | `wettbot/backtest.py` | Walk-Forward-Backtest der Prognosegüte |
 | `wettbot/roi.py` | Rendite-Backtest mit historischen Quoten |
+| `wettbot/stats.py` | Teamprofile: Form, Halbzeiten, Schüsse, Ecken, Elo |
+| `wettbot/analyse.py` | Kombi-Modelle, Ecken- und Halbzeitmodell, Bewertung |
+| `wettbot/bericht.py` | Analyse-Lauf und Bericht |
+| `data/fixtures/` | Spielpläne (CL-Spieltage 3 und 4) |
+| `data/analyse_params.json` | gelernte Gewichte + Testergebnisse |
 | `data/results_manual.csv` | CL 2026/27 Ergebnisse (manuell) |
 | `data/odds/` | Quoten-Snapshots |
 | `reports/` | Tagesberichte |

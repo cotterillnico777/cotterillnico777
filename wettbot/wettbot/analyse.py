@@ -23,10 +23,14 @@ from scipy.special import gammaln
 from scipy.stats import nbinom, poisson
 
 from .data import DATA
-from .markets import market_probs
+from .markets import market_probs, sharpen
 from .model import DixonColes, score_matrix
 
 PARAMS = DATA / "analyse_params.json"
+# Europapokal: Die in Ligaspielen gelernten Gewichte übertragen sich nicht (Test:
+# CL-Log-Loss 0,953 Kombi vs. 0,883 Torprognose). Dort gilt die Torprognose allein,
+# 1X2 mit der im CL-Backtest bestimmten Schärfung.
+EURO_SHARPEN = 1.15
 TRAINING = DATA / "raw" / "analyse_training.csv"
 
 
@@ -337,16 +341,22 @@ class Analyzer:
                    HalfModel(d["halves"]["s_global"], d["halves"]["k"]), d.get("report", {}))
 
     # ---- Vorhersage für ein Spiel
-    def predict(self, row: pd.DataFrame) -> dict:
-        """row: eine Zeile mit lh, la, rho und allen Merkmalen (wie in build_training)."""
+    def predict(self, row: pd.DataFrame, euro: bool = False) -> dict:
+        """row: eine Zeile mit lh, la, rho und allen Merkmalen (wie in build_training).
+        euro=True: Europapokalspiel -> Torprognose allein (im Test besser)."""
         dc = _dc(row)
         r = row.iloc[0]
-        out = {"xg": (float(r.lh), float(r.la))}
-        p = self.markets["1X2"].predict(row, dc)[0]
-        out["1X2"] = dict(H=p[0], D=p[1], A=p[2])
+        out = {"xg": (float(r.lh), float(r.la)), "methode": "Torprognose" if euro else "Kombi"}
+        if euro:
+            q = sharpen(dict(H=dc.pH.iloc[0], D=dc.pD.iloc[0], A=dc.pA.iloc[0]), EURO_SHARPEN)
+            p = [q["H"], q["D"], q["A"]]
+            out["OU2.5"], out["BTTS"] = float(dc.pO25.iloc[0]), float(dc.pBTTS.iloc[0])
+        else:
+            p = self.markets["1X2"].predict(row, dc)[0]
+            out["OU2.5"] = float(self.markets["OU2.5"].predict(row, dc)[0])
+            out["BTTS"] = float(self.markets["BTTS"].predict(row, dc)[0])
+        out["1X2"] = dict(H=float(p[0]), D=float(p[1]), A=float(p[2]))
         out["DC"] = {"1X": p[0] + p[1], "X2": p[1] + p[2], "12": p[0] + p[2]}
-        out["OU2.5"] = float(self.markets["OU2.5"].predict(row, dc)[0])
-        out["BTTS"] = float(self.markets["BTTS"].predict(row, dc)[0])
         # Ergebnis-Matrix: Torerwartung so skalieren, dass sie zu den kalibrierten Märkten passt
         m = score_matrix(r.lh, r.la, r.rho)
         out["ergebnisse"] = _top_scores(m, 6)
@@ -430,6 +440,24 @@ def evaluate(t: pd.DataFrame, split: str = "2025-07-01") -> dict:
         res["beitrag"] = abl
         res["gewichte"] = mm.weights()
         out[market] = {k: (round(v, 4) if isinstance(v, float) else v) for k, v in res.items()}
+
+    # Champions League separat: Kombi vs. Torprognose
+    cl = te[te.comp == "UCL"]
+    if len(cl):
+        dcl = _dc(cl)
+        q = dcl[["pH", "pD", "pA"]].to_numpy() ** EURO_SHARPEN
+        q /= q.sum(axis=1, keepdims=True)
+        y = _y(cl, "1X2")
+        clr = {"spiele": len(cl),
+               "1X2": dict(torprognose=round(_ll(q, y), 4),
+                           kombi=round(_ll(MarketModel.fit(tr, dtr, "1X2").predict(cl, dcl), y), 4),
+                           basisrate=round(_ll(np.tile(np.bincount(y, minlength=3) / len(y), (len(y), 1)), y), 4))}
+        for mk, col in (("OU2.5", "pO25"), ("BTTS", "pBTTS")):
+            yy = _y(cl, mk)
+            clr[mk] = dict(torprognose=round(_bll(dcl[col].to_numpy(), yy), 4),
+                           kombi=round(_bll(MarketModel.fit(tr, dtr, mk).predict(cl, dcl), yy), 4),
+                           basisrate=round(_bll(np.full(len(yy), yy.mean()), yy), 4))
+        out["CL"] = clr
 
     # Ecken
     cm = CornerModel.fit(tr)

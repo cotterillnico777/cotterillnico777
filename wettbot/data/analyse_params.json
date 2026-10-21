@@ -1,0 +1,267 @@
+{
+ "markets": {
+  "1X2": {
+   "market": "1X2",
+   "names": [
+    "Torprognose (Heim vs. Gast)",
+    "Torprognose (Remis)",
+    "Elo-Differenz",
+    "Elo fehlt",
+    "Form (Punkte/Spiel, letzte 5)",
+    "Tordifferenz (letzte 10)",
+    "Torschuss-Bilanz",
+    "Schussdaten fehlen",
+    "Ecken-Bilanz"
+   ],
+   "mean": [
+    0.41559427366421764,
+    -1.1267859794582231,
+    -0.0006737007424328814,
+    0.024081477251094614,
+    -0.044143029380036725,
+    -0.036201497859122064,
+    -0.07339796760128006,
+    0.011897963068722634,
+    -0.07930963108004838
+   ],
+   "std": [
+    0.8606176884809359,
+    0.26242559414100575,
+    1.4072457527532158,
+    0.15330218527828696,
+    0.924050535948222,
+    1.0462996161616358,
+    2.4056417391983085,
+    0.10842694204112857,
+    2.672355247162859
+   ],
+   "W": [
+    [
+     0.4198134296583006,
+     -0.043918515875075996
+    ],
+    [
+     0.3965404899474887,
+     0.17659929132106805
+    ],
+    [
+     -0.0498418949045327,
+     0.09156870080556931
+    ],
+    [
+     0.3207841985415435,
+     0.18777308126856365
+    ],
+    [
+     0.00437264132407567,
+     -0.02761904508937574
+    ],
+    [
+     -0.020712052104113948,
+     -0.0029846071521292426
+    ],
+    [
+     0.016261373153104077,
+     0.06294466249087838
+    ],
+    [
+     0.24083323570230045,
+     0.06938217739079007
+    ],
+    [
+     -0.018798626030512078,
+     -0.05354340227301078
+    ],
+    [
+     0.11785503447241179,
+     0.07060360821402076
+    ]
+   ],
+   "k": 3
+  },
+  "OU2.5": {
+   "market": "OU2.5",
+   "names": [
+    "Torprognose (über 2,5)",
+    "Tore beider Teams (letzte 10)",
+    "Anteil Spiele über 2,5",
+    "Torschüsse gesamt"
+   ],
+   "mean": [
+    0.03413432030035578,
+    0.28165934658653125,
+    0.04843143298311774,
+    0.26959923127827107
+   ],
+   "std": [
+    0.45498693963640363,
+    0.9187607216929354,
+    0.25268006948369365,
+    2.0195792724622925
+   ],
+   "W": [
+    [
+     0.10751659367730929
+    ],
+    [
+     0.31582918247098607
+    ],
+    [
+     -0.04886430124759661
+    ],
+    [
+     -0.007998186187531205
+    ],
+    [
+     0.09497580482746279
+    ]
+   ],
+   "k": 2
+  },
+  "BTTS": {
+   "market": "BTTS",
+   "names": [
+    "Torprognose (beide treffen)",
+    "Anteil Spiele beide treffen",
+    "Tore beider Teams (letzte 10)"
+   ],
+   "mean": [
+    0.07433877116578563,
+    0.07844262839979572,
+    0.28165934658653125
+   ],
+   "std": [
+    0.3091907933636296,
+    0.24033484924529813,
+    0.9187607216929354
+   ],
+   "W": [
+    [
+     0.17452208720762874
+    ],
+    [
+     0.15609715826061193
+    ],
+    [
+     0.0208082207691552
+    ],
+    [
+     0.0020239540799277295
+    ]
+   ],
+   "k": 2
+  }
+ },
+ "corners": {
+  "bh": [
+   0.8089561379759379,
+   0.22455720251067124,
+   0.2284667374128455,
+   0.3939686583683526
+  ],
+  "ba": [
+   0.6261078119536845,
+   0.1885237022192426,
+   0.30609816923077304,
+   0.42787492199295407
+  ],
+  "disp": 59.73528172034525
+ },
+ "halves": {
+  "s_global": 0.5532291666666667,
+  "k": 1000000000.0
+ },
+ "report": {
+  "spiele_training": 4514,
+  "spiele_test": 5992,
+  "1X2": {
+   "kombi": 1.0064,
+   "nur_torprognose": 1.01,
+   "basisrate": 1.0761,
+   "kombi_nur_CL": 0.9525,
+   "torprognose_nur_CL": 0.8829,
+   "beitrag": {
+    "Elo-Differenz": 0.00042,
+    "Elo fehlt": 1e-05,
+    "Form (Punkte/Spiel, letzte 5)": 2e-05,
+    "Tordifferenz (letzte 10)": -2e-05,
+    "Torschuss-Bilanz": 0.00173,
+    "Schussdaten fehlen": -0.00147,
+    "Ecken-Bilanz": 0.00018
+   },
+   "gewichte": {
+    "Torprognose (Heim vs. Gast)": 0.25,
+    "Torprognose (Remis)": -0.042,
+    "Elo-Differenz": 0.429,
+    "Elo fehlt": 0.021,
+    "Form (Punkte/Spiel, letzte 5)": -0.018,
+    "Tordifferenz (letzte 10)": 0.047,
+    "Torschuss-Bilanz": 0.211,
+    "Schussdaten fehlen": -0.058,
+    "Ecken-Bilanz": 0.153
+   }
+  },
+  "OU2.5": {
+   "kombi": 0.68,
+   "nur_torprognose": 0.6832,
+   "basisrate": 0.6915,
+   "beitrag": {
+    "Tore beider Teams (letzte 10)": -6e-05,
+    "Anteil Spiele über 2,5": -0.00013,
+    "Torschüsse gesamt": 0.00064
+   },
+   "gewichte": {
+    "Torprognose (über 2,5)": 0.36,
+    "Tore beider Teams (letzte 10)": -0.075,
+    "Anteil Spiele über 2,5": 0.037,
+    "Torschüsse gesamt": 0.042
+   }
+  },
+  "BTTS": {
+   "kombi": 0.6854,
+   "nur_torprognose": 0.6888,
+   "basisrate": 0.6889,
+   "beitrag": {
+    "Anteil Spiele beide treffen": -1e-05,
+    "Tore beider Teams (letzte 10)": -3e-05
+   },
+   "gewichte": {
+    "Torprognose (beide treffen)": 0.157,
+    "Anteil Spiele beide treffen": 0.033,
+    "Tore beider Teams (letzte 10)": -0.012
+   }
+  },
+  "CL": {
+   "spiele": 234,
+   "1X2": {
+    "torprognose": 0.8786,
+    "kombi": 0.9525,
+    "basisrate": 1.0058
+   },
+   "OU2.5": {
+    "torprognose": 0.6171,
+    "kombi": 0.6246,
+    "basisrate": 0.6335
+   },
+   "BTTS": {
+    "torprognose": 0.6682,
+    "kombi": 0.6699,
+    "basisrate": 0.6799
+   }
+  },
+  "Ecken": {
+   "spiele": 5758,
+   "mae_kombi": 2.693,
+   "mae_mittelwert": 2.708,
+   "logloss_ueber95_kombi": 0.6924,
+   "logloss_ueber95_mittelwert": 0.6933
+  },
+  "Halbzeit": {
+   "spiele": 5937,
+   "anteil_tore_2hz": 0.552,
+   "schrumpfung_k": 1000000000.0,
+   "logloss_tor_1hz_team": 0.5975,
+   "logloss_tor_1hz_konstant": 0.5975
+  }
+ }
+}

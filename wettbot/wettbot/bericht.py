@@ -40,6 +40,7 @@ def fit_saved(t: pd.DataFrame | None = None):
 
 
 def run(fixtures: pd.DataFrame, euro: bool = True):
+    """euro=True: Spiele im Europapokal (CL); False: Ligaspiele."""
     df, xg, mp, P = load_context()
     if not analyse.PARAMS.exists():
         raise SystemExit("Analysemodell fehlt: zuerst `python -m wettbot analyse-train` ausführen")
@@ -58,7 +59,7 @@ def run(fixtures: pd.DataFrame, euro: bool = True):
             lh, la = model.expected_goals(hk, ak, False, euro)
             row = pd.DataFrame([dict(lh=lh, la=la, rho=model.params["rho"],
                                      **analyse.features(P, hk, ak, as_of))])
-            p = an.predict(row)
+            p = an.predict(row, euro)
             out.append(dict(datum=d, anstoss=r.kickoff, spiel=f"{r.home} – {r.away}",
                             heim=r.home, gast=r.away, prognose=p, merkmale=row.iloc[0].to_dict()))
     return out, an
@@ -72,11 +73,14 @@ def _num(x, nd=1):
     return "–" if x is None or pd.isna(x) else f"{x:.{nd}f}"
 
 
-def render(results, an, title: str) -> str:
-    L = [f"# {title}", "",
-         "Wahrscheinlichkeiten aus der Kombination von Torprognose-Modell, Elo, Form, "
-         "Tordifferenz, Torschüssen und Ecken – Gewichte aus ~16 000 vergangenen Spielen gelernt.",
-         "", "## Übersicht", "",
+def render(results, an, title: str, euro: bool = True) -> str:
+    method = ("Für Europapokalspiele nutzt das Tool die Torprognose allein: Im Test auf ungesehenen "
+              "CL-Spielen war sie genauer als jede Kombination mit Form, Elo, Schüssen oder Ecken. "
+              "Die übrigen Kennzahlen stehen als Hintergrund in den Spielblättern."
+              if euro else
+              "Wahrscheinlichkeiten aus der Kombination von Torprognose-Modell, Elo, Form, "
+              "Tordifferenz, Torschüssen und Ecken – Gewichte aus ~10 000 vergangenen Spielen gelernt.")
+    L = [f"# {title}", "", method, "", "## Übersicht", "",
          "| Anstoß | Spiel | 1 | X | 2 | Tipp | Über 2,5 | Beide treffen | Ecken (erw.) |",
          "|---|---|---|---|---|---|---|---|---|"]
     for r in results:
@@ -123,23 +127,30 @@ def render(results, an, title: str) -> str:
     rep = an.report or {}
     if rep:
         o = rep.get("1X2", {})
+        cl = rep.get("CL", {})
         L += ["", "## Wie gut sind diese Wahrscheinlichkeiten?", "",
-              f"Getestet auf {rep.get('spiele_test', '?')} Spielen, die beim Lernen nicht verwendet wurden "
-              "(Log-Loss, kleiner = besser):", "",
-              "| Markt | Kombi-Modell | nur Torprognose | Basisrate |", "|---|---|---|---|"]
+              "Getestet auf Spielen, die beim Lernen nicht verwendet wurden (Log-Loss, kleiner = besser; "
+              "**fett** = im Tool verwendet):", "",
+              f"| Markt | CL: Torprognose | CL: Kombi | CL: Basisrate | Liga: Kombi | Liga: Torprognose | Liga: Basisrate |",
+              "|---|---|---|---|---|---|---|"]
         for mk, lab in (("1X2", "Sieg/Remis/Niederlage"), ("OU2.5", "Über/Unter 2,5"), ("BTTS", "Beide treffen")):
-            v = rep.get(mk, {})
-            L.append(f"| {lab} | {v.get('kombi')} | {v.get('nur_torprognose')} | {v.get('basisrate')} |")
+            v, c = rep.get(mk, {}), cl.get(mk, {})
+            L.append(f"| {lab} | **{c.get('torprognose')}** | {c.get('kombi')} | {c.get('basisrate')} | "
+                     f"**{v.get('kombi')}** | {v.get('nur_torprognose')} | {v.get('basisrate')} |")
+        L += ["", f"CL-Test: {cl.get('spiele', '?')} Spiele · Liga-Test: {rep.get('spiele_test', '?')} Spiele."]
         e = rep.get("Ecken", {})
         L += ["", f"Ecken: mittlere Abweichung {e.get('mae_kombi')} statt {e.get('mae_mittelwert')} "
                   f"mit dem bloßen Ligamittel.",
-              "", "Beitrag der Kennzahlen zur 1X2-Prognose (Verbesserung des Log-Loss im Test):", ""]
+              f"Halbzeiten: {100 * rep.get('Halbzeit', {}).get('anteil_tore_2hz', 0.55):.0f} % der Tore fallen "
+              "nach der Pause; teamspezifische Werte verbesserten die Prognose nicht.",
+              "", "Beitrag der Kennzahlen zur 1X2-Prognose in Ligaspielen (Verbesserung des Log-Loss im Test, "
+                  "> 0 = hilft):", ""]
         L += [f"- {k}: {v:+.4f}" for k, v in o.get("beitrag", {}).items()]
     L += ["", "_Wahrscheinlichkeiten sind Schätzungen, keine Gewissheiten. Ein Tipp mit 60 % geht in "
               "4 von 10 Fällen schief. Verletzungen und Aufstellungen kennt das Tool nicht._"]
     return "\n".join(L) + "\n"
 
 
-def write(results, an, title: str, path: Path):
+def write(results, an, title: str, path: Path, euro: bool = True):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render(results, an, title), encoding="utf-8")
+    path.write_text(render(results, an, title, euro), encoding="utf-8")
