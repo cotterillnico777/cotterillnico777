@@ -165,3 +165,54 @@ def test_roi_rules_filter_outlier_prices_and_veto():
     b = apply_rules(c, Settings())
     assert list(b["gast"]) == ["Y"]
     assert summary(b)["roi_flat"] == pytest.approx(1.2)
+
+
+def test_softmax_learns_signal_and_ignores_noise():
+    from wettbot.analyse import _fit_softmax, _predict_softmax
+    rng = np.random.default_rng(1)
+    X = rng.normal(size=(4000, 2))           # Spalte 0 = Signal, Spalte 1 = Rauschen
+    logits = np.c_[1.5 * X[:, 0], np.zeros(4000), -1.5 * X[:, 0]]
+    p = np.exp(logits) / np.exp(logits).sum(1, keepdims=True)
+    y = np.array([rng.choice(3, p=pi) for pi in p])
+    W = _fit_softmax(X, y, 3)
+    assert abs(W[1, 0]) > 5 * abs(W[2, 0])   # Signal-Gewicht >> Rausch-Gewicht
+    P = _predict_softmax(W, X)
+    assert np.allclose(P.sum(1), 1)
+
+
+def test_profiles_never_use_match_day_or_later():
+    from wettbot.stats import Profiles, _split, team_log_results
+    df = pd.DataFrame(dict(date=pd.to_datetime(["2026-01-01", "2026-01-08", "2026-01-15"]),
+                           home_key=["a", "a", "a"], away_key=["b", "c", "d"], hg=[1, 2, 5],
+                           ag=[0, 2, 0], hht=[0, 1, 2], aht=[0, 0, 0], comp="X"))
+    P = Profiles(_split(team_log_results(df)), {}, {}, {})
+    f = P.form("a", "2026-01-15")
+    assert f["serie"] == "SU"                 # Spiel vom 15.01. selbst zählt nicht
+    g = P.goals("a", "2026-01-15")
+    assert g["gf"] == pytest.approx(1.5)
+    assert g["anteil_2hz"] == pytest.approx((5 - 1) / 5)  # 5 Tore, 1 davon vor der Pause
+
+
+def test_half_model_shrinks_to_global_share():
+    from wettbot.analyse import HalfModel
+    hm = HalfModel(s_global=0.55, k=10)
+    t = pd.DataFrame(dict(h_anteil2hz=[1.0, np.nan], h_nhz=[10, 0], a_anteil2hz=[0.55, 0.55], a_nhz=[10, 10]))
+    s = hm.share(t)
+    assert 0.55 < s[0] < 1.0
+    assert s[1] == pytest.approx(0.55)
+
+
+def test_corner_model_recovers_team_effect():
+    from wettbot.analyse import CornerModel
+    rng = np.random.default_rng(2)
+    n = 3000
+    cf_h, ca_a = rng.uniform(3, 8, n), rng.uniform(3, 8, n)
+    mu_h = 0.6 * cf_h + 0.4 * ca_a
+    t = pd.DataFrame(dict(h_co_f=cf_h, a_co_a=ca_a, a_co_f=rng.uniform(3, 8, n),
+                          h_co_a=rng.uniform(3, 8, n), lh=1.4, la=1.1))
+    t["hco"] = rng.poisson(mu_h)
+    t["aco"] = rng.poisson(0.5 * t.a_co_f + 0.5 * t.h_co_a)
+    cm = CornerModel.fit(t)
+    mh, ma = cm.expected(t)
+    assert np.corrcoef(mh, mu_h)[0, 1] > 0.95
+    assert 0 < cm.p_over(10.0, 9.5) < 1

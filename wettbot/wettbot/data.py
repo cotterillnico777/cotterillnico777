@@ -34,7 +34,8 @@ SEASONS = ["2024-25", "2025-26", "2026-27"]
 EURO_SEASONS = ["2022-23", "2023-24", "2024-25", "2025-26"]
 EURO_FILES = ["cl.txt", "clq.txt", "el.txt", "elq.txt", "conf.txt", "confq.txt"]
 
-COLUMNS = ["date", "home", "away", "hg", "ag", "comp", "neutral", "home_grp", "away_grp"]
+COLUMNS = ["date", "home", "away", "hg", "ag", "comp", "neutral", "home_grp", "away_grp",
+           "hht", "aht"]  # hht/aht = Halbzeitstand (fehlt teils)
 
 
 def _get(url: str, dest: Path) -> bool:
@@ -60,6 +61,8 @@ def fetch(verbose: bool = True) -> None:
             n += _get(url, RAW / "europe" / season / f)
     if verbose:
         print(f"{n} Dateien geladen nach {RAW}")
+    from .stats import fetch_xg
+    fetch_xg(verbose)
 
 
 # ---------------------------------------------------------------- Ligen (JSON)
@@ -83,8 +86,10 @@ def load_leagues() -> pd.DataFrame:
             ft = _ft(m)
             if not ft or ft[0] is None:
                 continue
+            ht = m["score"].get("ht") if isinstance(m.get("score"), dict) else None
+            hht, aht = (ht[0], ht[1]) if ht and ht[0] is not None else (None, None)
             rows.append((m["date"], m["team1"], m["team2"], int(ft[0]), int(ft[1]),
-                         grp, False, grp, grp))
+                         grp, False, grp, grp, hht, aht))
     return pd.DataFrame(rows, columns=COLUMNS)
 
 
@@ -112,6 +117,16 @@ def _ninety_minutes(score: str, rest: str) -> tuple[int, int]:
     return int(h), int(a)
 
 
+def _half_time(rest: str) -> tuple[int | None, int | None]:
+    """'(0-2)' -> 0-2; nach Verlängerung '(3-0, 1-0)' -> zweiter Wert."""
+    m = re.search(r"\((\d+)-(\d+)(?:, (\d+)-(\d+))?\)", rest)
+    if not m:
+        return None, None
+    if m.group(3) is not None:
+        return int(m.group(3)), int(m.group(4))
+    return int(m.group(1)), int(m.group(2))
+
+
 def parse_football_txt(text: str, season: str, comp: str) -> list[tuple]:
     y1 = int(season[:4])
     rows, cur, neutral = [], None, False
@@ -128,10 +143,11 @@ def parse_football_txt(text: str, season: str, comp: str) -> list[tuple]:
         m = _MATCH.match(line)
         if m and cur:
             hg, ag = _ninety_minutes(m.group("score"), m.group("rest"))
+            hht, aht = _half_time(m.group("rest"))
             home, away = m.group("home").strip(), m.group("away").strip()
             hc = _COUNTRY.search(home).group(1)
             ac = _COUNTRY.search(away).group(1)
-            rows.append((cur, home, away, hg, ag, comp, neutral, f"X-{hc}", f"X-{ac}"))
+            rows.append((cur, home, away, hg, ag, comp, neutral, f"X-{hc}", f"X-{ac}", hht, aht))
     return rows
 
 
@@ -153,6 +169,9 @@ def load_manual() -> pd.DataFrame:
     df["neutral"] = df["neutral"].fillna(False).astype(bool)
     df["home_grp"] = "X-" + df["home_country"]
     df["away_grp"] = "X-" + df["away_country"]
+    for c in ("hht", "aht"):
+        if c not in df:
+            df[c] = None
     return df[COLUMNS]
 
 

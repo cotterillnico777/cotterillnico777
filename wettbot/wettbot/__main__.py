@@ -7,6 +7,8 @@
   backtest                      Walk-Forward-Test der Prognosegüte (CL)
   roi-backtest --matches DATEI  Rendite-Test mit historischen Quoten (16 Ligen)
   ranking                       Teamstärken
+  analyse --spiele DATEI        Wahrscheinlichkeiten für alle Ergebnisse (Analyse-Tool)
+  analyse-train                 Analysemodell neu lernen und testen (~10 Min.)
 """
 from __future__ import annotations
 
@@ -152,6 +154,30 @@ def cmd_roi(a):
         bets.to_csv(a.out, index=False)
 
 
+def cmd_analyse(a):
+    from . import bericht
+
+    fx = pd.read_csv(a.spiele, comment="#", dtype={"kickoff": str})
+    results, an = bericht.run(fx)
+    for r in results:
+        if "fehler" in r:
+            print(f"  {r['spiel']}: {r['fehler']}")
+            continue
+        x, p = r["prognose"]["1X2"], r["prognose"]
+        print(f"  {r['datum']} {r['anstoss']}  {r['spiel']:<38} 1 {x['H']:.0%}  X {x['D']:.0%}  2 {x['A']:.0%}"
+              f"   Ü2,5 {p['OU2.5']:.0%}  BTTS {p['BTTS']:.0%}  Ecken {p['ecken']['gesamt']:.1f}")
+    out = Path(a.report or data.ROOT / "reports" / f"analyse-{Path(a.spiele).stem}.md")
+    bericht.write(results, an, a.titel or f"Analyse {Path(a.spiele).stem}", out)
+    print(f"\nBericht: {out}")
+
+
+def cmd_analyse_train(a):
+    from . import bericht
+
+    _, ev = bericht.fit_saved() if a.nur_fit else bericht.train()
+    print(json.dumps(ev, indent=2, ensure_ascii=False))
+
+
 def cmd_ranking(a):
     df, model = _fit()
     r = model.ranking()
@@ -186,6 +212,14 @@ def main(argv=None):
     rb.add_argument("--start", default="2024-10-01")
     rb.add_argument("--out", help="alle simulierten Wetten als CSV")
     rb.set_defaults(fn=cmd_roi)
+    an = sub.add_parser("analyse")
+    an.add_argument("--spiele", required=True, help="CSV mit date,kickoff,home,away")
+    an.add_argument("--report", help="Markdown-Bericht (Standard: reports/analyse-<datei>.md)")
+    an.add_argument("--titel")
+    an.set_defaults(fn=cmd_analyse)
+    at = sub.add_parser("analyse-train")
+    at.add_argument("--nur-fit", action="store_true", help="vorhandene Trainingstabelle nutzen")
+    at.set_defaults(fn=cmd_analyse_train)
     rk = sub.add_parser("ranking")
     rk.add_argument("--top", type=int, default=40)
     rk.set_defaults(fn=cmd_ranking)
