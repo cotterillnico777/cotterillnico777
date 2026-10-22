@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Casino Content – Links</title>
+  <meta name="description" content="Alle Links zu Streams, Videos, Community und Angeboten an einem Ort. 18+ | Spiele verantwortungsvoll.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Farben anpassen ===== */
+    :root {
+      --bg: #0b0a12;
+      --bg-glow-1: #6d28d9;
+      --bg-glow-2: #b45309;
+      --card: rgba(255, 255, 255, 0.06);
+      --card-hover: rgba(255, 255, 255, 0.12);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f5f3ff;
+      --muted: #a8a3c2;
+      --gold: #fbbf24;
+      --gold-2: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: "Outfit", system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      background-image:
+        radial-gradient(600px 400px at 15% -10%, color-mix(in srgb, var(--bg-glow-1) 45%, transparent), transparent),
+        radial-gradient(500px 400px at 110% 30%, color-mix(in srgb, var(--bg-glow-2) 35%, transparent), transparent);
+      background-attachment: fixed;
+      display: flex;
+      justify-content: center;
+      padding: 48px 16px 32px;
+    }
+
+    main { width: 100%; max-width: 560px; }
+
+    /* ===== Profil ===== */
+    .profile { text-align: center; margin-bottom: 28px; }
+    .avatar {
+      width: 112px; height: 112px; border-radius: 50%;
+      margin: 0 auto 16px;
+      padding: 3px;
+      background: linear-gradient(135deg, var(--gold), var(--bg-glow-1));
+    }
+    .avatar img, .avatar span {
+      width: 100%; height: 100%; border-radius: 50%;
+      display: grid; place-items: center;
+      object-fit: cover;
+      background: #1a1726;
+      font-size: 44px;
+    }
+    h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: .5px; }
+    .tagline { color: var(--muted); margin-top: 6px; }
+    .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+    .badge {
+      font-size: .75rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted);
+    }
+    .badge.live { border-color: #ef4444; color: #fecaca; }
+    .badge.live::before {
+      content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: #ef4444; margin-right: 6px; vertical-align: 1px;
+      animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse { 50% { opacity: .3; } }
+
+    /* ===== Links ===== */
+    h2 {
+      font-size: .8rem; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--muted); margin: 26px 4px 10px;
+    }
+    .links { display: grid; gap: 12px; }
+    .link {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text); text-decoration: none;
+      transition: transform .15s, background .15s, border-color .15s;
+    }
+    .link:hover { transform: translateY(-2px); background: var(--card-hover); border-color: rgba(255,255,255,.25); }
+    .link .icon {
+      flex: none; width: 42px; height: 42px; border-radius: 12px;
+      display: grid; place-items: center; font-size: 22px;
+      background: rgba(255,255,255,.08);
+    }
+    .link .label { font-weight: 600; }
+    .link .sub { display: block; font-size: .85rem; color: var(--muted); font-weight: 400; margin-top: 2px; }
+    .link .arrow { margin-left: auto; color: var(--muted); }
+
+    .link.featured {
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color: #1c1206; border: none;
+    }
+    .link.featured .sub, .link.featured .arrow { color: #3b2a0a; }
+    .link.featured .icon { background: rgba(0,0,0,.12); }
+
+    .ad { font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+          padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,.12); margin-left: 6px; vertical-align: 2px; }
+    .featured .ad { background: rgba(0,0,0,.15); }
+
+    /* ===== Hinweise ===== */
+    .notice {
+      margin-top: 32px; padding: 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: rgba(0,0,0,.25);
+      font-size: .82rem; color: var(--muted); line-height: 1.5;
+    }
+    .notice strong { color: var(--text); }
+    .notice a { color: var(--gold); }
+    .age {
+      display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+      border: 2px solid #ef4444; color: #fecaca; font-weight: 800; font-size: .8rem;
+      float: left; margin: 2px 12px 4px 0;
+    }
+    footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 24px; }
+    footer a { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- ===== PROFIL: Name, Bild, Beschreibung anpassen ===== -->
+    <header class="profile">
+      <div class="avatar">
+        <!-- Eigenes Bild: <img src="profil.jpg" alt="Profilbild"> -->
+        <span>🎰</span>
+      </div>
+      <h1>DEIN NAME</h1>
+      <p class="tagline">Slots · Big Wins · Live-Streams · Highlights</p>
+      <div class="badges">
+        <span class="badge live">Live: Mo · Mi · Fr ab 20 Uhr</span>
+        <span class="badge">18+</span>
+      </div>
+    </header>
+
+    <!-- ===== LINKS: href="#" durch deine echten URLs ersetzen ===== -->
+    <section>
+      <h2>Live &amp; Videos</h2>
+      <div class="links">
+        <a class="link featured" href="#" target="_blank" rel="noopener">
+          <span class="icon">🔴</span>
+          <span><span class="label">Jetzt live auf Kick</span><span class="sub">Streams mit Chat &amp; Giveaways</span></span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="link" href="#" target="_blank" rel="noopener">
+          <span class="icon">🟣</span>
+          <span><span class="label">Twitch</span><span class="sub">Zweiter Stream-Kanal</span></span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="link" href="#" target="_blank" rel="noopener">
+          <span class="icon">▶️</span>
+          <span><span class="label">YouTube</span><span class="sub">Highlights &amp; Big-Win-Compilations</span></span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="link" href="#" target="_blank" rel="noopener">
+          <span class="icon">🎵</span>
+          <span><span class="label">TikTok</span><span class="sub">Kurze Clips &amp; Reaktionen</span></span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <h2>Community</h2>
+      <div class="links">
+        <a class="link" href="#" target="_blank" rel="noopener">
+          <span class="icon">💬</span>
+          <span><span class="label">Discord</span><span class="sub">Community, Bonus-Hunts &amp; Turniere</span></span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="link" href="#" target="_blank" rel="noopener">
+          <span class="icon">📸</span>
+          <span><span class="label">Instagram</span><span class="sub">Behind the Scenes</span></span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="link" href="#" target="_blank" rel="noopener">
+          <span class="icon">✈️</span>
+          <span><span class="label">Telegram</span><span class="sub">Stream-Ankündigungen</span></span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <h2>Partner</h2>
+      <div class="links">
+        <!-- Nur in DE lizenzierte Anbieter (GGL-Whitelist) bewerben. Affiliate-Links als Werbung kennzeichnen. -->
+        <a class="link" href="#" target="_blank" rel="sponsored noopener">
+          <span class="icon">🎁</span>
+          <span><span class="label">Partner-Casino <span class="ad">Werbung</span></span><span class="sub">Bonus-Bedingungen beim Anbieter beachten</span></span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="link" href="mailto:deine@email.de">
+          <span class="icon">✉️</span>
+          <span><span class="label">Business-Anfragen</span><span class="sub">Kooperationen &amp; Sponsoring</span></span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===== Hinweis zu verantwortungsvollem Spielen ===== -->
+    <aside class="notice">
+      <span class="age">18+</span>
+      <strong>Glücksspiel kann süchtig machen.</strong> Teilnahme erst ab 18 Jahren.
+      Spiele nur mit Geld, dessen Verlust du dir leisten kannst – Gewinne im Stream sind nicht repräsentativ.
+      Hilfe und Beratung: <a href="https://www.check-dein-spiel.de" target="_blank" rel="noopener">check-dein-spiel.de</a>
+      · BZgA-Hotline <a href="tel:08001372700">0800 1 37 27 00</a> (kostenlos &amp; anonym).
+      Links mit „Werbung“ sind Affiliate-Links.
+    </aside>
+
+    <footer>
+      © <span id="y"></span> DEIN NAME · <a href="#">Impressum</a> · <a href="#">Datenschutz</a>
+    </footer>
+  </main>
+  <script>document.getElementById("y").textContent = new Date().getFullYear();</script>
+</body>
+</html>
