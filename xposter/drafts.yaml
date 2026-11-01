@@ -1,0 +1,45 @@
+# Erste Entwürfe für einen Meme-Account über Meme-Coin-Kultur.
+# Humor über die Szene, keine Werbung für einzelne Coins, keine Kursversprechen.
+# Übernehmen: python -m xposter import xposter/drafts.yaml
+# Jeder Entwurf muss danach einzeln freigegeben werden (approve).
+
+- text: "My portfolio strategy: buy the dog. Sell the dog, buy the other dog. Buy the frog. Repeat until rent is due."
+  tags: [portfolio]
+- text: "Me explaining to my family that I'm \"still early\" for the fourth time this year."
+  tags: [cope]
+- text: "Bought the dip. The dip had a basement. The basement had a basement."
+  tags: [dip]
+- text: "Normal people at 3am: asleep.\nMe at 3am: checking if a frog wearing a hat is up 400%."
+  tags: [night]
+- text: "\"It's a community coin.\"\nThe community: three wallets and a guy named Kev."
+  tags: [community]
+- text: "My technical analysis is just drawing lines until the chart agrees with me."
+  tags: [ta]
+- text: "Day 47 of holding. The coin has rebranded twice. I am now apparently invested in a cat."
+  tags: [hold]
+- text: "Group chat at all-time high: \"we're a family\" 🫶\nGroup chat at -80%: \"admin has left the chat\""
+  tags: [community]
+- text: "There are two kinds of meme coin holders: those who took profit, and liars."
+  tags: [profit]
+- text: "Every cycle I promise myself I'll take profits.\nEvery cycle I meet a new dog."
+  tags: [cycle]
+- text: "Rule one of meme coins: if the only utility is vibes, size your position like it's vibes."
+  tags: [risk]
+- text: "Me: I'll only put in what I can afford to lose.\nAlso me: define \"afford\"."
+  tags: [risk]
+- text: "Not financial advice. Barely even advice."
+  tags: [nfa]
+- text: "The chart: 📉\nThe telegram: \"healthy consolidation\"\nThe chart: 📉📉\nThe telegram: \"shaking out paper hands\""
+  tags: [cope]
+- text: "Whitepaper: 40 pages.\nTokenomics: \"trust me bro\"\nRoadmap: Q1 moon, Q2 more moon, Q3 we'll see."
+  tags: [roadmap]
+- text: "I don't have a trading strategy. I have a mood and a phone at 2% battery."
+  tags: [strategy]
+- text: "Meme coin lifecycle:\n1. it's a joke\n2. it's a movement\n3. it's a lifestyle\n4. it's a lesson"
+  tags: [cycle]
+- text: "Sold at the bottom, bought at the top. At least I'm consistent."
+  tags: [cope]
+- text: "My risk management is closing the app."
+  tags: [risk]
+- text: "Every new meme coin: \"this one is different\"\nNarrator: it was a dog again."
+  tags: [dog]

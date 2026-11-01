@@ -21,6 +21,7 @@ maximaler Rendite.** NO TRADE ist ein gültiges Ergebnis.
 | [BACKTESTING.md](BACKTESTING.md) | Kostenmodell, Pipeline A–F, Abnahmekriterien |
 | [SERVER.md](SERVER.md) | Paper-Bot 24/7 auf einem kleinen Linux-Server |
 | [LIVE_TRADING.md](LIVE_TRADING.md) | Paper, Forward-Vergleich, Readiness, Live-Freigabe |
+| [X_ACCOUNT.md](X_ACCOUNT.md) | Meme-Account auf X: Entwürfe, Freigabe, Posten (`python -m xposter`) |
 | [CHANGELOG.md](CHANGELOG.md) | Versionen |
 
 ## Ablauf (auf deinem Rechner)
