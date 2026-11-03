@@ -17,6 +17,7 @@ dem Papier (Spielgeld, kein Broker verbunden), mit den Trader-Skills in
 | Einstiege nur | 9:45 bis 15:30 Uhr New York |
 | Alles verkauft bis | 15:55 Uhr New York |
 | Nur Long, keine Optionen, kein Hebel, keine Leerverkäufe | ✔ |
+| Trade nur bei positivem Erwartungswert in der Time Machine | ✔ (ab Tag 2) |
 
 Uhrzeiten in Deutschland: US-Börse 15:30 bis 22:00 Uhr; in der Woche nach der
 Zeitumstellung in Europa (Ende Oktober) und ein paar Wochen im März eine
@@ -41,3 +42,4 @@ Trades, Gewinn/Verlust und Kontostand für das Video.
 | Tag | Datum | Trades | Ergebnis | Kontostand |
 | --- | --- | --- | --- | --- |
 | 0 | Start | – | – | 1.000,00 $ |
+| [1](tag-01-2026-11-03.md) | Di, 03.11.2026 | 0 (kein Vorteil, später Einstieg) | 0,00 $ | 1.000,00 $ |
