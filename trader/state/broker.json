@@ -1,0 +1,14 @@
+{
+  "orders": [
+    {
+      "at": "2026-11-04T12:41:18-05:00",
+      "date": "2026-11-04",
+      "status": "filled",
+      "symbol": "MRK",
+      "side": "buy",
+      "qty": "6",
+      "price": 148.62,
+      "plain": "BUY 6 MRK at 148.62"
+    }
+  ]
+}

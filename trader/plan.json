@@ -1,0 +1,28 @@
+{
+  "created_by": "trader-exit",
+  "symbol": "MRK",
+  "side": "buy",
+  "date": "2026-11-04",
+  "setup": "orb",
+  "entry": 148.62,
+  "entry_time": null,
+  "entry_bar": null,
+  "interval": "5m",
+  "opening_range": {
+    "high": 148.54,
+    "low": 146.05,
+    "minutes": 15
+  },
+  "stop": 147.29,
+  "stop_rule": "or_mid",
+  "stop_label": "opening-range midpoint",
+  "target": 149.95,
+  "target_r": 1.0,
+  "target_label": "1R (one times the risk)",
+  "risk_per_share": 1.33,
+  "reward_risk": 1.0,
+  "flat_by": "15:55",
+  "stop_detail": "($148.54 + $146.05) / 2 = $147.295, rounded down",
+  "created_at": "2026-11-04T17:41:02Z",
+  "note": "A stop is a plan, not a guarantee: a gap or a fast market can fill past it."
+}
