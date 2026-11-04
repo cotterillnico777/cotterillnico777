@@ -1,0 +1,22 @@
+{
+  "created_by": "trader-entry",
+  "symbol": "MRK",
+  "setup": "orb",
+  "side": "buy",
+  "date": "2026-11-04",
+  "status": "triggered",
+  "time": "10:50 AM",
+  "bar_start": "10:45",
+  "bar_index": 15,
+  "price": 148.67,
+  "level": 148.54,
+  "interval": "5m",
+  "opening_range": {
+    "high": 148.54,
+    "low": 146.05,
+    "minutes": 15
+  },
+  "source": "yahoo",
+  "checked_at": "2026-11-04T16:06:56Z",
+  "reason": "the 10:45 bar closed above the range high"
+}
