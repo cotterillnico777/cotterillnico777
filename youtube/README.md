@@ -43,3 +43,4 @@ Trades, Gewinn/Verlust und Kontostand für das Video.
 | --- | --- | --- | --- | --- |
 | 0 | Start | – | – | 1.000,00 $ |
 | [1](tag-01-2026-11-03.md) | Di, 03.11.2026 | 0 (kein Vorteil, später Einstieg) | 0,00 $ | 1.000,00 $ |
+| [2](tag-02-2026-11-04.md) | Mi, 04.11.2026 | 1 (MRK, Ziel erreicht) | +7,98 $ | 1.007,98 $ |

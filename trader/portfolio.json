@@ -1,17 +1,4 @@
 {
-  "cash": 108.28,
-  "positions": [
-    {
-      "ticker": "MRK",
-      "shares": 6.0,
-      "lots": [
-        {
-          "id": "MRK-1",
-          "date": "2026-11-04",
-          "shares": 6.0,
-          "cost": 891.72
-        }
-      ]
-    }
-  ]
+  "cash": 1007.98,
+  "positions": []
 }

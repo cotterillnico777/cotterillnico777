@@ -9,6 +9,16 @@
       "qty": "6",
       "price": 148.62,
       "plain": "BUY 6 MRK at 148.62"
+    },
+    {
+      "at": "2026-11-04T15:40:33-05:00",
+      "date": "2026-11-04",
+      "status": "filled",
+      "symbol": "MRK",
+      "side": "sell",
+      "qty": "6",
+      "price": 149.95,
+      "plain": "SELL 6 MRK at 149.95"
     }
   ]
 }
