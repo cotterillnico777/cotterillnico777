@@ -34,6 +34,12 @@ Stunde früher.
    aktuellen Kurs eingetragen
 7. **Schluss:** bis 15:55 Uhr glattstellen, Ergebnis ins Logbuch
 
+## Gebühren und Spread
+
+Die Tagesergebnisse im Logbuch sind **brutto**. Gebühren und Spread werden
+am Ende der Challenge für alle Trades zusammen abgezogen. Dafür steht bei
+jedem Trade: Stückzahl, Kauf- und Verkaufskurs und Uhrzeit.
+
 ## Logbuch
 
 Eine Datei pro Handelstag: `youtube/tag-NN-YYYY-MM-DD.md`, mit Watchlist,
