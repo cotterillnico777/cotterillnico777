@@ -1,17 +1,4 @@
 {
-  "cash": 108.22,
-  "positions": [
-    {
-      "ticker": "KDP",
-      "shares": 24.0,
-      "lots": [
-        {
-          "id": "KDP-1",
-          "date": "2026-11-05",
-          "shares": 24.0,
-          "cost": 899.76
-        }
-      ]
-    }
-  ]
+  "cash": 999.34,
+  "positions": []
 }
