@@ -19,6 +19,16 @@
       "qty": "6",
       "price": 149.95,
       "plain": "SELL 6 MRK at 149.95"
+    },
+    {
+      "at": "2026-11-05T11:27:00-05:00",
+      "date": "2026-11-05",
+      "status": "filled",
+      "symbol": "KDP",
+      "side": "buy",
+      "qty": "24",
+      "price": 37.49,
+      "plain": "BUY 24 KDP at 37.49"
     }
   ]
 }

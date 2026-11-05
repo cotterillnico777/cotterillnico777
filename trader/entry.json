@@ -1,22 +1,22 @@
 {
   "created_by": "trader-entry",
-  "symbol": "MRK",
+  "symbol": "KDP",
   "setup": "orb",
   "side": "buy",
-  "date": "2026-11-04",
+  "date": "2026-11-05",
   "status": "triggered",
-  "time": "10:50 AM",
-  "bar_start": "10:45",
-  "bar_index": 15,
-  "price": 148.67,
-  "level": 148.54,
+  "time": "10:05 AM",
+  "bar_start": "10:00",
+  "bar_index": 6,
+  "price": 37.54,
+  "level": 37.32,
   "interval": "5m",
   "opening_range": {
-    "high": 148.54,
-    "low": 146.05,
+    "high": 37.32,
+    "low": 36.95,
     "minutes": 15
   },
   "source": "yahoo",
-  "checked_at": "2026-11-04T16:06:56Z",
-  "reason": "the 10:45 bar closed above the range high"
+  "checked_at": "2026-11-05T16:26:40Z",
+  "reason": "the 10:00 bar closed above the range high"
 }
