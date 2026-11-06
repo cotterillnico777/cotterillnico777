@@ -1,4 +1,17 @@
 {
-  "cash": 999.34,
-  "positions": []
+  "cash": 110.16,
+  "positions": [
+    {
+      "ticker": "NKE",
+      "shares": 23.0,
+      "lots": [
+        {
+          "id": "NKE-1",
+          "date": "2026-11-06",
+          "shares": 23.0,
+          "cost": 889.18
+        }
+      ]
+    }
+  ]
 }

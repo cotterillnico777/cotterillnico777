@@ -1,22 +1,22 @@
 {
   "created_by": "trader-entry",
-  "symbol": "KDP",
+  "symbol": "NKE",
   "setup": "orb",
   "side": "buy",
-  "date": "2026-11-05",
+  "date": "2026-11-06",
   "status": "triggered",
-  "time": "10:05 AM",
-  "bar_start": "10:00",
-  "bar_index": 6,
-  "price": 37.54,
-  "level": 37.32,
+  "time": "9:50 AM",
+  "bar_start": "09:45",
+  "bar_index": 3,
+  "price": 38.62,
+  "level": 38.61,
   "interval": "5m",
   "opening_range": {
-    "high": 37.32,
-    "low": 36.95,
+    "high": 38.61,
+    "low": 37.96,
     "minutes": 15
   },
   "source": "yahoo",
-  "checked_at": "2026-11-05T16:26:40Z",
-  "reason": "the 10:00 bar closed above the range high"
+  "checked_at": "2026-11-06T15:02:37Z",
+  "reason": "the 9:45 bar closed above the range high"
 }

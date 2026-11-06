@@ -39,6 +39,16 @@
       "qty": "24",
       "price": 37.13,
       "plain": "SELL 24 KDP at 37.13"
+    },
+    {
+      "at": "2026-11-06T10:02:53-05:00",
+      "date": "2026-11-06",
+      "status": "filled",
+      "symbol": "NKE",
+      "side": "buy",
+      "qty": "23",
+      "price": 38.66,
+      "plain": "BUY 23 NKE at 38.66"
     }
   ]
 }
