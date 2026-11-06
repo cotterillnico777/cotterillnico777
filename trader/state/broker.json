@@ -49,6 +49,16 @@
       "qty": "23",
       "price": 38.66,
       "plain": "BUY 23 NKE at 38.66"
+    },
+    {
+      "at": "2026-11-06T15:55:22-05:00",
+      "date": "2026-11-06",
+      "status": "filled",
+      "symbol": "NKE",
+      "side": "sell",
+      "qty": "23",
+      "price": 38.61,
+      "plain": "SELL 23 NKE at 38.61"
     }
   ]
 }

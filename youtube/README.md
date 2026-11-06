@@ -51,3 +51,4 @@ Trades, Gewinn/Verlust und Kontostand für das Video.
 | [1](tag-01-2026-11-03.md) | Di, 03.11.2026 | 0 (kein Vorteil, später Einstieg) | 0,00 $ | 1.000,00 $ |
 | [2](tag-02-2026-11-04.md) | Mi, 04.11.2026 | 1 (MRK, Ziel erreicht) | +7,98 $ | 1.007,98 $ |
 | [3](tag-03-2026-11-05.md) | Do, 05.11.2026 | 1 (KDP, Stop) | −8,64 $ | 999,34 $ |
+| [4](tag-04-2026-11-06.md) | Fr, 06.11.2026 | 1 (NKE, Glattstellen) | −1,15 $ | 998,19 $ |
