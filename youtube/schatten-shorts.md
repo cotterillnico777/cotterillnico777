@@ -32,10 +32,10 @@ Startwert zum Vergleich: 1.000,00 $ (Start ab Tag 4).
 
 | Tag | Datum | Trades | Ergebnis (brutto) | Schatten-Stand |
 | --- | --- | --- | --- | --- |
-| 4 | Fr, 06.11.2026 | 1 (CRM, offen) | – | 1.000,00 $ |
+| 4 | Fr, 06.11.2026 | 1 (CRM, Stop) | −6,98 $ | 993,02 $ |
 
-### Offene Schatten-Trades
+### Schatten-Trades
 
-| Tag | Aktie | Einstieg | Stück | Stop | Ziel | EV Simulation / Rückblick |
-| --- | --- | --- | --- | --- | --- | --- |
-| 4 | CRM (Salesforce) | Short 213,90 $ um 10:00 Uhr NY | 2 | 217,39 $ (−6,98 $) | 206,92 $ (+13,96 $) | +0,109 / +0,286 |
+| Tag | Aktie | Einstieg | Stück | Stop | Ziel | EV Sim. / Rückblick | Ausgang |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 4 | CRM (Salesforce) | Short 213,90 $ um 10:00 Uhr NY | 2 | 217,39 $ | 206,92 $ | +0,109 / +0,286 | Stop in der 10:00-Kerze (Hoch 217,43 $, Schluss 213,65 $): Rückkauf 217,39 $, **−6,98 $** |
