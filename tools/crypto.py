@@ -18,7 +18,7 @@ Funding) gehen in Entscheidung, Positionsgröße und Buchung ein: Trade nur bei
 positivem Erwartungswert NACH Kosten, max. 10 $ Verlust inkl. Kosten.
 Stop mindestens 0,2 % vom Einstieg entfernt (sonst frisst ihn der Spread).
 Ein Short bindet Bargeld wie ein Long (Sicherheit = Menge × Kurs).
-Depot: trader/crypto-portfolio.json. Kein Broker, keine echten Orders.
+Depot: experimente/krypto-portfolio.json. Kein Broker, keine echten Orders.
 """
 import datetime
 import json
@@ -36,7 +36,7 @@ NY = zoneinfo.ZoneInfo("America/New_York")
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
 TM = os.path.join(ROOT, ".claude", "skills", "trader-timemachine", "timemachine.py")
-BOOK = os.path.join(ROOT, "trader", "crypto-portfolio.json")
+BOOK = os.path.join(ROOT, "experimente", "krypto-portfolio.json")
 COINS = ["BTC-USD", "ETH-USD", "SOL-USD", "BNB-USD", "LINK-USD", "AVAX-USD", "LTC-USD", "BCH-USD"]
 MAX_LOSS, MAX_POS, BUFFER = 10.0, 900.0, 0.10
 MAX_TRADES, MAX_DAY_LOSS = 3, 30.0

@@ -1,5 +1,8 @@
 # Krypto-Schatten-Depot
 
+**Separates Beobachtungs-Experiment, nicht Teil des YouTube-Projekts.** Ziel:
+über längere Zeit beobachten, ob der Ausbruch nach Kosten bei Krypto wirkt.
+
 Eigenes Depot mit **1.000 $ Spielgeld**, getrennt von der Aktien-Challenge.
 Kein Broker, keine echten Orders, **keine Anlageberatung**. Kurse von Yahoo
 Finance (kostenlos, leicht verzögert), 5-Minuten-Kerzen.
@@ -45,7 +48,7 @@ ETH, SOL, BNB short am 5.11.), **nach Kosten kein einziger**. Die Vorteile
 waren kleiner als die Gebühren.
 
 Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
-`trader/crypto-portfolio.json`.
+`experimente/krypto-portfolio.json`.
 
 ## Logbuch
 
