@@ -1,6 +1,7 @@
 # Tages-Challenge: 1.000 $ Spielgeld
 
-YouTube-Projekt: Jeder US-Handelstag ist eine Episode. Gehandelt wird nur auf
+YouTube-Projekt: **7-Tage-Selbstexperiment mit Aktien** (Handelstage 1 bis 7:
+Di, 03.11. bis Mi, 11.11.2026). Jeder US-Handelstag ist eine Episode. Gehandelt wird nur auf
 dem Papier (Spielgeld, kein Broker verbunden), mit den Trader-Skills in
 `.claude/skills/`. Reine Unterhaltung und Bildung, **keine Anlageberatung**.
 
