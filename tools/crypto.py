@@ -13,6 +13,9 @@ Stop in der Mitte der Spanne (Long abgerundet, Short aufgerundet), Ziel 1R
 oder 2R. Menge in Bruchteilen: min(10 $ / Risiko, 900 $ / Kurs, Bargeld
 nach 10 % Reserve). Max. 3 Trades und 30 $ Verlust pro Tag, Einstiege 9:45
 bis 15:30 Uhr, glatt um 15:55 Uhr. Long und Short, nur Spielgeld.
+Kosten (tools/costs.py, Bitget-Futures-Taker 0,06 % je Seite, Spread,
+Funding) gehen in Entscheidung, Positionsgröße und Buchung ein: Trade nur bei
+positivem Erwartungswert NACH Kosten, max. 10 $ Verlust inkl. Kosten.
 Stop mindestens 0,2 % vom Einstieg entfernt (sonst frisst ihn der Spread).
 Ein Short bindet Bargeld wie ein Long (Sicherheit = Menge × Kurs).
 Depot: trader/crypto-portfolio.json. Kein Broker, keine echten Orders.
@@ -25,6 +28,9 @@ import subprocess
 import sys
 import urllib.request
 import zoneinfo
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import costs  # noqa: E402
 
 NY = zoneinfo.ZoneInfo("America/New_York")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -137,14 +143,19 @@ def evaluate(sym, bars, last, oh, ol, long, b, day, now, fake):
         print(line + " | Stop zu eng (unter %.1f %% vom Kurs, frisst der Spread)" % MIN_RISK_PCT)
         return
     cash_ok = b["cash"] * (1 - BUFFER)
-    qty = math.floor(min(MAX_LOSS / r, MAX_POS / entry, cash_ok / entry) * 1e6) / 1e6
+    unit_cost = costs.round_trip_per_unit(sym, entry)
+    c_r = unit_cost / r
+    qty = math.floor(min(MAX_LOSS / (r + unit_cost), MAX_POS / entry, cash_ok / entry) * 1e6) / 1e6
     res = []
     for k in (1, 2):
         tgt = round(entry + k * r if long else entry - k * r, 2)
         sim, hist = tm(sym, day, entry, mid, tgt, at, now if fake else None, "buy" if long else "sell")
-        res.append("%dR Ziel %.2f: Sim %s / Rückblick %s" % (
-            k, tgt, "%+.3f" % sim if sim is not None else "?", "%+.3f" % hist if hist is not None else "?"))
-    print(line + " | Menge %.6f (%.2f $, max. −%.2f $)\n          " % (qty, qty * entry, qty * r) + " | ".join(res))
+        ok = sim is not None and sim - c_r > 0
+        res.append("%dR Ziel %.2f: netto Sim %s / Rückblick %s %s" % (
+            k, tgt, "%+.3f" % (sim - c_r) if sim is not None else "?",
+            "%+.3f" % (hist - c_r) if hist is not None else "?", "JA" if ok else "nein"))
+    print(line + " | Kosten %.3f R | Menge %.6f (%.2f $, max. −%.2f $ inkl. Kosten)\n          " % (
+        c_r, qty, qty * entry, qty * (r + unit_cost)) + " | ".join(res))
 
 
 def cmd_fill(sym, side, qty, price, at=None):
@@ -165,12 +176,14 @@ def cmd_fill(sym, side, qty, price, at=None):
             raise SystemExit("%s ist schon %s offen: zum Schließen die Gegenseite buchen" % (sym, pos.get("side")))
         b["positions"].remove(pos)
         t["action"] = "close " + pos.get("side", "long")
-        t["pnl"] = round(qty * (price - pos["entry"]) * dirn, 2)
-        b["cash"] = round(b["cash"] + qty * pos["entry"] + t["pnl"], 2)
+        gross, fee, net = costs.trade(sym, qty, pos["entry"], price, pos.get("side", "long"))
+        t["gross"], t["costs"], t["pnl"] = gross, fee, net
+        b["cash"] = round(b["cash"] + qty * pos["entry"] + net, 2)
     b["trades"].append(t)
     save_book(b)
     print("Gebucht: %s (%s) %.6f %s zu %.2f $ | Bargeld %.2f $%s" % (
-        t["action"], side, qty, sym, price, b["cash"], " | Ergebnis %+.2f $" % t["pnl"] if "pnl" in t else ""))
+        t["action"], side, qty, sym, price, b["cash"], " | brutto %+.2f $, Kosten %.2f $, netto %+.2f $" % (t["gross"], t["costs"], t["pnl"])
+        if "pnl" in t else ""))
 
 
 def cmd_status():

@@ -14,8 +14,8 @@ Finance (kostenlos, leicht verzögert), 5-Minuten-Kerzen.
 | Einstieg Short | erste fertige 5-Minuten-Kerze, die unter dem Tief der Spanne schließt, Kurs hält noch |
 | Stop | Mitte der Spanne, mindestens 0,2 % vom Einstieg entfernt |
 | Ziel | 1× oder 2× Risiko |
-| Trade nur wenn | Time Machine: Erwartungswert positiv (Simulation, bevorzugt auch Rückblick) |
-| Max. Verlust pro Trade | 10 $ |
+| Trade nur wenn | Time Machine: Erwartungswert **nach Kosten** positiv (Simulation, bevorzugt auch Rückblick) |
+| Max. Verlust pro Trade | 10 $ inklusive Kosten |
 | Max. Position | 900 $, 10 % Bargeld-Reserve |
 | Menge | Bruchteile erlaubt (z. B. 0,0058 BTC) |
 | Pro Tag | max. 3 Trades, max. 30 $ Verlust |
@@ -24,23 +24,36 @@ Finance (kostenlos, leicht verzögert), 5-Minuten-Kerzen.
 | Richtung | Long und Short (ab 07.11.2026), eine Position gleichzeitig |
 | Handelstage | täglich, auch am Wochenende |
 
-Ergebnisse sind **brutto**. Gebühren (meist etwa 0,02 bis 0,1 % pro Seite) und
-Spread werden am Ende abgezogen.
+## Kosten (ab dem ersten Tag eingerechnet)
 
-Shorts gibt es bei Krypto nur über Futures oder Margin. Dort kommen
-Finanzierungsgebühren (Funding) hinzu, die wir hier nicht mitrechnen. Ein
-Short bindet im Schatten-Depot so viel Bargeld wie ein Long gleicher Größe.
+Umgesetzt würde über **Bitget USDT-M Perpetual-Futures mit 1x Hebel** (Long und
+Short möglich). Vorsichtig gerechnet, alle Orders als Taker:
+
+| Posten | je Seite |
+| --- | --- |
+| Taker-Gebühr | 0,06 % |
+| Halber Spread + Slippage | 0,02 % (BTC, ETH), 0,05 % (übrige) |
+| Funding (pauschal, einmal) | 0,01 % |
+
+Hin und zurück also etwa **0,17 % (BTC, ETH) bis 0,23 %**, rund dreimal so viel
+wie bei den Aktien. Der Scan zieht die Kosten in R vom Erwartungswert ab, die
+Menge ist so bemessen, dass der Verlust am Stop inklusive Kosten höchstens
+10 $ beträgt, und jede Buchung zeigt brutto, Kosten und netto.
+
+Rückblick 3. bis 6.11.: Ohne Kosten hätte es mehrere Trades gegeben (z. B. BTC,
+ETH, SOL, BNB short am 5.11.), **nach Kosten kein einziger**. Die Vorteile
+waren kleiner als die Gebühren.
 
 Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 `trader/crypto-portfolio.json`.
 
 ## Logbuch
 
-| Tag | Datum | Trades | Ergebnis | Kontostand |
+| Tag | Datum | Trades | Ergebnis netto | Kontostand netto |
 | --- | --- | --- | --- | --- |
 | 0 | Start | – | – | 1.000,00 $ |
 
 ## Trades
 
-| Datum | Coin | Seite | Einstieg (NY) | Menge | Kurs | Stop | Ziel | EV Sim / Rückblick | Ausstieg (NY) | Kurs | Ergebnis |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Datum | Coin | Seite | Einstieg (NY) | Menge | Kurs | Stop | Ziel | EV netto Sim / Rückblick | Ausstieg (NY) | Kurs | Brutto | Kosten | Netto |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

@@ -19,7 +19,7 @@ Unterhaltung und Bildung, **keine Anlageberatung**.
 | Stop | Mitte der Eröffnungsspanne (darunter) | Mitte der Eröffnungsspanne (darüber) |
 | Ziel | 1× oder 2× Risiko darüber | 1× oder 2× Risiko darunter |
 | Größe | max. 10 $ Verlust, max. 900 $ Einsatz | gleich |
-| Trade nur bei | positivem Erwartungswert in der Time Machine | gleich (Time Machine mit `--side sell`) |
+| Trade nur bei | positivem Erwartungswert nach Kosten (ab Tag 5) | gleich (Time Machine mit `--side sell`) |
 | Einstiege | 9:45 bis 15:30 Uhr NY, max. 3 pro Tag | gleich |
 | Glattstellen | bis 15:55 Uhr NY | gleich |
 
@@ -30,9 +30,9 @@ Werkzeuge: `tools/short_scan.py` (Scan), `tools/fresh.py --short`
 
 Startwert zum Vergleich: 1.000,00 $ (Start ab Tag 4).
 
-| Tag | Datum | Trades | Ergebnis (brutto) | Schatten-Stand |
-| --- | --- | --- | --- | --- |
-| 4 | Fr, 06.11.2026 | 1 (CRM, Stop) | −6,98 $ | 993,02 $ |
+| Tag | Datum | Trades | Ergebnis brutto | Schatten-Stand brutto | Kosten | Schatten-Stand netto |
+| --- | --- | --- | --- | --- | --- | --- |
+| 4 | Fr, 06.11.2026 | 1 (CRM, Stop) | −6,98 $ | 993,02 $ | 0,27 $ | 992,75 $ |
 
 ### Schatten-Trades
 
