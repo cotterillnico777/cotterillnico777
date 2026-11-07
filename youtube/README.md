@@ -40,6 +40,12 @@ Die Tagesergebnisse im Logbuch sind **brutto**. Gebühren und Spread werden
 am Ende der Challenge für alle Trades zusammen abgezogen. Dafür steht bei
 jedem Trade: Stückzahl, Kauf- und Verkaufskurs und Uhrzeit.
 
+## Nebenprojekte (nur Schatten, nicht im Depot)
+
+- [Schatten-Shorts](schatten-shorts.md): Leerverkäufe nach gespiegelten Regeln.
+- [Krypto-Schatten-Depot](krypto.md): eigenes 1.000-$-Depot, gleiche Regeln,
+  Spanne ab 9:30 Uhr New York, täglich auch am Wochenende.
+
 ## Logbuch
 
 Eine Datei pro Handelstag: `youtube/tag-NN-YYYY-MM-DD.md`, mit Watchlist,
