@@ -55,6 +55,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | Tag | Datum | Trades | Ergebnis netto | Kontostand netto |
 | --- | --- | --- | --- | --- |
 | 0 | Start | – | – | 1.000,00 $ |
+| 1 | Sa, 07.11.2026 | 0 (8 Shorts ab 10:00 NY, alle nach Kosten negativ; bestes: AVAX 2R netto −0,145 R. Ruhiger Wochenendmarkt, Kosten 0,2 bis 1,1 R) | 0,00 $ | 1.000,00 $ |
 
 ## Trades
 
