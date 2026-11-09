@@ -1,4 +1,29 @@
 {
-  "cash": 998.19,
-  "positions": []
+  "cash": 242.23,
+  "positions": [
+    {
+      "ticker": "MRNA",
+      "shares": 1.0,
+      "lots": [
+        {
+          "id": "MRNA-1",
+          "date": "2026-11-09",
+          "shares": 1.0,
+          "cost": 264.24
+        }
+      ]
+    },
+    {
+      "ticker": "FTNT",
+      "shares": 4.0,
+      "lots": [
+        {
+          "id": "FTNT-1",
+          "date": "2026-11-09",
+          "shares": 4.0,
+          "cost": 491.72
+        }
+      ]
+    }
+  ]
 }

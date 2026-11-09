@@ -59,6 +59,26 @@
       "qty": "23",
       "price": 38.61,
       "plain": "SELL 23 NKE at 38.61"
+    },
+    {
+      "at": "2026-11-09T09:59:15-05:00",
+      "date": "2026-11-09",
+      "status": "filled",
+      "symbol": "MRNA",
+      "side": "buy",
+      "qty": "1",
+      "price": 264.24,
+      "plain": "BUY 1 MRNA at 264.24"
+    },
+    {
+      "at": "2026-11-09T10:00:27-05:00",
+      "date": "2026-11-09",
+      "status": "filled",
+      "symbol": "FTNT",
+      "side": "buy",
+      "qty": "4",
+      "price": 122.93,
+      "plain": "BUY 4 FTNT at 122.93"
     }
   ]
 }
