@@ -1,17 +1,4 @@
 {
-  "cash": 518.53,
-  "positions": [
-    {
-      "ticker": "FTNT",
-      "shares": 4.0,
-      "lots": [
-        {
-          "id": "FTNT-1",
-          "date": "2026-11-09",
-          "shares": 4.0,
-          "cost": 491.72
-        }
-      ]
-    }
-  ]
+  "cash": 1008.37,
+  "positions": []
 }
