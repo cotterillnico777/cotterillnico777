@@ -1,17 +1,4 @@
 {
-  "cash": 739.9,
-  "positions": [
-    {
-      "ticker": "NXPI",
-      "shares": 1.0,
-      "lots": [
-        {
-          "id": "NXPI-1",
-          "date": "2026-11-10",
-          "shares": 1.0,
-          "cost": 260.56
-        }
-      ]
-    }
-  ]
+  "cash": 1001.79,
+  "positions": []
 }

@@ -129,6 +129,16 @@
       "qty": "1",
       "price": 321.01,
       "plain": "SELL 1 PANW at 321.01"
+    },
+    {
+      "at": "2026-11-10T15:55:16-05:00",
+      "date": "2026-11-10",
+      "status": "filled",
+      "symbol": "NXPI",
+      "side": "sell",
+      "qty": "1",
+      "price": 261.89,
+      "plain": "SELL 1 NXPI at 261.89"
     }
   ]
 }

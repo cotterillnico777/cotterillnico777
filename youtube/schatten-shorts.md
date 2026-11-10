@@ -34,6 +34,7 @@ Startwert zum Vergleich: 1.000,00 $ (Start ab Tag 4).
 | --- | --- | --- | --- | --- | --- | --- |
 | 4 | Fr, 06.11.2026 | 1 (CRM, Stop) | −6,98 $ | 993,02 $ | 0,27 $ | 992,75 $ |
 | 5 | Mo, 09.11.2026 | 1 (EAT, Stop) | −5,87 $ | 987,15 $ | 0,13 $ | 986,75 $ |
+| 6 | Di, 10.11.2026 | 1 (GIS, Stop) | −9,31 $ | 977,84 $ | 0,41 $ | 977,03 $ |
 
 ### Schatten-Trades
 
@@ -41,3 +42,4 @@ Startwert zum Vergleich: 1.000,00 $ (Start ab Tag 4).
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 4 | CRM (Salesforce) | Short 213,90 $ um 10:00 Uhr NY | 2 | 217,39 $ | 206,92 $ | +0,109 / +0,286 | Stop in der 10:00-Kerze (Hoch 217,43 $, Schluss 213,65 $): Rückkauf 217,39 $, **−6,98 $** |
 | 5 | EAT (Brinker International) | Short 200,37 $ um 9:55 Uhr NY | 1 | 206,24 $ | 188,63 $ | netto +0,067 / +0,159 | Stop in der 15:05-Kerze (Hoch 206,45 $): Rückkauf 206,24 $, brutto **−5,87 $**, Kosten 0,13 $, netto **−6,00 $** |
+| 6 | GIS (General Mills) | Short 34,15 $ um 10:00 Uhr NY | 19 | 34,64 $ | 33,17 $ | netto +0,058 / +0,109 | Stop in der 12:20-Kerze (Hoch 34,68 $): Rückkauf 34,64 $, brutto **−9,31 $**, Kosten 0,41 $, netto **−9,72 $** |
