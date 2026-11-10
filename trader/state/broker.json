@@ -119,6 +119,16 @@
       "qty": "1",
       "price": 328.92,
       "plain": "BUY 1 PANW at 328.92"
+    },
+    {
+      "at": "2026-11-10T12:25:08-05:00",
+      "date": "2026-11-10",
+      "status": "filled",
+      "symbol": "PANW",
+      "side": "sell",
+      "qty": "1",
+      "price": 321.01,
+      "plain": "SELL 1 PANW at 321.01"
     }
   ]
 }
