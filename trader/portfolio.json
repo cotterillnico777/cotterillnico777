@@ -1,4 +1,29 @@
 {
-  "cash": 1008.37,
-  "positions": []
+  "cash": 418.89,
+  "positions": [
+    {
+      "ticker": "NXPI",
+      "shares": 1.0,
+      "lots": [
+        {
+          "id": "NXPI-1",
+          "date": "2026-11-10",
+          "shares": 1.0,
+          "cost": 260.56
+        }
+      ]
+    },
+    {
+      "ticker": "PANW",
+      "shares": 1.0,
+      "lots": [
+        {
+          "id": "PANW-1",
+          "date": "2026-11-10",
+          "shares": 1.0,
+          "cost": 328.92
+        }
+      ]
+    }
+  ]
 }

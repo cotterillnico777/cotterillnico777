@@ -99,6 +99,26 @@
       "qty": "4",
       "price": 122.46,
       "plain": "SELL 4 FTNT at 122.46"
+    },
+    {
+      "at": "2026-11-10T10:03:39-05:00",
+      "date": "2026-11-10",
+      "status": "filled",
+      "symbol": "NXPI",
+      "side": "buy",
+      "qty": "1",
+      "price": 260.56,
+      "plain": "BUY 1 NXPI at 260.56"
+    },
+    {
+      "at": "2026-11-10T10:03:56-05:00",
+      "date": "2026-11-10",
+      "status": "filled",
+      "symbol": "PANW",
+      "side": "buy",
+      "qty": "1",
+      "price": 328.92,
+      "plain": "BUY 1 PANW at 328.92"
     }
   ]
 }
