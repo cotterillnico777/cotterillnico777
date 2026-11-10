@@ -1,6 +1,24 @@
 {
   "start": 1000.0,
-  "cash": 1000.0,
-  "positions": [],
-  "trades": []
+  "cash": 650.21,
+  "positions": [
+    {
+      "symbol": "AVAX-USD",
+      "side": "short",
+      "qty": 42.971422,
+      "entry": 8.14,
+      "time": "10:45"
+    }
+  ],
+  "trades": [
+    {
+      "date": "2026-11-10",
+      "time": "10:45",
+      "symbol": "AVAX-USD",
+      "side": "sell",
+      "qty": 42.971422,
+      "price": 8.14,
+      "action": "open short"
+    }
+  ]
 }
