@@ -4,7 +4,8 @@
 HH:MM = Schlusszeit der Einstiegskerze (New York). Prüft alle 30 s die
 fertigen 5-Minuten-Kerzen danach. Vorsichtig: Stop und Ziel in derselben
 Kerze zählen als Stop; Stop-Füllung zum Stop-Kurs oder schlechter (Eröffnung
-jenseits des Stops), Ziel zum Zielkurs. Druckt eine Zeile und endet.
+jenseits des Stops), Ziel zum Zielkurs. Druckt eine Zeile und endet. Nur Kerzen von heute zählen (Krypto handelt
+rund um die Uhr, der Tagesabruf enthält sonst auch den Vorabend).
 """
 import datetime
 import json
@@ -30,7 +31,7 @@ while True:
         last = d["meta"]["regularMarketPrice"]
         for t, o, h, l, c in zip(d["timestamp"], q["open"], q["high"], q["low"], q["close"]):
             st = datetime.datetime.fromtimestamp(t, NY)
-            if None in (o, h, l, c) or st.time() < AFTER or st + datetime.timedelta(minutes=5) > now:
+            if None in (o, h, l, c) or st.date() != now.date() or st.time() < AFTER or st + datetime.timedelta(minutes=5) > now:
                 continue
             bar = "bar %s o%.2f h%.2f l%.2f c%.2f" % (st.strftime("%H:%M"), o, h, l, c)
             hit_stop = l <= stop if long else h >= stop
