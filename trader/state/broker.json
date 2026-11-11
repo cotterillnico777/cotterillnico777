@@ -139,6 +139,26 @@
       "qty": "1",
       "price": 261.89,
       "plain": "SELL 1 NXPI at 261.89"
+    },
+    {
+      "at": "2026-11-11T09:57:07-05:00",
+      "date": "2026-11-11",
+      "status": "filled",
+      "symbol": "CBOE",
+      "side": "buy",
+      "qty": "1",
+      "price": 369.46,
+      "plain": "BUY 1 CBOE at 369.46"
+    },
+    {
+      "at": "2026-11-11T09:57:26-05:00",
+      "date": "2026-11-11",
+      "status": "filled",
+      "symbol": "AAPL",
+      "side": "buy",
+      "qty": "1",
+      "price": 353.65,
+      "plain": "BUY 1 AAPL at 353.65"
     }
   ]
 }
