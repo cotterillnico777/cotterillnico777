@@ -1,18 +1,6 @@
 {
-  "cash": 278.68,
+  "cash": 648.32,
   "positions": [
-    {
-      "ticker": "CBOE",
-      "shares": 1.0,
-      "lots": [
-        {
-          "id": "CBOE-1",
-          "date": "2026-11-11",
-          "shares": 1.0,
-          "cost": 369.46
-        }
-      ]
-    },
     {
       "ticker": "AAPL",
       "shares": 1.0,
