@@ -59,6 +59,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | 2 | So, 08.11.2026 | 0 (Long-Ausbrüche um 9:50 NY bei BTC, ETH, SOL, AVAX, BCH: Stops zu eng oder netto −0,39 bis −0,68 R; bis 11:45 alle zurückgefallen. Bestes Signal: BCH Short 2R netto −0,362 R) | 0,00 $ | 1.000,00 $ |
 | 3 | Mo, 09.11.2026 | 0 (8 Long-Ausbrüche um 9:50 NY, 4 zurückgefallen, Rest Kosten 0,44 bis 0,75 R; bis 11:45 bestes Signal BTC Long 2R netto −0,469 R) | 0,00 $ | 1.000,00 $ |
 | 4 | Di, 10.11.2026 | 1 (Longs um 10:05 NY alle nach Kosten negativ und danach zurückgefallen; ab 10:30 brachen alle 8 Coins nach unten aus, nur AVAX Short 2R netto knapp positiv; AVAX glattgestellt) | −7,04 $ | 992,96 $ |
+| 5 | Mi, 11.11.2026 | 0 (Long-Ausbrüche ab 10:05 NY bei allen 8 Coins, Shorts von SOL, BNB, LTC, BCH zurückgefallen; Kosten 0,16 bis 0,57 R. Bis 11:45 bestes Signal LINK Long 2R netto −0,061 / Rückblick +0,015 R, Simulation negativ) | 0,00 $ | 992,96 $ |
 
 ## Trades
 
