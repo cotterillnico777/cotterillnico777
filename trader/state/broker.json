@@ -169,6 +169,16 @@
       "qty": "1",
       "price": 369.64,
       "plain": "SELL 1 CBOE at 369.64"
+    },
+    {
+      "at": "2026-11-11T15:55:24-05:00",
+      "date": "2026-11-11",
+      "status": "filled",
+      "symbol": "AAPL",
+      "side": "sell",
+      "qty": "1",
+      "price": 355.46,
+      "plain": "SELL 1 AAPL at 355.46"
     }
   ]
 }

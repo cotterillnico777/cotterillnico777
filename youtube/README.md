@@ -69,7 +69,9 @@ Drei Folgen:
 | 5 | FTNT, 4 Stück, 122,93 → 122,46 $ | −1,88 $ | 0,31 $ | −2,19 $ |
 | 6 | NXPI, 1 Stück, 260,56 → 261,89 $ | +1,33 $ | 0,16 $ | +1,17 $ |
 | 6 | PANW, 1 Stück, 328,92 → 321,01 $ | −7,91 $ | 0,20 $ | −8,11 $ |
-| | **Summe** | **+1,79 $** | **2,53 $** | **−0,74 $** |
+| 7 | CBOE, 1 Stück, 369,46 → 369,64 $ | +0,18 $ | 0,23 $ | −0,05 $ |
+| 7 | AAPL, 1 Stück, 353,65 → 355,46 $ | +1,81 $ | 0,22 $ | +1,59 $ |
+| | **Summe** | **+3,78 $** | **2,98 $** | **+0,80 $** |
 
 ## Nebenprojekte (nur Schatten, nicht im Depot)
 
@@ -89,3 +91,11 @@ Trades, Gewinn/Verlust und Kontostand für das Video.
 | [4](tag-04-2026-11-06.md) | Fr, 06.11.2026 | 1 (NKE, Glattstellen) | −1,15 $ | 998,19 $ | 996,50 $ |
 | [5](tag-05-2026-11-09.md) | Mo, 09.11.2026 | 2 (MRNA Ziel, FTNT Glattstellen) | +10,18 $ | 1.008,37 $ | 1.006,20 $ |
 | [6](tag-06-2026-11-10.md) | Di, 10.11.2026 | 2 (NXPI Glattstellen, PANW Stop) | −6,58 $ | 1.001,79 $ | 999,26 $ |
+| [7](tag-07-2026-11-11.md) | Mi, 11.11.2026 | 2 (CBOE, AAPL Glattstellen) | +1,99 $ | 1.003,78 $ | 1.000,80 $ |
+
+## Abschlussbilanz nach 7 Tagen
+
+**Endstand 1.003,78 $ brutto, 1.000,80 $ netto.** 9 Trades, brutto +3,78 $,
+Kosten 2,98 $, netto **+0,80 $ (+0,08 %)**. Die Kosten haben fast 80 % des
+Bruttogewinns aufgezehrt. Ausführlich mit Lehren in
+[Tag 7](tag-07-2026-11-11.md#abschlussbilanz-7-tage-1000--spielgeld).
