@@ -62,6 +62,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | 5 | Mi, 11.11.2026 | 0 (Long-Ausbrüche ab 10:05 NY bei allen 8 Coins, Shorts von SOL, BNB, LTC, BCH zurückgefallen; Kosten 0,16 bis 0,57 R. Bis 11:45 bestes Signal LINK Long 2R netto −0,061 / Rückblick +0,015 R, Simulation negativ) | 0,00 $ | 992,96 $ |
 | 6 | Do, 12.11.2026 | 0 (um 9:53 NY kein Ausbruch; Shorts ab 9:55 und Longs ab 11:00 NY fielen fast alle zurück. Bestes Signal: BCH Short 2R netto −0,221 / Rückblick +0,006 R; Kosten 0,23 bis 0,34 R) | 0,00 $ | 992,96 $ |
 | 7 | Fr, 13.11.2026 | 0 (ab 9:50 NY brachen alle 8 Coins nach unten aus und hielten; Simulation nach Kosten überall knapp negativ. Bestes Signal: AVAX Short 2R netto −0,007 / Rückblick +0,149 R um 10:58; später lief der Kurs schon weit, Stop zu weit weg) | 0,00 $ | 992,96 $ |
+| 8 | Sa, 14.11.2026 | 0 (um 9:53 NY nur AVAX Short, danach alle 8 Coins nach unten; Kosten anfangs 0,27 bis 0,33 R, bis 11:45 Simulation überall negativ. Bestes Signal: AVAX Short 2R netto −0,025 / Rückblick +0,130 R. Der Markt fiel danach weiter, BCH und BNB rund 2 % – verpasster Gewinn durch die Regel) | 0,00 $ | 992,96 $ |
 
 ## Trades
 
