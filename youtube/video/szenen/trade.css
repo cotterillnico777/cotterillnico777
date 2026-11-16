@@ -1,0 +1,15 @@
+#title{position:absolute;left:50%;top:50%;margin:-120px 0 0 -500px;width:1000px;text-align:center;transform-origin:50% 50%}
+#title .eyebrow{font:600 40px var(--mono);color:var(--accent);letter-spacing:.1em}
+#title .name{font:800 170px/1 var(--display)}
+#frame{position:absolute;left:120px;right:60px;top:180px;bottom:190px}
+#chartwrap{position:absolute;inset:0}
+#chart{width:100%;height:100%}
+#clock{position:absolute;left:120px;top:150px;font:500 30px var(--mono);color:var(--muted)}
+#clock b{color:var(--ink);font-weight:600}
+#pnlbox{position:absolute;right:120px;top:84px;text-align:right}
+#pnlbox .k{font:600 24px var(--mono);color:var(--muted);letter-spacing:.08em}
+#pnl{font:600 84px/1 var(--mono)}
+.pop{position:absolute;font:600 42px var(--body);padding:14px 24px;border-radius:14px;transform-origin:50% 50%;white-space:nowrap}
+#entrytag{background:var(--ink);color:var(--bg)}
+#stamp{position:absolute;left:50%;top:46%;font:800 120px/1 var(--display);padding:20px 50px;border:10px solid currentColor;border-radius:24px;background:rgba(11,22,34,.85);white-space:nowrap}
+#flash{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0}
