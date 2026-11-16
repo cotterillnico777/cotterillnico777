@@ -1,0 +1,44 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+:root{--bg:#070d18;--ink:#fff;--gain:#2fe08a;--loss:#ff4d4d;--cost:#ffb223;--accent:#3aa0ff}
+*{box-sizing:border-box;margin:0}
+html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);font-family:"Bricolage Grotesque","Arial Black",sans-serif;color:var(--ink)}
+#bg{position:absolute;inset:0;background:
+ radial-gradient(700px 520px at 78% 38%, rgba(47,224,138,.30), transparent 70%),
+ radial-gradient(600px 500px at 8% 100%, rgba(58,160,255,.28), transparent 70%),
+ linear-gradient(#16263a 1px, transparent 1px) 0 0/64px 64px, linear-gradient(90deg,#16263a 1px, transparent 1px) 0 0/64px 64px}
+#chart{position:absolute;left:470px;top:20px;width:830px;height:700px}
+#shade{position:absolute;inset:0;background:linear-gradient(90deg,var(--bg) 0,rgba(7,13,24,.94) 30%,rgba(7,13,24,0) 62%)}
+#txt{position:absolute;left:54px;top:44px}
+.chip{display:inline-block;font:800 44px/1 "Bricolage Grotesque";background:var(--cost);color:#170f00;padding:12px 22px;border-radius:12px;transform:rotate(-3deg)}
+.big{font:800 218px/.92 "Bricolage Grotesque";letter-spacing:-.03em;margin-top:22px;text-shadow:0 8px 0 rgba(0,0,0,.55),0 0 60px rgba(0,0,0,.8)}
+.row{display:flex;align-items:center;gap:24px;margin-top:26px}
+.arrow{font:800 170px/.8 "Bricolage Grotesque";color:var(--accent);text-shadow:0 6px 0 rgba(0,0,0,.6)}
+.box{position:relative;font:600 112px/1 "IBM Plex Mono",monospace;padding:16px 30px;border-radius:18px;border:7px solid var(--cost);background:#0d1626;overflow:hidden;box-shadow:0 0 50px rgba(255,178,35,.45)}
+.box span{filter:blur(13px);opacity:.9}
+.box b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 150px/1 "Bricolage Grotesque";color:var(--cost);text-shadow:0 6px 0 rgba(0,0,0,.6)}
+.sub{position:absolute;left:58px;bottom:38px;font:800 50px/1 "Bricolage Grotesque";text-shadow:0 4px 0 rgba(0,0,0,.6)}
+.sub em{font-style:normal;color:var(--gain)}
+body.b .big{font-size:150px;line-height:.98} body.b .chip{background:var(--gain)}
+</style>
+<div id="bg"></div><svg id="chart" viewBox="0 0 830 700"></svg><div id="shade"></div>
+<div id="txt"><span class="chip" id="chip">7 TAGE BÖRSE</span><div class="big" id="big">1.000 $</div>
+ <div class="row"><span class="arrow">→</span><div class="box"><span>▒.▒▒▒,▒▒ $</span><b>?</b></div></div></div>
+<div class="sub" id="sub">9 Trades. <em>Echte Kurse.</em></div>
+<script src="../daten/kerzen.js"></script>
+<script>
+const v=new URLSearchParams(location.search).get("v")||"a";
+if(v==="b"){document.body.className="b";document.getElementById("chip").textContent="1.000 $ SELBSTEXPERIMENT";document.getElementById("big").innerHTML="GEWINN<br>ODER<br>KOSTEN?";document.querySelector(".row").style.display="none";document.getElementById("sub").innerHTML="7 Tage. 9 Trades. <em>Ehrliches Ergebnis.</em>";}
+const NS="http://www.w3.org/2000/svg",s=document.getElementById("chart");
+const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);s.appendChild(e);return e;};
+// echte Moderna-Kerzen vom 09.11., 9:30 bis 11:25
+const bars=KERZEN["MRNA_2026-11-09"].slice(0,24),lo=252,hi=281,cw=830/25,X=i=>20+i*cw,Y=p=>30+(hi-p)*640/(hi-lo);
+const d=mk("defs",{});d.innerHTML='<filter id="g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+mk("line",{x1:0,x2:830,y1:Y(276.3),y2:Y(276.3),stroke:"#2fe08a","stroke-width":5,"stroke-dasharray":"16 12",opacity:.9});
+mk("line",{x1:0,x2:830,y1:Y(258.21),y2:Y(258.21),stroke:"#ff4d4d","stroke-width":5,"stroke-dasharray":"16 12",opacity:.9});
+const g=mk("g",{filter:"url(#g)"});
+bars.forEach((b,i)=>{const [,o,h,l,c]=b,col=c>=o?"#2fe08a":"#ff4d4d";
+ const w=document.createElementNS(NS,"line");w.setAttribute("x1",X(i));w.setAttribute("x2",X(i));w.setAttribute("y1",Y(h));w.setAttribute("y2",Y(l));w.setAttribute("stroke",col);w.setAttribute("stroke-width",5);g.appendChild(w);
+ const r=document.createElementNS(NS,"rect");r.setAttribute("x",X(i)-cw*.36);r.setAttribute("y",Y(Math.max(o,c)));r.setAttribute("width",cw*.72);r.setAttribute("height",Math.max(5,Math.abs(Y(o)-Y(c))));r.setAttribute("fill",col);r.setAttribute("rx",3);g.appendChild(r);});
+</script>
