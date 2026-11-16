@@ -1,9 +1,10 @@
-# Sprecherskript: „7 Tage, 9 Trades, 1.000 Dollar“
+# Sprecherskript: „Claude: 7 Tage als Daytrader“
 
 Das Video dauert etwa 10 Minuten. Das Ergebnis wird erst in Abschnitt 09
 verraten. Am Ende stimmen die Zuschauer ab, wie es weitergeht.
 
-Der Text ist bewusst so geschrieben, wie man spricht. Wenn dir ein Satz nicht
+Du erzählst als Beobachter: Claude, eine KI, macht die Trades, du schaust zu
+und kommentierst. Der Text ist bewusst so geschrieben, wie man spricht. Wenn dir ein Satz nicht
 liegt, sag ihn in deinen eigenen Worten. Wichtig sind nur die Zahlen.
 
 ## So nimmst du auf
@@ -29,37 +30,40 @@ gesprochen.
 
 ## 01 – Hook (ca. 25 s)
 
-[Ein Kontostand flackert zwischen Plus und Minus. „Bauchgefühl“ und „Zocken“
-werden durchgestrichen. Zähler bis 10.000. Am Ende ein großes Fragezeichen.
-Das Ergebnis wird NICHT gezeigt.]
+[Ein Kontostand flackert zwischen Plus und Minus, darunter „KI: Claude“.
+„Bauchgefühl“ und „Zocken“ werden durchgestrichen. Zähler bis 10.000. Am Ende
+ein großes Fragezeichen. Das Ergebnis wird NICHT gezeigt.]
 
-Tausend Dollar. Sieben Tage Börse.
-Und ich hab mir Regeln gegeben, die strenger sind als bei den meisten Profis.
-Kein Bauchgefühl, kein Zocken. Jeden einzelnen Trade lasse ich vorher
-zehntausendmal durchrechnen.
-Die Frage ist: Kann man so wirklich Geld verdienen?
-Oder fressen einem die versteckten Kosten am Ende alles weg?
-Ich hab's ausprobiert. Und ehrlich: Mit dem Ergebnis hab ich nicht gerechnet.
+Ich hab einer KI tausend Dollar gegeben. Und einen Job: sieben Tage lang
+Daytrader an der Börse.
+Die KI heißt Claude. Und Claude bekommt Regeln, die strenger sind als bei
+den meisten Profis.
+Kein Bauchgefühl, kein Zocken. Jeden einzelnen Trade rechnet Claude vorher
+zehntausendmal durch.
+Die Frage ist: Kann eine KI so wirklich Geld verdienen?
+Oder fressen die versteckten Kosten am Ende alles weg?
+Ich hab's laufen lassen. Und ehrlich: Damit habe ich nicht gerechnet.
 
-## 02 – Das Experiment (ca. 60 s)
+## 02 – Das Experiment (ca. 65 s)
 
 [Titel „7 Handelstage. 1.000 $.“ Dann einmal groß die Karte „Papier-Trading“.
 Danach das Schema: erste 15 Minuten, Ausbruch, Kauf, Stop, Ziel. Rechts die
 Regeln.]
 
-So läuft das Ganze: sieben Handelstage an der US-Börse, tausend Dollar
-Startkapital.
+So läuft das Ganze: Claude bekommt tausend Dollar und sieben Handelstage an
+der US-Börse. Claude scannt den Markt, rechnet die Trades durch und
+entscheidet selbst, nach festen Regeln. Ich schaue nur zu.
 
 Einmal vorweg, damit es alle wissen: Das hier ist Papier-Trading. Also
-Spielgeld, aber mit echten Kursen. Das ist mein erster Test. Wenn das
+Spielgeld, aber mit echten Kursen. Das ist der erste Test. Wenn das
 Konzept trägt, kann man es genauso mit echtem Geld machen. Und ob ich das
 tun soll, entscheidest am Ende du. Dazu gleich mehr.
 
-Die Strategie ist ein Klassiker. Ich schau mir die ersten fünfzehn Minuten
-nach Börsenstart an. Bricht eine Aktie danach nach oben aus, also über das
-Hoch dieser Viertelstunde, dann kaufe ich.
+Die Strategie ist ein Klassiker. Claude schaut sich die ersten fünfzehn
+Minuten nach Börsenstart an. Bricht eine Aktie danach nach oben aus, also
+über das Hoch dieser Viertelstunde, dann wird gekauft.
 Der Stop sitzt in der Mitte dieser Spanne. Das Ziel ist das Ein- oder
-Zweifache von dem, was ich riskiere.
+Zweifache vom Risiko.
 
 Und dann die harten Grenzen: maximal zehn Dollar Verlust pro Trade.
 Maximal drei Trades am Tag. Und abends um fünf vor zehn ist alles verkauft.
@@ -70,26 +74,26 @@ Nichts bleibt über Nacht liegen.
 [Ab dem Einstieg fächern sich hunderte mögliche Kursverläufe auf. Zähler bis
 10.000. Dann die Karte „+0,191 R“ und die Regel „positiv → kaufen“.]
 
-Bevor ich irgendwas kaufe, kommt noch ein Filter. Ich nenne ihn die
+Bevor Claude irgendwas kauft, kommt noch ein Filter. Wir nennen ihn die
 Time Machine.
 Die nimmt die letzten sechzig Tage der Aktie und spielt den Rest des Tages
 zehntausendmal durch.
-Am Ende steht eine Zahl: Was bringt mir dieser Trade im Schnitt, pro Dollar,
-den ich riskiere?
-Ist die Zahl positiv, kaufe ich. Ist sie negativ, lass ich die Finger davon.
+Am Ende steht eine Zahl: Was bringt dieser Trade im Schnitt, pro Dollar
+Risiko?
+Ist die Zahl positiv, kauft Claude. Ist sie negativ, bleibt das Geld liegen.
 Egal, wie gut der Chart aussieht.
 
 ## 04 – Tag 1: Nichts tun (ca. 35 s)
 
 [Acht Aktien-Karten, fünf werden rot. Stempel „KEIN TRADE“.]
 
-Tag eins. Und ich bin direkt zu spät dran, erst gegen Mittag New Yorker Zeit.
-Ich schau mir die acht frischesten Ausbrüche an. Fünf davon sind schon wieder
-in sich zusammengefallen.
+Tag eins. Wir starten spät, erst gegen Mittag New Yorker Zeit.
+Claude schaut sich die acht frischesten Ausbrüche an. Fünf davon sind schon
+wieder in sich zusammengefallen.
 Und bei den anderen drei sagt die Time Machine: kein echter Vorteil.
-Also mach ich am ersten Tag meines Experiments … gar nichts.
-Fühlt sich komisch an. Aber nichts tun ist auch eine Entscheidung. Und hier
-war es die richtige.
+Also macht Claude am ersten Tag … gar nichts.
+Ich war ehrlich gesagt enttäuscht. Aber nichts tun ist auch eine
+Entscheidung. Und hier war es die richtige.
 
 ## 05 – Tag 2 bis 4: Achterbahn (ca. 90 s)
 
@@ -97,26 +101,26 @@ war es die richtige.
 Keurig Dr Pepper: Stop nach 45 Minuten. Dann Nike: knapp am Ziel vorbei,
 knapp am Stop vorbei, glattgestellt.]
 
-Tag zwei, mein erster Trade: Merck.
-Ich kaufe um zwanzig vor eins, sechs Aktien zu hundertachtundvierzig
+Tag zwei, der erste Trade: Merck.
+Claude kauft um zwanzig vor eins, sechs Aktien zu hundertachtundvierzig
 zweiundsechzig.
-Erst läuft es ein bisschen ins Plus. Dann dreht die Aktie. Ich bin zwei
-Dollar im Minus, und der Stop ist keinen Dollar mehr weg.
+Erst läuft es ein bisschen ins Plus. Dann dreht die Aktie. Zwei Dollar im
+Minus, und der Stop ist keinen Dollar mehr weg.
 Und dann, in der letzten halben Stunde, zieht sie hoch.
 Ziel erreicht, zwanzig Minuten vor Schluss. Plus sieben Dollar achtundneunzig.
 
 Tag drei: Keurig Dr Pepper.
 Diesmal sagt die Time Machine sogar: richtig guter Trade.
-Ich kaufe kurz vor halb zwölf. Fünfundvierzig Minuten später bin ich
-ausgestoppt. Minus acht Dollar vierundsechzig.
+Claude kauft kurz vor halb zwölf. Fünfundvierzig Minuten später: ausgestoppt.
+Minus acht Dollar vierundsechzig.
 
 Das war die erste Lektion. Ein guter Durchschnitt heißt nicht, dass es
-heute gut läuft.
+heute gut läuft. Auch nicht für eine KI.
 
 Tag vier: Nike.
 Kauf um zehn Uhr. Kurz vor halb elf fehlen noch fünfundzwanzig Cent bis zum
 Ziel. Fünfundzwanzig Cent!
-Dann dreht sie. Mittags ist sie nur noch dreizehn Cent über meinem Stop.
+Dann dreht sie. Mittags ist sie nur noch dreizehn Cent über dem Stop.
 Am Ende passiert weder das eine noch das andere. Um fünf vor vier wird
 verkauft. Minus ein Dollar fünfzehn.
 
@@ -126,20 +130,20 @@ verkauft. Minus ein Dollar fünfzehn.
 Spread, Slippage, Gebühren. Der Merck-Balken, von dem ein Stück abbricht.
 Die neue Regel.]
 
-Nach vier Tagen ist mir was aufgefallen, das in fast keinem Trading-Video
-vorkommt.
-Was hätte mich das Ganze eigentlich in echt gekostet?
+Nach vier Tagen stelle ich Claude eine Frage, die in fast keinem
+Trading-Video vorkommt.
+Was hätte das Ganze eigentlich in echt gekostet?
 
 Denn jeder Kauf und jeder Verkauf kostet Geld. Der Abstand zwischen Kauf-
 und Verkaufskurs. Ein paar Cent schlechtere Ausführung. Kleine Gebühren.
 Zusammen sind das nur rund sechs Hundertstel Prozent pro Trade. Klingt nach
-nichts. Aber wenn dein Gewinn ein paar Dollar ist, ist das plötzlich ein
+nichts. Aber wenn der Gewinn ein paar Dollar ist, ist das plötzlich ein
 ordentliches Stück.
 
-Also neue Regel ab Tag fünf: Ich kaufe nur noch, wenn sich der Trade auch
-nach Kosten lohnt.
-Und das Bittere: Merck, mein einziger Gewinner bis dahin, hätte ich nach
-dieser Regel nie gekauft.
+Also neue Regel ab Tag fünf: Claude kauft nur noch, wenn sich der Trade
+auch nach Kosten lohnt.
+Und das Bittere: Merck, der einzige Gewinner bis dahin, wäre nach dieser
+Regel nie gekauft worden.
 
 ## 07 – Tag 5: Der beste Trade (ca. 45 s)
 
@@ -147,9 +151,9 @@ dieser Regel nie gekauft.
 
 Tag fünf: Moderna.
 Das ist der stärkste Kandidat der ganzen Woche, auch nach Kosten klar im Plus.
-Kauf um fünf vor zehn, zu zweihundertvierundsechzig Dollar. Ziel: das
-Doppelte vom Risiko.
-Einmal kurz zurück auf meinen Einstand, und dann geht's nur noch nach oben.
+Claude kauft um fünf vor zehn, zu zweihundertvierundsechzig Dollar. Ziel:
+das Doppelte vom Risiko.
+Einmal kurz zurück auf den Einstand, und dann geht's nur noch nach oben.
 Neunzig Minuten später: Ziel. Plus elf Dollar neunundachtzig, nach Kosten.
 
 Am selben Tag noch Fortinet. Das war ein Kandidat, der nur ganz knapp über
@@ -161,17 +165,17 @@ der Kostengrenze lag. Und genau so lief er auch: minus zwei Dollar neunzehn.
 (Long) und General Mills (Short): Dieselbe Kerze um 12:20 Uhr trifft beide
 Stops.]
 
-Tag sechs. Erst NXP, der beste Kandidat des Tages.
-Mittags bin ich fast fünf Dollar hinten. Am Ende dreht er noch ins Plus:
+Tag sechs. Erst NXP, Claudes bester Kandidat des Tages.
+Mittags fast fünf Dollar hinten. Am Ende dreht er noch ins Plus:
 ein Dollar dreiunddreißig vor Kosten, ein Dollar siebzehn danach.
 
 Dann Palo Alto. Wieder so ein knapper Kandidat.
 Um zwanzig nach zwölf New Yorker Zeit zuckt der Markt einmal kurz.
 Stop. Minus acht Dollar elf.
 
-Und jetzt das Verrückte: Ich hab nebenbei auch Shorts mitgerechnet, also
+Und jetzt das Verrückte: Claude hat nebenbei auch Shorts mitgerechnet, also
 Wetten auf fallende Kurse. Nur im Schatten, nicht im Depot.
-Und in genau derselben Fünf-Minuten-Kerze wird auch mein Short ausgestoppt.
+Und in genau derselben Fünf-Minuten-Kerze wird auch dieser Short ausgestoppt.
 Long falsch und Short falsch, gleichzeitig. Das war kein Trend. Das war
 einfach Rauschen.
 
@@ -186,12 +190,12 @@ Und Cboe ist eigentlich das ganze Experiment in einem Trade:
 vor Kosten achtzehn Cent Gewinn. Nach Kosten fünf Cent Verlust.
 
 So. Und jetzt die Auflösung.
-Sieben Tage, neun Trades. Mein Konto steht bei …
+Sieben Tage, neun Trades. Claudes Konto steht bei …
 tausend Dollar und achtzig Cent.
 Achtzig Cent Gewinn.
 
 Schau dir die zwei Linien an.
-Die obere ist mein Konto vor Kosten: plus drei Dollar achtundsiebzig.
+Die obere ist das Konto vor Kosten: plus drei Dollar achtundsiebzig.
 Die untere ist das, was wirklich übrig bleibt.
 Und die orange Fläche dazwischen, das sind die Kosten. Die haben fast
 achtzig Prozent vom Gewinn aufgefressen.
@@ -200,7 +204,7 @@ Neun Trades. Zweimal Ziel, zweimal Stop, fünfmal einfach bis zum
 Handelsschluss.
 Vier Gewinner, fünf Verlierer.
 
-## 10 – Was ich gelernt habe (ca. 55 s)
+## 10 – Was wir gelernt haben (ca. 55 s)
 
 [Die fünf Lehren erscheinen nacheinander.]
 
@@ -209,8 +213,8 @@ Was nehme ich daraus mit?
 Erstens: Die Kosten entscheiden. Ohne sie sähe das Ganze fast fünfmal so
 gut aus.
 
-Zweitens: Die Regeln haben mich geschützt. Kein Trade hat mehr als zehn
-Dollar gekostet. Aber geschützt sein und Geld verdienen, das sind zwei
+Zweitens: Die Regeln haben das Konto geschützt. Kein Trade hat mehr als
+zehn Dollar gekostet. Aber geschützt sein und Geld verdienen, das sind zwei
 verschiedene Dinge.
 
 Drittens: Die knappen Kandidaten verlieren. Alles, was nur knapp über der
@@ -221,24 +225,25 @@ Viertens: Das Doppelte vom Risiko als Ziel ist verdammt schwer. Sieben
 Versuche, einer hat's geschafft.
 
 Und fünftens, ganz ehrlich: Sieben Tage beweisen gar nichts. Neun Trades
-sind keine Statistik.
+sind keine Statistik. Eine KI macht aus der Börse keinen Geldautomaten.
 
 ## 11 – Abstimmung: Du entscheidest (ca. 40 s)
 
 [Vier Karten A bis D. Dann groß „Schreib A, B, C oder D in die Kommentare“.
 Zum Schluss „+0,80 $ · Wenig. Aber ehrlich.“]
 
-Und jetzt kommst du ins Spiel. Denn wie es weitergeht, entscheide nicht ich.
+Und jetzt kommst du ins Spiel. Denn wie es mit Claude weitergeht,
+entscheide nicht ich.
 
-A: Ich mach dasselbe noch mal, aber mit echtem Geld. Kleines Konto,
-dieselben Regeln.
+A: Echtgeld. Claude liefert die Signale, und ich setze sie mit einem
+kleinen echten Konto um. Dieselben Regeln.
 
-B: Ich nehme Shorts mit rein und setze auch auf fallende Kurse.
+B: Claude nimmt Shorts mit rein und setzt auch auf fallende Kurse.
 
-C: Ich teste das Ganze mit Hebel. Mehr Chance, aber auch deutlich mehr
+C: Wir testen das Ganze mit Hebel. Mehr Chance, aber auch deutlich mehr
 Risiko.
 
-Oder D: Ich schärfe erst die Regeln. Eine Mindestschwelle für den
+Oder D: Wir schärfen erst die Regeln. Eine Mindestschwelle für den
 Erwartungswert, Limit-Orders gegen die Kosten, und mehr als sieben Tage.
 
 Schreib einfach den Buchstaben in die Kommentare. Die Mehrheit gewinnt,

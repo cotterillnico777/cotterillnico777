@@ -76,7 +76,7 @@ for(let k=0;k<N;k++){let p=ENTRY,pts=[[X(iE),Y(p)]],out="o";
   const len=el.getTotalLength();el.style.strokeDasharray=len;el.style.strokeDashoffset=len;
   paths.push({el,len,out,start:4.6+7*Math.pow(k/N,1.4)});}
 const dot=mk("circle",{cx:X(iE),cy:Y(ENTRY),r:12,fill:"var(--ink)",stroke:"var(--bg)","stroke-width":4},svg);
-const caps=[[.3,2.4,"Vor jedem Kauf: die <b>Time Machine</b>"],[2.6,6.2,"Der Rest des Tages, 10.000-mal durchgespielt"],
+const caps=[[.3,2.4,"Claudes Werkzeug: die <b>Time Machine</b>"],[2.6,6.2,"Der Rest des Tages, 10.000-mal durchgespielt"],
  [6.4,11.6,"Basis: die letzten 60 Tage der Aktie"],[12.4,16.4,"Was bringt der Trade <b>im Schnitt</b>?"],[16.6,21.5,"Positiv: kaufen. Negativ: Finger weg."]];
 window.render=function(t){
   background(t);

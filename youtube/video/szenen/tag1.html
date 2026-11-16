@@ -26,8 +26,8 @@ const g=$("#grid");let f=0;
 const cards=L.map(([s,n,p,ok],i)=>{const d=document.createElement("div");d.className="s";
   d.innerHTML=`<b>${s}</b><span>${n}</span><em>${p>0?"+":"−"}${de(Math.abs(p))} %</em><u></u>`;g.appendChild(d);
   return {d,ok,at:ok?null:6+(f++)*.55,p};});
-const caps=[[.4,3.4,"Tag 1: Ich bin spät dran"],[5.6,9.6,"5 von 8 Ausbrüchen: schon gescheitert"],
- [10,13.6,"Der Rest: kein echter Vorteil"],[14,15.8,"Also: <b>kein Trade</b>"],[16.2,21.5,"Nichts tun ist auch eine Entscheidung."]];
+const caps=[[.4,3.4,"Tag 1: später Start"],[5.6,9.6,"5 von 8 Ausbrüchen: schon gescheitert"],
+ [10,13.6,"Der Rest: kein echter Vorteil"],[14,15.8,"Claude sagt: <b>kein Trade</b>"],[16.2,21.5,"Nichts tun ist auch eine Entscheidung."]];
 window.render=function(t){
   background(t);
   popIn(document.querySelector(".eyebrow"),t,.1);popIn(document.querySelector(".h1"),t,.3);

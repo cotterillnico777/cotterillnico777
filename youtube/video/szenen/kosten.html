@@ -33,9 +33,9 @@
 </div>
 <script src="basis.js"></script>
 <script>
-const caps=[[.4,3,"Nach vier Tagen kam eine Frage auf"],[3.2,6.2,"Was hätte das <b>in echt</b> gekostet?"],
+const caps=[[.4,3,"Nach vier Tagen stelle ich Claude eine Frage"],[3.2,6.2,"Was hätte das <b>in echt</b> gekostet?"],
  [6.6,12.6,"Spread. Slippage. Gebühren."],[12.8,16.6,"Nur 0,06 % pro Trade. Klingt nach nichts."],
- [17,20.6,"Bei Merck: <b>56 Cent</b> weniger Gewinn"],[21,24.8,"Neue Regel: Es muss sich <b>nach Kosten</b> lohnen"],[25,29.5,"Merck hätte ich so nie gekauft."]];
+ [17,20.6,"Bei Merck: <b>56 Cent</b> weniger Gewinn"],[21,24.8,"Neue Regel: Es muss sich <b>nach Kosten</b> lohnen"],[25,29.5,"Merck hätte Claude so nie gekauft."]];
 window.render=function(t){
   background(t);
   phase($("#a"),t,.2,6.5);const q=outBack(seg(t,3.1,3.7));$("#q").style.transform=`scale(${.9+.1*q})`;$("#q em").style.opacity=.35+.65*seg(t,3.1,3.5);

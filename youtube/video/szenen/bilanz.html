@@ -59,7 +59,7 @@ const rows=TR.map(([s,v,x],i)=>{const g=svgEl('g',{},bs),cy=i*rh+rh/2,col=v>=0?'
   const r=svgEl('rect',{x:bx(Math.min(0,v)),y:cy-24,width:Math.max(4,Math.abs(bx(v)-bx(0))),height:48,rx:6,fill:col},g);
   svgEl('text',{x:(v>=0?bx(v):bx(0))+14,y:cy+12,'text-anchor':'start','font-size':32,'font-weight':600,fill:col},g,(v>=0?'+':'−')+de(Math.abs(v))+' $'+(x?' · '+x:''));
   return {g,r,v,x0:bx(0),w:Math.max(4,Math.abs(bx(v)-bx(0)))};});
-const caps=[[.4,3.8,"Die Auflösung. Mein Konto steht bei …"],[4.1,5.4,"… <b>1.000,80 $</b>"],[5.5,7.5,"80 Cent Gewinn."],
+const caps=[[.4,3.8,"Die Auflösung. Claudes Konto steht bei …"],[4.1,5.4,"… <b>1.000,80 $</b>"],[5.5,7.5,"80 Cent Gewinn."],
  [8,11.8,"Vor Kosten: <b>+3,78 $</b>"],[12,14.4,"Nach Kosten: was wirklich bleibt"],[14.6,18.8,"Die Kosten fressen fast <b>80 %</b>"],
  [19.4,25.5,"2× Ziel, 2× Stop, 5× bis zum Schluss"],[25.8,31,"4 Gewinner, 5 Verlierer"]];
 window.render=function(t){
