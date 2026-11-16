@@ -1,0 +1,60 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+:root{--bg:#070d18;--ink:#fff;--gain:#2fe08a;--loss:#ff4d4d;--cost:#ffb223;--accent:#3aa0ff;--ki:#e8845a}
+*{box-sizing:border-box;margin:0}
+html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);font-family:"Bricolage Grotesque","Arial Black",sans-serif;color:var(--ink)}
+#bg{position:absolute;inset:0;background:
+ radial-gradient(700px 520px at 80% 40%, rgba(47,224,138,.28), transparent 70%),
+ radial-gradient(640px 520px at 6% 60%, rgba(232,132,90,.30), transparent 70%),
+ linear-gradient(#16263a 1px, transparent 1px) 0 0/64px 64px, linear-gradient(90deg,#16263a 1px, transparent 1px) 0 0/64px 64px}
+#chart{position:absolute;left:520px;top:10px;width:790px;height:700px}
+#shade{position:absolute;inset:0;background:linear-gradient(90deg,var(--bg) 0,rgba(7,13,24,.95) 34%,rgba(7,13,24,0) 66%)}
+.sh{text-shadow:0 7px 0 rgba(0,0,0,.6),0 0 50px rgba(0,0,0,.85)}
+/* Variante C */
+#c{position:absolute;left:52px;top:40px}
+#c .chip{display:inline-flex;align-items:center;gap:14px;font:800 40px/1 "Bricolage Grotesque";background:var(--ink);color:#0a1220;padding:10px 20px;border-radius:12px;transform:rotate(-3deg)}
+#c .name{font:800 196px/.95 "Bricolage Grotesque";color:var(--ki);letter-spacing:-.03em;margin-top:14px}
+#c .l2{font:800 112px/.98 "Bricolage Grotesque";letter-spacing:-.02em}
+#quote{position:absolute;left:56px;bottom:40px;font:800 54px/1.05 "Bricolage Grotesque";color:var(--cost);background:rgba(7,13,24,.82);padding:14px 22px;border-radius:14px;border-left:10px solid var(--cost)}
+/* Variante D */
+#d{position:absolute;inset:0}
+.side{position:absolute;top:150px;width:470px;text-align:center}
+.side .lab{font:800 96px/1 "Bricolage Grotesque";margin-top:18px}
+.tile{width:300px;height:300px;margin:0 auto;border-radius:56px;display:flex;align-items:center;justify-content:center}
+#vs{position:absolute;left:50%;top:230px;transform:translateX(-50%) rotate(-6deg);font:800 170px/1 "Bricolage Grotesque";color:var(--cost);-webkit-text-stroke:6px #0a1220;paint-order:stroke fill}
+#dtop{position:absolute;left:0;right:0;top:34px;text-align:center;font:800 76px/1 "Bricolage Grotesque"}
+#dbot{position:absolute;left:0;right:0;bottom:36px;text-align:center;font:800 58px/1 "Bricolage Grotesque";color:var(--cost)}
+</style>
+<div id="bg"></div><svg id="chart" viewBox="0 0 790 700"></svg><div id="shade"></div>
+<div id="c"><span class="chip"><svg width="44" height="44" viewBox="0 0 100 100" id="ic1"></svg>KI-EXPERIMENT</span>
+  <div class="name sh">CLAUDE</div><div class="l2 sh">7 TAGE<br>DAYTRADER</div></div>
+<div id="quote">„Damit habe ich nicht gerechnet.“</div>
+<div id="d"><div id="dtop" class="sh">7 TAGE · 1.000 $</div>
+  <div class="side" style="left:60px"><div class="tile" style="background:var(--ki);box-shadow:0 0 90px rgba(232,132,90,.6)"><svg width="210" height="210" viewBox="0 0 100 100" id="ic2"></svg></div><div class="lab sh" style="color:var(--ki)">CLAUDE</div></div>
+  <div id="vs">VS</div>
+  <div class="side" style="right:60px"><div class="tile" style="background:#0d1a2b;border:8px solid var(--gain);box-shadow:0 0 90px rgba(47,224,138,.5)"><svg width="230" height="230" viewBox="0 0 100 100" id="ic3"></svg></div><div class="lab sh" style="color:var(--gain)">BÖRSE</div></div>
+  <div id="dbot" class="sh">„Damit habe ich nicht gerechnet.“</div></div>
+<script src="../daten/kerzen.js"></script>
+<script>
+const v=new URLSearchParams(location.search).get("v")||"c",NS="http://www.w3.org/2000/svg";
+const el=(p,t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;};
+// Neutrales KI-Symbol: Chip mit Knotenpunkten (kein Firmenlogo)
+function chip(id,col){const s=document.getElementById(id);
+  for(let i=0;i<3;i++){const p=32+i*18;[[p,4,p,18],[p,82,p,96],[4,p,18,p],[82,p,96,p]].forEach(([x1,y1,x2,y2])=>el(s,"line",{x1,y1,x2,y2,stroke:col,"stroke-width":6,"stroke-linecap":"round"}));}
+  el(s,"rect",{x:18,y:18,width:64,height:64,rx:12,fill:"none",stroke:col,"stroke-width":7});
+  [[36,62,50,38],[50,38,64,62],[36,62,64,62]].forEach(([x1,y1,x2,y2])=>el(s,"line",{x1,y1,x2,y2,stroke:col,"stroke-width":4}));
+  [[36,62],[50,38],[64,62]].forEach(([cx,cy])=>el(s,"circle",{cx,cy,r:6.5,fill:col}));}
+chip("ic1","#0a1220");chip("ic2","#0a1220");
+// Börsen-Symbol: drei Kerzen
+const s3=document.getElementById("ic3");[[22,58,30,"#ff4d4d",44,92],[50,34,34,"#2fe08a",20,78],[78,14,36,"#2fe08a",6,60]].forEach(([x,y,h,c,w1,w2])=>{el(s3,"line",{x1:x,x2:x,y1:w1,y2:w2,stroke:c,"stroke-width":5});el(s3,"rect",{x:x-10,y,width:20,height:h,rx:3,fill:c});});
+// echte Moderna-Kerzen vom 09.11.
+const s=document.getElementById("chart"),bars=KERZEN["MRNA_2026-11-09"].slice(0,24),lo=252,hi=281,cw=790/25,X=i=>20+i*cw,Y=p=>30+(hi-p)*640/(hi-lo);
+el(s,"defs",{}).innerHTML='<filter id="g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+el(s,"line",{x1:0,x2:790,y1:Y(276.3),y2:Y(276.3),stroke:"#2fe08a","stroke-width":5,"stroke-dasharray":"16 12"});
+el(s,"line",{x1:0,x2:790,y1:Y(258.21),y2:Y(258.21),stroke:"#ff4d4d","stroke-width":5,"stroke-dasharray":"16 12"});
+const g=el(s,"g",{filter:"url(#g)"});
+bars.forEach((b,i)=>{const [,o,h,l,c]=b,col=c>=o?"#2fe08a":"#ff4d4d";el(g,"line",{x1:X(i),x2:X(i),y1:Y(h),y2:Y(l),stroke:col,"stroke-width":5});el(g,"rect",{x:X(i)-cw*.36,y:Y(Math.max(o,c)),width:cw*.72,height:Math.max(5,Math.abs(Y(o)-Y(c))),fill:col,rx:3});});
+if(v==="c"){document.getElementById("d").remove();}
+else{["c","quote","chart","shade"].forEach(i=>document.getElementById(i).remove());}
+</script>
