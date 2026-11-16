@@ -1,6 +1,6 @@
 # Sprecherskript: „7 Tage, 9 Trades, 1.000 Dollar“
 
-Das Video dauert etwa 9 Minuten. Das Ergebnis wird erst in Abschnitt 09
+Das Video dauert etwa 9,5 Minuten. Das Ergebnis wird erst in Abschnitt 09
 verraten. Die Länge der Szenen kommt später aus deiner
 Aufnahme.
 
@@ -83,10 +83,11 @@ Also: kein Trade.
 Das fühlt sich falsch an, wenn man ein Experiment gestartet hat.
 Aber nichts tun ist auch eine Entscheidung. Und an Tag eins die richtige.
 
-## 05 – Tag 2 und 3: Achterbahn (ca. 70 s)
+## 05 – Tag 2 bis 4: Achterbahn (ca. 90 s)
 
 [Kerzenchart Merck mit Einstieg, Stop, Ziel. Kurs fällt Richtung Stop, dreht,
-trifft das Ziel. Dann Kerzenchart Keurig Dr Pepper, Stop nach 45 Minuten.]
+trifft das Ziel. Dann Kerzenchart Keurig Dr Pepper, Stop nach 45 Minuten.
+Zum Schluss Nike: knapp am Ziel vorbei, knapp am Stop vorbei, glattgestellt.]
 
 Tag zwei. Merck.
 Gekauft um zwanzig vor eins zu hundertachtundvierzig Dollar zweiundsechzig.
@@ -102,6 +103,14 @@ Minus acht Dollar vierundsechzig.
 
 Und das ist die erste Lektion: Ein positiver Erwartungswert sagt dir,
 was im Durchschnitt passiert. Er sagt dir nicht, was heute passiert.
+
+Tag vier. Nike.
+Gekauft um zehn Uhr, dreiundzwanzig Aktien zu achtunddreißig Dollar
+sechsundsechzig.
+Kurz vor halb elf fehlen nur noch fünfundzwanzig Cent bis zum Ziel.
+Dann dreht die Aktie. Mittags ist sie nur noch dreizehn Cent über dem Stop.
+Weder Stop noch Ziel. Um fünf vor vier wird glattgestellt.
+Minus ein Dollar fünfzehn.
 
 ## 06 – Der Wendepunkt: Kosten (ca. 60 s)
 
@@ -137,12 +146,19 @@ Plus elf Dollar neunundachtzig, netto.
 Am selben Tag Fortinet, ein Kandidat, der nur ganz knapp über der
 Kostengrenze lag. Ergebnis: minus zwei Dollar neunzehn.
 
-## 08 – Tag 6: Zwei Stops in einer Kerze (ca. 45 s)
+## 08 – Tag 6: Zwei Stops in einer Kerze (ca. 65 s)
 
-[Zwei Charts nebeneinander, Palo Alto (Long) und General Mills (Short).
-Dieselbe Kerze um 12:20 Uhr trifft beide Stops.]
+[Erst Kerzenchart NXP: mittags fast 5 Dollar im Minus, am Ende knapp im Plus.
+Dann Palo Alto (Long) und General Mills (Short): Dieselbe Kerze um 12:20 Uhr
+trifft beide Stops.]
 
-Tag sechs. Palo Alto Networks.
+Tag sechs. Zuerst NXP Semiconductors, der stärkste Kandidat des Tages,
+auch nach Kosten.
+Mittags fast fünf Dollar im Minus.
+Am Ende doch knapp im Plus: ein Dollar dreiunddreißig vor Kosten,
+ein Dollar siebzehn danach.
+
+Dann Palo Alto Networks.
 Wieder ein knapper Kandidat. Um zwanzig nach zwölf New Yorker Zeit
 schlägt der Markt kurz aus.
 Stop. Minus acht Dollar elf.
