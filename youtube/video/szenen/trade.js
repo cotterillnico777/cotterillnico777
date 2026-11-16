@@ -23,7 +23,8 @@
   const or = bars.slice(0, 3), orHi = Math.max(...or.map(b => b[2])), orLo = Math.min(...or.map(b => b[3]));
   const orBox = mk("g", {}, svg);
   mk("rect", { x: L, y: Y(orHi), width: 3 * cw, height: Y(orLo) - Y(orHi), fill: "var(--accent)", "fill-opacity": .14, stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "6 6" }, orBox);
-  mk("line", { x1: L, x2: W - R, y1: Y(orHi), y2: Y(orHi), stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "4 10", "stroke-opacity": .6 }, orBox);
+  const orEdge = (C.side || 1) > 0 ? orHi : orLo;
+  mk("line", { x1: L, x2: W - R, y1: Y(orEdge), y2: Y(orEdge), stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "4 10", "stroke-opacity": .6 }, orBox);
   mk("text", { x: L, y: Y(orLo) + 32, "font-size": 22, fill: "var(--accent)" }, orBox, "Spanne 9:30–9:45");
 
   // Kerzen
@@ -47,9 +48,6 @@
   const planLines = [lineAt(C.target, "var(--gain)", "Ziel " + de(C.target)), lineAt(C.entry, "var(--ink)", "Kauf " + de(C.entry), "10 8"), lineAt(C.stop, "var(--loss)", "Stop " + de(C.stop))];
   const entryDot = mk("circle", { cx: X(iEntry), cy: Y(C.entry), r: 13, fill: "var(--ink)", stroke: "var(--bg)", "stroke-width": 4, opacity: 0 }, svg);
 
-  // Momente (Tiefpunkt, Ziel o. Ä.) mit Markierung im Chart
-  const marks = (C.moments || []).map(m => { const i = idx(m.bar); return { ...m, i, dot: mk("circle", { cx: X(i), cy: Y(m.price), r: 16, fill: "none", stroke: m.color, "stroke-width": 5, opacity: 0 }, svg) }; });
-
   // Zeitplan: wie viele Kerzen sind bei Zeit t sichtbar?
   const tl = C.timeline; // [[t, kerzenAnzahl], ...]
   function shown(t) {
@@ -57,6 +55,17 @@
     for (let k = 1; k < tl.length; k++) if (t <= tl[k][0]) { const [t0, c0] = tl[k - 1], [t1, c1] = tl[k]; return c0 + (c1 - c0) * inOut(seg(t, t0, t1)); }
     return tl[tl.length - 1][1];
   }
+
+  // Zeitpunkt, zu dem Kerze i erscheint (für Momente ohne feste Zeit)
+  const tAt = i => { for (let t = 0; t < 60; t += .02) if (shown(t) >= i + 1) return t + .05; return 0; };
+  (C.moments || []).forEach(m => { if (m.t == null) m.t = tAt(idx(m.bar)) + (m.delay || 0); });
+  if (C.tEntry == null) C.tEntry = tAt(iEntry) + .1;
+  if (C.tExit == null) C.tExit = tAt(iExit) + .1;
+  // Untertitel dürfen an Ereignisse gebunden sein: ["entry"|"exit"|"m0"…, Versatz, Dauer, Text]
+  const key = k => k === "entry" ? C.tEntry : k === "exit" ? C.tExit : C.moments[+k.slice(1)].t;
+  C.captions = C.captions.map(c => typeof c[0] === "string" ? [key(c[0]) + c[1], key(c[0]) + c[1] + c[2], c[3]] : c);
+  // Momente (Tiefpunkt, Ziel o. Ä.) mit Markierung im Chart
+  const marks = (C.moments || []).map(m => { const i = idx(m.bar); return { ...m, i, dot: mk("circle", { cx: X(i), cy: Y(m.price), r: 16, fill: "none", stroke: m.color, "stroke-width": 5, opacity: 0 }, svg) }; });
 
   window.render = function (t) {
     background(t);
@@ -90,7 +99,7 @@
     const pnl = $("#pnl");
     if (k >= iEntry + 1) {
       const cur = bars[Math.min(n - 1, Math.max(iEntry, Math.floor(k) - 1))];
-      let v = C.qty * (cur[4] - C.entry);
+      let v = C.qty * (cur[4] - C.entry) * (C.side || 1);
       if (C.exitBar && Math.floor(k) - 1 >= iExit) v = C.result;
       pnl.textContent = (v >= 0 ? "+" : "−") + de(Math.abs(v)) + " $";
       pnl.style.color = v >= 0 ? "var(--gain)" : "var(--loss)";
@@ -116,6 +125,6 @@
   // Ton-Stichworte für tools/sfx.py
   window.SFX = [[.1, "whoosh"], [1.5, "swish"], [C.tEntry, "pop"]]
     .concat((C.moments || []).map(m => [m.t, m.sfx || "alert"]))
-    .concat([[C.tExit, C.result >= 0 ? "win" : "loss"]]);
+    .concat([[C.tExit, C.exitSfx || (C.result >= 0 ? "win" : "loss")]]);
   window.render(0);
 })();

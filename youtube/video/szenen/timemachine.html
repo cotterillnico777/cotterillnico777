@@ -1,0 +1,103 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css"><link rel="stylesheet" href="trade.css">
+<style>
+#tmtitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
+#tmtitle .eyebrow{font:600 40px var(--mono);color:var(--accent);letter-spacing:.1em}
+#tmtitle .name{font:800 170px/1 var(--display)}
+#frame{right:520px}
+#counter{position:absolute;left:120px;top:96px;font:600 30px var(--mono);color:var(--muted)}
+#counter b{display:block;font:600 84px/1.05 var(--mono);color:var(--ink)}
+#note{position:absolute;left:120px;top:150px;font:500 24px var(--mono);color:var(--muted)}
+#buckets{position:absolute;right:110px;top:250px;width:360px;display:grid;gap:26px}
+.bk .lbl{display:flex;justify-content:space-between;font:600 30px var(--body)}
+.bk .lbl span:last-child{font-family:var(--mono)}
+.bk .bar{height:22px;border-radius:11px;background:var(--bg2);margin-top:10px;overflow:hidden}
+.bk .bar i{display:block;height:100%;width:0}
+#illu{position:absolute;right:110px;top:600px;width:360px;font:500 22px var(--mono);color:var(--muted)}
+#verdict{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);text-align:center;padding:40px 70px;border-radius:28px;background:rgba(11,22,34,.92);border:4px solid var(--line);white-space:nowrap}
+#verdict .k{font:600 34px var(--mono);color:var(--muted);letter-spacing:.08em}
+#verdict .v{font:800 170px/1.05 var(--display);color:var(--gain)}
+#verdict .s{font:600 38px var(--body);color:var(--ink)}
+#rules{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);display:grid;gap:26px;width:1200px}
+.rule{display:flex;align-items:center;gap:30px;padding:26px 40px;border-radius:22px;background:rgba(11,22,34,.92);border:4px solid currentColor;font:800 70px var(--display)}
+.rule small{font:600 34px var(--body);color:var(--muted)}
+#costnote{position:absolute;left:50%;top:70%;transform:translateX(-50%);font:600 40px var(--body);color:#1a1205;background:var(--cost);padding:14px 30px;border-radius:14px;white-space:nowrap}
+</style>
+<div id="stage">
+  <div id="bg"></div>
+  <div id="frame"><div id="chartwrap"><svg id="chart" viewBox="0 0 1280 640"></svg></div></div>
+  <div id="counter">SIMULIERTE TAGESVERLÄUFE<b id="cnt">0</b></div>
+  <div id="buckets">
+    <div class="bk" id="bz"><div class="lbl"><span>Ziel zuerst</span><span id="pz">0</span></div><div class="bar"><i style="background:var(--gain)"></i></div></div>
+    <div class="bk" id="bs"><div class="lbl"><span>Stop zuerst</span><span id="ps">0</span></div><div class="bar"><i style="background:var(--loss)"></i></div></div>
+    <div class="bk" id="bo"><div class="lbl"><span>offen bis 15:55</span><span id="po">0</span></div><div class="bar"><i style="background:var(--gross)"></i></div></div>
+  </div>
+  <div id="illu">Illustration: 300 von 10.000 Wegen gezeigt</div>
+  <div id="verdict"><div class="k">MODERNA, 09.11. · ERWARTUNGSWERT NACH KOSTEN</div><div class="v">+0,191 R</div><div class="s">im Schnitt 19 Cent Gewinn je 1 $ Risiko</div></div>
+  <div id="rules">
+    <div class="rule" style="color:var(--gain)">positiv <small>→ kaufen</small></div>
+    <div class="rule" style="color:var(--loss)">negativ <small>→ nicht kaufen</small></div>
+  </div>
+  <div id="costnote">Ab Tag 5: erst nach Abzug der Kosten</div>
+  <div id="tmtitle"><div class="eyebrow">VOR JEDEM KAUF</div><div class="name">Die Time Machine</div></div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script src="../daten/kerzen.js"></script>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const mk=(tag,a,p,txt)=>{const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e;};
+const bars=KERZEN["MRNA_2026-11-09"], ENTRY=264.24, STOP=258.21, TARGET=276.30, iE=5;   // Einstieg nach der 9:50-Kerze
+const svg=document.getElementById("chart"), W=1280, H=640, L=20, R=40, T=20, B=50, lo=246, hi=286, n=bars.length, cw=(W-L-R)/n;
+const X=i=>L+i*cw+cw/2, Y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+const grid=mk("g",{},svg);
+["10:00","12:00","14:00","15:55"].forEach(h=>{const i=bars.findIndex(b=>b[0]===h);mk("text",{x:X(i),y:H-12,"text-anchor":"middle","font-size":24,fill:"var(--muted)"},grid,h);});
+const lines=mk("g",{},svg);
+[[TARGET,"var(--gain)","Ziel"],[STOP,"var(--loss)","Stop"]].forEach(([v,c,l])=>{mk("line",{x1:X(iE),x2:W-R,y1:Y(v),y2:Y(v),stroke:c,"stroke-width":4},lines);mk("text",{x:W-R,y:Y(v)-12,"text-anchor":"end","font-size":24,fill:c,"font-weight":600},lines,l);});
+// echte Kerzen bis zum Einstieg
+const cg=mk("g",{},svg);
+const candles=bars.slice(0,iE+1).map((b,i)=>{const [,o,h,l,c]=b,col=c>=o?"var(--gain)":"var(--loss)",g=mk("g",{opacity:0},cg);
+  mk("line",{x1:X(i),x2:X(i),y1:Y(h),y2:Y(l),stroke:col,"stroke-width":3},g);
+  mk("rect",{x:X(i)-cw*.34,y:Y(Math.max(o,c)),width:cw*.68,height:Math.max(2,Math.abs(Y(o)-Y(c))),fill:col},g);return g;});
+// Zufallswege (fester Startwert, also bei jedem Rendern gleich)
+let seed=42;const rnd=()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296;};
+const gauss=()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+const N=300, steps=n-1-iE, sigma=.0038, counts={z:0,s:0,o:0};
+const pg=mk("g",{},svg);
+const paths=[];
+for(let k=0;k<N;k++){let p=ENTRY,pts=[[X(iE),Y(p)]],out="o";
+  for(let j=1;j<=steps;j++){p*=Math.exp(.00005+sigma*gauss());
+    if(p>=TARGET){p=TARGET;out="z";} if(p<=STOP){p=STOP;out="s";}
+    pts.push([X(iE+j),Y(p)]); if(out!=="o")break;}
+  counts[out]++;
+  const col=out==="z"?"var(--gain)":out==="s"?"var(--loss)":"var(--gross)";
+  const el=mk("polyline",{points:pts.map(q=>q.join(",")).join(" "),fill:"none",stroke:col,"stroke-width":2,"stroke-opacity":.38,opacity:0},pg);
+  const len=el.getTotalLength();el.style.strokeDasharray=len;el.style.strokeDashoffset=len;
+  paths.push({el,len,out,start:4.6+7*Math.pow(k/N,1.4)});}
+const dot=mk("circle",{cx:X(iE),cy:Y(ENTRY),r:12,fill:"var(--ink)",stroke:"var(--bg)","stroke-width":4},svg);
+const caps=[[.3,2.4,"Bevor ich kaufe, nutze ich die Time Machine."],[2.6,6.2,"Sie spielt den Rest des Tages zehntausendmal durch."],
+ [6.4,11.6,"Auf Basis der letzten sechzig Tage dieser Aktie."],[12.4,16.4,"Heraus kommt der Erwartungswert: Was bringt der Trade im Schnitt pro riskiertem Dollar?"],
+ [16.6,21.5,"Ist er positiv, kaufe ich. Ist er negativ, lasse ich es."]];
+window.render=function(t){
+  background(t);
+  const a=outBack(seg(t,.1,.7)),s=inOut(seg(t,1.6,2.3));
+  const ti=$("#tmtitle");ti.style.opacity=clamp(a)*(1-s);ti.style.transform=`translate(-50%,-50%) scale(${(.7+.3*a)*(1+.3*s)})`;ti.style.filter=`blur(${s*16}px)`;
+  const ch=seg(t,2.0,2.6);$("#frame").style.opacity=ch;
+  candles.forEach((g,i)=>g.setAttribute("opacity",clamp((t-2.3)/.12-i)));
+  lines.style.opacity=seg(t,3.4,3.9);dot.setAttribute("opacity",seg(t,3.2,3.5));
+  const c={z:0,s:0,o:0};let done=0;
+  paths.forEach(p=>{const q=seg(t,p.start,p.start+.7);p.el.setAttribute("opacity",q>0?1:0);p.el.style.strokeDashoffset=p.len*(1-outCubic(q));if(q>=1){c[p.out]++;done++;}});
+  const sim=Math.round(10000*Math.min(1,seg(t,4.6,12.4)));
+  $("#cnt").textContent=sim.toLocaleString("de-DE");
+  const tot=Math.max(1,done);[["z","#pz","#bz"],["s","#ps","#bs"],["o","#po","#bo"]].forEach(([k,lab,box])=>{const pc=done?c[k]/tot*100:0;$(lab).textContent=Math.round(pc)+" %";$(box+" i").style.width=pc+"%";});
+  // Ergebnis-Karte, danach die Regel
+  const dim=seg(t,12.4,13);["#counter","#buckets","#illu"].forEach(q=>$(q).style.opacity=seg(t,4.2,4.8)*(1-dim));$("#frame").style.filter=`blur(${dim*6}px)`;$("#frame").style.opacity=ch*(1-.6*dim);
+  const v=outBack(seg(t,12.6,13.2)),vo=1-seg(t,16.2,16.6);$("#verdict").style.opacity=clamp(v)*vo;$("#verdict").style.transform=`translate(-50%,-50%) scale(${.6+.4*v})`;
+  [...document.querySelectorAll(".rule")].forEach((r,i)=>{const p=outBack(seg(t,16.6+i*.5,17.1+i*.5));r.style.opacity=clamp(p);r.style.transform=`translateX(${(1-p)*-200}px)`;});
+  const cn=outBack(seg(t,18.6,19.1));$("#costnote").style.opacity=clamp(cn);$("#costnote").style.transform=`translateX(-50%) scale(${.6+.4*cn}) rotate(-1.5deg)`;
+  captions(t,caps);
+};
+window.SFX=[[.1,"whoosh"],[1.6,"swish"],[3.2,"pop"]].concat(Array.from({length:39},(_,i)=>[4.6+i*.2,"tick"])).concat([[12.6,"win"],[16.6,"pop"],[17.1,"pop"],[18.6,"alert"]]);
+window.render(0);
+</script>

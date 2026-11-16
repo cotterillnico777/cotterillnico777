@@ -1,7 +1,7 @@
 """Erzeugt Soundeffekte synthetisch (keine fremden Samples, keine Lizenzfragen)
 und mischt sie zu den Zeitpunkten einer Szene.
 Aufruf: python3 tools/sfx.py cues.json DAUER_SEKUNDEN out.wav
-cues.json: [[zeit, "name"], ...]; Namen: whoosh, swish, pop, alert, win, loss, tick"""
+cues.json: [[zeit, "name"], ...]; Namen: whoosh, swish, pop, alert, win, loss, flat, tick"""
 import json, sys, wave
 import numpy as np
 
@@ -73,7 +73,12 @@ def loss():
     s = int(.03 * SR); out[s:s + len(d)] += d
     return out
 
-LIB = {"whoosh": lambda: whoosh(), "swish": lambda: .6 * whoosh(.35, 800, 6000), "pop": pop,
+def flat():
+    out = np.zeros(int(1.6 * SR)); imp = .45 * impact(.5, 70); out[:len(imp)] += imp
+    b = bell(659.3, 1.4); s = int(.03 * SR); out[s:s + len(b)] += .25 * b
+    return out
+
+LIB = {"flat": flat, "whoosh": lambda: whoosh(), "swish": lambda: .6 * whoosh(.35, 800, 6000), "pop": pop,
        "alert": alert, "win": win, "loss": loss, "tick": tick}
 
 def main(cues_path, dur, out_path):

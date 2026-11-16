@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css"><link rel="stylesheet" href="trade.css">
+<div id="stage">
+  <div id="bg"></div>
+  <div id="frame"><div id="chartwrap"><svg id="chart" viewBox="0 0 1680 640"></svg></div></div>
+  <div id="clock"></div>
+  <div id="pnlbox"><div class="k">ERGEBNIS</div><div id="pnl">+0,00 $</div></div>
+  <div class="pop" id="entrytag" style="left:330px;top:250px">Kauf · 23 × 38,66 $</div>
+  <div class="pop" id="m0" style="left:700px;top:210px;background:var(--accent);color:#0b1622">Nur 25 Cent vom Ziel</div>
+  <div class="pop" id="m1" style="left:900px;top:640px;background:var(--loss);color:#fff">13 Cent über dem Stop</div>
+  <div id="stamp" style="color:var(--ink)">GLATTGESTELLT −1,15 $</div>
+  <div id="title"><div class="eyebrow">TAG 4 · FR, 06.11.</div><div class="name">Nike</div></div>
+  <div id="flash" style="background:transparent"></div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script src="../daten/kerzen.js"></script>
+<script>window.TRADE={"key": "NKE_2026-11-06", "entryBar": "09:55", "exitBar": "15:50", "entry": 38.66, "stop": 38.28, "target": 39.42, "qty": 23, "result": -1.15, "yMin": 37.8, "yMax": 39.6, "yStep": 0.5, "yDec": 1, "timeline": [[2.4, 0], [4.0, 6], [5.2, 6], [12.0, 77], [30, 77]], "exitSfx": "flat", "moments": [{"id": "m0", "bar": "10:25", "price": 39.175, "color": "var(--gain)", "hold": 2.2}, {"id": "m1", "bar": "12:35", "price": 38.41, "color": "var(--loss)", "hold": 2.2, "rot": -2}], "captions": [[0.3, 2.4, "Tag vier. Nike."], ["entry", 0, 2.6, "Gekauft um 10 Uhr: 23 Aktien zu 38,66 Dollar."], ["m0", 0, 2.2, "Nur 25 Cent unter dem Ziel …"], ["m1", 0, 2.4, "… und mittags 13 Cent über dem Stop."], ["exit", 0, 4.5, "Weder Stop noch Ziel: glattgestellt um 15:55 Uhr. <b>Minus 1,15 Dollar</b>."]]};</script>
+<script src="trade.js"></script>
