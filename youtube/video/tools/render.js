@@ -3,7 +3,8 @@
 // Die Szene stellt window.render(t) bereit (t in Sekunden) und zeichnet den
 // Zustand zu diesem Zeitpunkt. So ist jedes Bild exakt, ohne Ruckler.
 const { chromium } = require('playwright');
-const { spawn } = require('child_process');
+const { spawn, execFileSync } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 (async () => {
@@ -27,6 +28,16 @@ const path = require('path');
   }
   ff.stdin.end();
   await new Promise(r => ff.on('close', r));
+  // Ohne eigene Tonspur: Soundeffekte aus window.SFX erzeugen und unterlegen
+  const cues = audio ? null : await page.evaluate(() => window.SFX || null);
   await browser.close();
+  if (cues && cues.length) {
+    const tmp = out.replace(/\.mp4$/, '');
+    fs.writeFileSync(tmp + '.cues.json', JSON.stringify(cues));
+    execFileSync('python3', [path.join(__dirname, 'sfx.py'), tmp + '.cues.json', String(secs), tmp + '.sfx.wav']);
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', out, '-i', tmp + '.sfx.wav', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', tmp + '.ton.mp4']);
+    fs.renameSync(tmp + '.ton.mp4', out);
+    fs.unlinkSync(tmp + '.cues.json'); fs.unlinkSync(tmp + '.sfx.wav');
+  }
   console.log(`\r${scene}: fertig → ${out}`);
 })();

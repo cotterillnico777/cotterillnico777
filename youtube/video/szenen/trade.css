@@ -1,4 +1,4 @@
-#title{position:absolute;left:50%;top:50%;margin:-120px 0 0 -500px;width:1000px;text-align:center;transform-origin:50% 50%}
+#title{position:absolute;left:50%;top:50%;margin:-120px 0 0 -700px;width:1400px;white-space:nowrap;text-align:center;transform-origin:50% 50%}
 #title .eyebrow{font:600 40px var(--mono);color:var(--accent);letter-spacing:.1em}
 #title .name{font:800 170px/1 var(--display)}
 #frame{position:absolute;left:120px;right:60px;top:180px;bottom:190px}

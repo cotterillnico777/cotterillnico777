@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css"><link rel="stylesheet" href="trade.css">
+<div id="stage">
+  <div id="bg"></div>
+  <div id="frame"><div id="chartwrap"><svg id="chart" viewBox="0 0 1680 640"></svg></div></div>
+  <div id="clock"></div>
+  <div id="pnlbox"><div class="k">ERGEBNIS</div><div id="pnl">+0,00 $</div></div>
+  <div class="pop" id="entrytag" style="left:520px;top:240px">Kauf · 24 × 37,49 $</div>
+  <div class="pop" id="nachher" style="left:900px;top:300px;background:var(--bg2);color:var(--ink);border:3px solid var(--line)">Danach: Ziel 38,21 $ nie erreicht</div>
+  <div id="stamp" style="color:var(--loss)">STOP −8,64 $</div>
+  <div id="title"><div class="eyebrow">TAG 3 · DO, 05.11.</div><div class="name" style="font-size:130px">Keurig Dr Pepper</div></div>
+  <div id="flash" style="background:var(--loss)"></div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script src="../daten/kerzen.js"></script>
+<script>
+window.TRADE={key:"KDP_2026-11-05",entryBar:"11:20",exitBar:"12:10",entry:37.49,stop:37.13,target:38.21,qty:24,result:-8.64,
+ yMin:36.6,yMax:38.4,yStep:.5,yDec:1,dimAfter:true,
+ timeline:[[2.4,0],[5.6,23],[7,23],[12.4,33],[15,33],[18.5,78],[30,78]],
+ tEntry:5.7,tExit:12.5,
+ moments:[{id:"nachher",bar:"14:40",price:37.885,color:"var(--muted)",t:18.6,hold:20,sfx:"swish"}],
+ captions:[[.3,2.4,"Tag drei. Keurig Dr Pepper."],[2.6,5.5,"Die Time Machine war diesmal sogar deutlich positiv."],
+  [5.7,9.4,"Gekauft um fünf vor halb zwölf: 24 Aktien zu 37,49 Dollar."],[9.6,12.4,"Fünfundvierzig Minuten später …"],
+  [12.5,16.2,"… Stop. <b>Minus 8,64 Dollar</b>."],
+  [16.4,21.5,"Erwartungswert heißt Durchschnitt. Er sagt nicht, was heute passiert."]]};
+</script>
+<script src="trade.js"></script>

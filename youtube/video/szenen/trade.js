@@ -13,9 +13,9 @@
   const X = i => L + i * cw + cw / 2, Y = v => T + (hi - v) * (H - T - B) / (hi - lo);
 
   const grid = mk("g", {}, svg);
-  for (let v = Math.ceil(lo); v <= hi; v += C.yStep) {
+  for (let v = Math.ceil(lo / C.yStep) * C.yStep; v <= hi; v += C.yStep) {
     mk("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: "var(--line)", "stroke-width": 2 }, grid);
-    mk("text", { x: W - R + 150, y: Y(v) + 9, "text-anchor": "end", "font-size": 24, fill: "var(--muted)" }, grid, de(v, 0));
+    mk("text", { x: W - R + 150, y: Y(v) + 9, "text-anchor": "end", "font-size": 24, fill: "var(--muted)" }, grid, de(v, C.yDec || 0));
   }
   ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00"].forEach(h => { const i = idx(h); if (i >= 0) mk("text", { x: X(i), y: H - 12, "text-anchor": "middle", "font-size": 24, fill: "var(--muted)" }, grid, h); });
 
@@ -24,7 +24,7 @@
   const orBox = mk("g", {}, svg);
   mk("rect", { x: L, y: Y(orHi), width: 3 * cw, height: Y(orLo) - Y(orHi), fill: "var(--accent)", "fill-opacity": .14, stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "6 6" }, orBox);
   mk("line", { x1: L, x2: W - R, y1: Y(orHi), y2: Y(orHi), stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "4 10", "stroke-opacity": .6 }, orBox);
-  mk("text", { x: L, y: Y(orHi) - 14, "font-size": 22, fill: "var(--accent)" }, orBox, "Hoch 9:30–9:45");
+  mk("text", { x: L, y: Y(orLo) + 32, "font-size": 22, fill: "var(--accent)" }, orBox, "Spanne 9:30–9:45");
 
   // Kerzen
   const cg = mk("g", {}, svg);
@@ -69,7 +69,7 @@
     orBox.style.opacity = seg(t, 2.6, 3.2);
 
     const k = shown(t);
-    candles.forEach((g, i) => { const p = clamp(k - i); g.setAttribute("opacity", p); g.setAttribute("transform", `translate(0 ${(1 - p) * 18})`); });
+    candles.forEach((g, i) => { const p = clamp(k - i); g.setAttribute("opacity", p * (C.dimAfter && i > iExit ? .32 : 1)); g.setAttribute("transform", `translate(0 ${(1 - p) * 18})`); });
 
     // Uhr: Zeit der letzten sichtbaren Kerze (Schlusszeit) in New York und bei uns
     const lastI = Math.max(0, Math.min(n - 1, Math.ceil(k) - 1));
@@ -109,9 +109,13 @@
 
     // Ziel / Stop: großer Stempel und Lichtblitz
     const ps = outBack(seg(t, C.tExit, C.tExit + .5));
-    $("#stamp").style.opacity = clamp(ps); $("#stamp").style.transform = `translate(-50%,-50%) scale(${2.2 - 1.2 * ps}) rotate(-4deg)`;
+    $("#stamp").style.opacity = clamp(ps) * (1 - seg(t, C.tExit + 3.2, C.tExit + 3.8)); $("#stamp").style.transform = `translate(-50%,-50%) scale(${2.2 - 1.2 * ps}) rotate(-4deg)`;
     $("#flash").style.opacity = t > C.tExit ? .5 * (1 - seg(t, C.tExit, C.tExit + .4)) : 0;
     captions(t, C.captions);
   };
+  // Ton-Stichworte für tools/sfx.py
+  window.SFX = [[.1, "whoosh"], [1.5, "swish"], [C.tEntry, "pop"]]
+    .concat((C.moments || []).map(m => [m.t, m.sfx || "alert"]))
+    .concat([[C.tExit, C.result >= 0 ? "win" : "loss"]]);
   window.render(0);
 })();
