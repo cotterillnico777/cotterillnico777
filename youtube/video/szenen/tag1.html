@@ -8,7 +8,7 @@
 #stamp{position:absolute;left:50%;top:50%;font:800 190px/1 var(--display);padding:26px 70px;border:12px solid var(--ink);border-radius:30px;background:rgba(11,22,34,.93);white-space:nowrap}
 #konto{position:absolute;left:50%;top:73%;font:600 52px var(--mono);color:var(--muted);white-space:nowrap}
 </style>
-<div id="stage">
+<div id="stage" data-bg="lines">
   <div id="bg"></div>
   <div class="layer top">
     <div class="eyebrow">TAG 1 · DI, 03.11. · 12:01 UHR NEW YORK</div><div class="h1">Die 8 frischesten Ausbrüche</div>
@@ -26,9 +26,8 @@ const g=$("#grid");let f=0;
 const cards=L.map(([s,n,p,ok],i)=>{const d=document.createElement("div");d.className="s";
   d.innerHTML=`<b>${s}</b><span>${n}</span><em>${p>0?"+":"−"}${de(Math.abs(p))} %</em><u></u>`;g.appendChild(d);
   return {d,ok,at:ok?null:6+(f++)*.55,p};});
-const caps=[[.4,3.4,"Tag eins. Ich war spät dran, erst gegen Mittag New Yorker Zeit."],[5.6,9.6,"Von den acht frischesten Ausbrüchen waren fünf schon wieder gescheitert."],
- [10,13.6,"Bei den übrigen zeigte die Time Machine keinen echten Vorteil."],[14,15.8,"Also: kein Trade."],
- [16.2,21.5,"Nichts tun ist auch eine Entscheidung. Und an Tag eins die richtige."]];
+const caps=[[.4,3.4,"Tag 1: Ich bin spät dran"],[5.6,9.6,"5 von 8 Ausbrüchen: schon gescheitert"],
+ [10,13.6,"Der Rest: kein echter Vorteil"],[14,15.8,"Also: <b>kein Trade</b>"],[16.2,21.5,"Nichts tun ist auch eine Entscheidung."]];
 window.render=function(t){
   background(t);
   popIn(document.querySelector(".eyebrow"),t,.1);popIn(document.querySelector(".h1"),t,.3);
@@ -42,5 +41,6 @@ window.render=function(t){
   captions(t,caps);
 };
 window.SFX=[[.1,"whoosh"]].concat(L.map((_,i)=>[1.2+i*.22,"tick"])).concat(cards.filter(c=>c.at).map(c=>[c.at,"alert"])).concat([[10.2,"swish"],[14.1,"flat"]]);
+dayDots(1);
 window.render(0);
 </script>

@@ -1,19 +1,20 @@
 <!doctype html><meta charset="utf-8">
 <link rel="stylesheet" href="basis.css">
 <style>
-#list{display:grid;gap:16px;margin-top:34px}
-.l{display:flex;align-items:center;gap:34px;padding:18px 36px;border-radius:20px;border:4px solid var(--line);background:rgba(18,38,58,.92)}
-.l i{font:800 84px/1 var(--display);font-style:normal;color:var(--accent);min-width:70px}
-.l b{font:800 54px/1.1 var(--display);display:block} .l span{font:500 32px/1.3 var(--body);color:var(--muted)}
+#list{display:grid;gap:12px;margin-top:22px}
+.h1{font-size:88px}
+.l{display:flex;align-items:center;gap:34px;padding:11px 32px;border-radius:20px;border:4px solid var(--line);background:rgba(18,38,58,.92)}
+.l i{font:800 70px/1 var(--display);font-style:normal;color:var(--accent);min-width:70px}
+.l b{font:800 46px/1.1 var(--display);display:block} .l span{font:500 28px/1.3 var(--body);color:var(--muted)}
 #next{flex-direction:column;gap:30px}
 #end .big{font:800 300px/1 var(--display);color:var(--gain);text-shadow:0 0 60px rgba(52,199,123,.35)}
 #end .sub{font:800 84px var(--display);margin-top:10px}
 #end .ask{margin-top:44px;font:600 48px var(--body);color:#0b1622;background:var(--accent);padding:18px 34px;border-radius:16px}
 #end .dis{margin-top:30px;font:500 30px var(--mono);color:var(--muted)}
 </style>
-<div id="stage">
+<div id="stage" data-bg="dots">
   <div id="bg"></div>
-  <div class="layer top" id="a"><div class="eyebrow">NACH 7 TAGEN UND 9 TRADES</div><div class="h1">Was ich gelernt habe</div>
+  <div class="layer top" id="a" style="padding-top:70px"><div class="eyebrow">NACH 7 TAGEN UND 9 TRADES</div><div class="h1">Was ich gelernt habe</div>
     <div id="list">
       <div class="l"><i>1</i><div><b>Kosten entscheiden</b><span>Ohne Kosten sähe die Strategie fast fünfmal so gut aus.</span></div></div>
       <div class="l"><i>2</i><div><b>Regeln schützen, verdienen aber nichts</b><span>Kein Trade verlor mehr als 10 $.</span></div></div>
@@ -21,31 +22,20 @@
       <div class="l"><i>4</i><div><b>Das doppelte Risiko als Ziel ist schwer</b><span>Von 7 Versuchen hat es einer geschafft.</span></div></div>
       <div class="l"><i>5</i><div><b>7 Tage beweisen nichts</b><span>9 Trades sind keine Statistik.</span></div></div>
     </div></div>
-  <div class="layer" id="next"><div class="eyebrow">ALS NÄCHSTES TESTEN</div>
-    <span class="chip">Mindestschwelle für den Erwartungswert</span><span class="chip">Limit-Orders statt Market-Orders</span></div>
-  <div class="layer" id="end"><div class="big">+0,80 $</div><div class="sub">Wenig. Aber ehrlich.</div>
-    <div class="ask">Hättest du nach Tag 3 aufgehört? Schreib es in die Kommentare.</div>
-    <div class="dis">PAPIERHANDEL MIT SPIELGELD · KEINE ANLAGEBERATUNG</div></div>
   <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
   <div class="caption"></div>
 </div>
 <script src="basis.js"></script>
 <script>
 const T=[2.6,7.4,12.2,17.8,22];
-const caps=[[.4,2.4,"Was nehme ich mit?"],[2.6,7.2,"Erstens: Kosten entscheiden."],[7.4,12,"Zweitens: Die Regeln haben mich geschützt. Aber geschützt sein heißt nicht verdienen."],
- [12.2,17.6,"Drittens: Knappe Kandidaten verlieren."],[17.8,21.8,"Viertens: Das Doppelte des Risikos als Ziel ist schwer."],
- [22,26,"Fünftens: Sieben Tage beweisen gar nichts."],[26.6,31.6,"Als Nächstes: eine Mindestschwelle und Limit-Orders, um die Kosten zu senken."],
- [32.2,35.4,"Achtzig Cent Gewinn. Aber ein ehrliches Ergebnis."],[35.6,40,"Hättest du nach Tag drei aufgehört? Bis zum nächsten Mal."]];
+const caps=[[.4,2.4,"Was nehme ich mit?"]];
 window.render=function(t){
   background(t);
-  phase($("#a"),t,.1,26.4);
-  [...document.querySelectorAll(".l")].forEach((l,i)=>{const q=outBack(seg(t,T[i],T[i]+.45)),act=t>=T[i]&&t<(T[i+1]||26.4);
-    l.style.opacity=clamp(q)*(act?1:.45);l.style.transform=`translateX(${(1-q)*-180}px) scale(${act?1:.97})`;l.style.borderColor=act?"var(--accent)":"var(--line)";});
-  phase($("#next"),t,26.4,32);[...document.querySelectorAll("#next .chip")].forEach((c,i)=>popIn(c,t,27+i*1.6));
-  phase($("#end"),t,32,99);popIn($("#end .big"),t,32.2);popIn($("#end .sub"),t,33.2);popIn($("#end .ask"),t,35.6);$("#end .dis").style.opacity=seg(t,36.6,37.2);
-  document.querySelector(".disclaimer").style.opacity=1-seg(t,32,32.4);
+  phase($("#a"),t,.1,99);
+  [...document.querySelectorAll(".l")].forEach((l,i)=>{const q=outBack(seg(t,T[i],T[i]+.45)),act=t>=T[i]&&t<(T[i+1]||99);
+    l.style.opacity=clamp(q)*(act?1:.7);l.style.transform=`translateX(${(1-q)*-180}px) scale(${act?1:.97})`;l.style.borderColor=act?"var(--accent)":"var(--line)";});
   captions(t,caps);
 };
-window.SFX=[[.1,"whoosh"]].concat(T.map(x=>[x,"pop"])).concat([[26.4,"whoosh"],[27,"pop"],[28.6,"pop"],[32,"whoosh"],[32.2,"win"],[35.6,"pop"]]);
+window.SFX=[[.1,"whoosh"]].concat(T.map(x=>[x,"pop"]));
 window.render(0);
 </script>

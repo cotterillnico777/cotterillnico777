@@ -1,32 +1,19 @@
 <!doctype html><meta charset="utf-8">
 <link rel="stylesheet" href="basis.css"><link rel="stylesheet" href="trade.css">
-<div id="stage">
+<div id="stage" data-bg="grid">
   <div id="bg"></div>
   <div id="frame"><div id="chartwrap"><svg id="chart" viewBox="0 0 1680 640"></svg></div></div>
   <div id="clock"></div>
   <div id="pnlbox"><div class="k">ERGEBNIS</div><div id="pnl">+0,00 $</div></div>
   <div class="pop" id="entrytag" style="left:330px;top:300px">Kauf · 1 × 264,24 $</div>
-  <div class="pop" id="dip" style="left:560px;top:620px;background:var(--bg2);color:var(--ink);border:3px solid var(--line)">Kurz zurück auf den Einstand</div>
-  <div class="pop" id="neunzig" style="left:1060px;top:600px;background:var(--accent);color:#0b1622">90 Minuten bis zum Ziel</div>
+  <div class="pop" id="m0" style="left:560px;top:620px;background:var(--bg2);color:var(--ink);border:3px solid var(--line)">Kurz zurück auf den Einstand</div>
+  <div class="pop" id="m1" style="left:1060px;top:600px;background:var(--accent);color:#0b1622">90 Minuten bis zum Ziel</div>
   <div id="stamp" style="color:var(--gain)">ZIEL +12,06 $</div>
   <div id="title"><div class="eyebrow">TAG 5 · MO, 09.11.</div><div class="name">Moderna</div></div>
-  <div id="flash"></div>
-  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div id="flash" style="background:#fff"></div>
   <div class="caption"></div>
 </div>
 <script src="basis.js"></script>
 <script src="../daten/kerzen.js"></script>
-<script>
-window.TRADE={key:"MRNA_2026-11-09",entryBar:"09:50",exitBar:"11:20",entry:264.24,stop:258.21,target:276.30,qty:1,result:12.06,
- yMin:252,yMax:283,yStep:5,dimAfter:true,
- timeline:[[2.4,0],[4.2,5],[5.4,5],[11.6,23],[14.6,23],[17.6,78],[30,78]],
- tEntry:4.3,tExit:11.7,
- moments:[{id:"dip",bar:"10:10",price:264.29,color:"var(--ink)",t:7.7,hold:1.6,rot:-2},
-          {id:"neunzig",bar:"11:20",price:277.02,color:"var(--accent)",t:12.6,hold:3,rot:2}],
- captions:[[.3,2.4,"Tag fünf. Moderna."],[2.6,4.2,"Der stärkste Kandidat des ganzen Experiments."],
-  [4.4,7.6,"Gekauft um fünf vor zehn zu 264 Dollar. Ziel: das Doppelte des Risikos."],
-  [7.7,9.4,"Ein kurzer Rücksetzer …"],[9.6,11.6,"… und dann geht es nur noch nach oben."],
-  [11.7,15.6,"Neunzig Minuten später: Ziel erreicht. <b>Plus 11,89 Dollar</b>, netto."],
-  [15.8,21.5,"Brutto 12,06 Dollar, minus 17 Cent Kosten."]]};
-</script>
+<script>window.TRADE={"key": "MRNA_2026-11-09", "day": 5, "entryBar": "09:50", "exitBar": "11:20", "entry": 264.24, "stop": 258.21, "target": 276.3, "qty": 1, "result": 12.06, "yMin": 252, "yMax": 283, "yStep": 5, "dimAfter": true, "timeline": [[2.4, 0], [4.2, 5], [5.4, 5], [11.6, 23], [14.6, 23], [17.6, 78], [30, 78]], "tEntry": 4.3, "tExit": 11.7, "moments": [{"id": "m0", "bar": "10:10", "price": 264.29, "color": "var(--ink)", "t": 7.7, "hold": 1.6, "rot": -2, "sfx": "heart"}, {"id": "m1", "bar": "11:20", "price": 277.02, "color": "var(--accent)", "t": 12.6, "hold": 3, "rot": 2, "sfx": "pop"}], "captions": [[0.3, 2.4, "Tag 5: <b>Moderna</b>"], [2.6, 4.2, "Der stärkste Kandidat der Woche"], ["entry", 0.1, 3.1, "Kauf zu <b>264,24 $</b>. Ziel: doppeltes Risiko"], ["m0", 0, 1.7, "Kurzer Rücksetzer …"], [9.6, 11.6, "… dann nur noch nach oben"], ["exit", 0, 3.8, "Ziel nach 90 Minuten: <b>+11,89 $</b> netto"], [15.8, 21.5, "12,06 $ Gewinn, 17 Cent Kosten"]]};</script>
 <script src="trade.js"></script>

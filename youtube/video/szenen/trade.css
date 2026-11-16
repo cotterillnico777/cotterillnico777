@@ -6,7 +6,7 @@
 #chart{width:100%;height:100%}
 #clock{position:absolute;left:120px;top:150px;font:500 30px var(--mono);color:var(--muted)}
 #clock b{color:var(--ink);font-weight:600}
-#pnlbox{position:absolute;right:120px;top:84px;text-align:right}
+#pnlbox{position:absolute;right:120px;top:96px;text-align:right}
 #pnlbox .k{font:600 24px var(--mono);color:var(--muted);letter-spacing:.08em}
 #pnl{font:600 84px/1 var(--mono)}
 .pop{position:absolute;font:600 42px var(--body);padding:14px 24px;border-radius:14px;transform-origin:50% 50%;white-space:nowrap}

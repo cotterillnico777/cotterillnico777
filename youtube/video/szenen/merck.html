@@ -1,30 +1,18 @@
 <!doctype html><meta charset="utf-8">
 <link rel="stylesheet" href="basis.css"><link rel="stylesheet" href="trade.css">
-<div id="stage">
+<div id="stage" data-bg="grid">
   <div id="bg"></div>
   <div id="frame"><div id="chartwrap"><svg id="chart" viewBox="0 0 1680 640"></svg></div></div>
   <div id="clock"></div>
   <div id="pnlbox"><div class="k">ERGEBNIS</div><div id="pnl">+0,00 $</div></div>
   <div class="pop" id="entrytag" style="left:930px;top:250px">Kauf · 6 × 148,62 $</div>
-  <div class="pop" id="dip" style="left:520px;top:650px;background:var(--loss);color:#fff">−2,04 $ · Stop nur 0,99 $ entfernt</div>
+  <div class="pop" id="m0" style="left:520px;top:650px;background:var(--loss);color:#fff">−2,04 $ · Stop nur 0,99 $ entfernt</div>
   <div id="stamp" style="color:var(--gain)">ZIEL +7,98 $</div>
   <div id="title"><div class="eyebrow">TAG 2 · MI, 04.11.</div><div class="name">Merck</div></div>
-  <div id="flash"></div>
-  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div id="flash" style="background:#fff"></div>
   <div class="caption"></div>
 </div>
 <script src="basis.js"></script>
 <script src="../daten/kerzen.js"></script>
-<script>
-window.TRADE={key:"MRK_2026-11-04",entryBar:"12:35",exitBar:"15:35",entry:148.62,stop:147.29,target:149.95,qty:6,result:7.98,
- yMin:145.8,yMax:150.6,yStep:1,
- timeline:[[2.4,0],[6.3,38],[7.4,38],[11.4,60],[13.8,60],[18.4,74],[30,74]],
- tEntry:6.4,tExit:18.5,
- moments:[{id:"dip",bar:"14:25",price:148.28,color:"var(--loss)",t:11.5,hold:2.3,shake:true,rot:-2}],
- captions:[[.3,2.3,"Tag zwei. Merck."],[2.5,6.3,"Der Kurs schließt über dem Hoch der ersten 15 Minuten."],
-  [6.5,9.6,"Gekauft um zwanzig vor eins: 6 Aktien zu 148,62 Dollar."],[9.8,11.4,"Erst leicht im Plus …"],
-  [11.5,14.6,"… dann fällt die Aktie: <b>minus 2,04 Dollar</b>, der Stop keinen Dollar entfernt."],
-  [14.8,18.4,"Und dann, in der letzten halben Stunde, läuft sie hoch."],
-  [18.6,23.5,"Ziel erreicht, 20 Minuten vor Schluss: <b>plus 7,98 Dollar</b>."]]};
-</script>
+<script>window.TRADE={"key": "MRK_2026-11-04", "day": 2, "entryBar": "12:35", "exitBar": "15:35", "entry": 148.62, "stop": 147.29, "target": 149.95, "qty": 6, "result": 7.98, "yMin": 145.8, "yMax": 150.6, "yStep": 1, "timeline": [[2.4, 0], [6.3, 38], [7.4, 38], [11.4, 60], [13.8, 60], [18.4, 74], [30, 74]], "tEntry": 6.4, "tExit": 18.5, "moments": [{"id": "m0", "bar": "14:25", "price": 148.28, "color": "var(--loss)", "t": 11.5, "hold": 2.3, "shake": true, "rot": -2, "sfx": "heart"}], "captions": [[0.3, 2.3, "Tag 2: <b>Merck</b>"], [2.6, 6.2, "Ausbruch über die ersten 15 Minuten"], ["entry", 0.1, 3, "Kauf: 6 Aktien zu <b>148,62 $</b>"], [9.8, 11.4, "Erst leicht im Plus …"], ["m0", 0, 3, "… dann <b>−2,04 $</b>. Der Stop ist ganz nah."], [14.8, 18.3, "Letzte halbe Stunde: Sie dreht."], ["exit", 0.1, 4.5, "Ziel erreicht: <b>+7,98 $</b>"]]};</script>
 <script src="trade.js"></script>

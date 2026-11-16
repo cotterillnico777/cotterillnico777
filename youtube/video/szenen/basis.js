@@ -21,7 +21,8 @@ function captions(t, list) {
   if (!c) { el.style.opacity = 0; return; }
   el.innerHTML = c[2];
   const p = Math.min(seg(t, c[0], c[0] + .18), 1 - seg(t, c[1] - .12, c[1]));
-  el.style.opacity = p; el.style.transform = `translateX(-50%) translateY(${(1 - p) * 14}px)`;
+  const pop = outBack(seg(t, c[0], c[0] + .28));
+  el.style.opacity = p; el.style.transform = `translateX(-50%) scale(${.86 + .14 * pop})`;
 }
 
 // Element springt ins Bild (ab Zeit a) und kann ab Zeit b wieder verschwinden.
@@ -37,3 +38,10 @@ function phase(el, t, a, b) {
 }
 const SVGNS = "http://www.w3.org/2000/svg";
 function svgEl(tag, a, p, txt) { const e = document.createElementNS(SVGNS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; p.appendChild(e); return e; }
+
+// Fortschrittsanzeige oben rechts: Tag x von 7
+function dayDots(day) {
+  const d = document.createElement("div"); d.className = "days";
+  d.innerHTML = `<span>TAG ${day}/7</span>` + Array.from({ length: 7 }, (_, i) => `<i class="${i + 1 < day ? "done" : i + 1 === day ? "now" : ""}"></i>`).join("");
+  $("#stage").appendChild(d);
+}

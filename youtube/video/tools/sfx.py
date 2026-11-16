@@ -1,7 +1,7 @@
 """Erzeugt Soundeffekte synthetisch (keine fremden Samples, keine Lizenzfragen)
 und mischt sie zu den Zeitpunkten einer Szene.
 Aufruf: python3 tools/sfx.py cues.json DAUER_SEKUNDEN out.wav
-cues.json: [[zeit, "name"], ...]; Namen: whoosh, swish, pop, alert, win, loss, flat, tick"""
+cues.json: [[zeit, "name"], ...]; Namen: whoosh, swish, pop, alert, win, loss, flat, tick, riser, candle, heart, cash, buzz, sub"""
 import json, sys, wave
 import numpy as np
 
@@ -78,7 +78,39 @@ def flat():
     b = bell(659.3, 1.4); s = int(.03 * SR); out[s:s + len(b)] += .25 * b
     return out
 
-LIB = {"flat": flat, "whoosh": lambda: whoosh(), "swish": lambda: .6 * whoosh(.35, 800, 6000), "pop": pop,
+def riser(sec=1.1):
+    t = t_(sec); n = rng.standard_normal(len(t))
+    y = lowpass(n, 300 * (20 ** (t / sec)))
+    tone = np.sin(2 * np.pi * np.cumsum(180 * (6 ** (t / sec))) / SR)
+    return (.5 * y / np.abs(y).max() + .25 * tone) * (t / sec) ** 2
+
+def candle():
+    t = t_(.03); return .1 * np.sin(2 * np.pi * 1500 * t) * np.exp(-t * 160)
+
+def heart():
+    out = np.zeros(int(.6 * SR))
+    for k, a in ((0, 1.0), (.22, .7)):
+        t = t_(.2); b = np.sin(2 * np.pi * 58 * t * (1 + .5 * np.exp(-t * 30))) * np.exp(-t * 22)
+        s = int(k * SR); out[s:s + len(b)] += a * b
+    return .9 * out
+
+def cash():
+    out = np.zeros(int(1.2 * SR))
+    for k, f in enumerate((2093.0, 2637.0, 3136.0)):
+        b = bell(f, .9); s = int(k * .06 * SR); out[s:s + len(b)] += .16 * b
+    t = t_(.12); ch = lowpass(rng.standard_normal(len(t)), 9000) - lowpass(rng.standard_normal(len(t)), 3000)
+    out[:len(t)] += .12 * ch * np.exp(-t * 40)
+    return out
+
+def buzz():
+    t = t_(.28); sq = np.sign(np.sin(2 * np.pi * 98 * t))
+    return .35 * lowpass(sq, 700) * env(len(t), .005, .08)
+
+def sub():
+    t = t_(.7); f = 95 * (35 / 95) ** (t / .7)
+    return .8 * np.sin(2 * np.pi * np.cumsum(f) / SR) * env(len(t), .01, .4)
+
+LIB = {"riser": riser, "candle": candle, "heart": heart, "cash": cash, "buzz": buzz, "sub": sub, "flat": flat, "whoosh": lambda: whoosh(), "swish": lambda: .6 * whoosh(.35, 800, 6000), "pop": pop,
        "alert": alert, "win": win, "loss": loss, "tick": tick}
 
 def main(cues_path, dur, out_path):

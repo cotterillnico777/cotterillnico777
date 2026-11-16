@@ -123,8 +123,13 @@
     captions(t, C.captions);
   };
   // Ton-Stichworte für tools/sfx.py
-  window.SFX = [[.1, "whoosh"], [1.5, "swish"], [C.tEntry, "pop"]]
+  const stop = !C.exitSfx && C.result < 0, win = !C.exitSfx && C.result >= 0;
+  window.SFX = [[.1, "whoosh"], [.1, "sub"], [1.5, "swish"], [C.tEntry, "pop"]]
     .concat((C.moments || []).map(m => [m.t, m.sfx || "alert"]))
-    .concat([[C.tExit, C.exitSfx || (C.result >= 0 ? "win" : "loss")]]);
+    .concat([[Math.max(0, C.tExit - 1.1), "riser"], [C.tExit, C.exitSfx || (win ? "win" : "loss")]])
+    .concat(win ? [[C.tExit + .3, "cash"]] : stop ? [[C.tExit + .25, "buzz"]] : []);
+  // leises Ticken, während die Kerzen laufen
+  let last = -1; for (let i = 0; i < n; i++) { const tt = tAt(i); if (tt - last >= .1) { window.SFX.push([tt, "candle"]); last = tt; } }
+  if (C.day) dayDots(C.day);
   window.render(0);
 })();

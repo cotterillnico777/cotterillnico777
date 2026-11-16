@@ -16,10 +16,11 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:
   linear-gradient(90deg, var(--line) 1px, transparent 1px) var(--go,0px) 0/80px 80px;
   opacity:.55}
 .layer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.disclaimer{position:absolute;right:48px;top:36px;font:500 20px var(--mono);color:var(--muted);letter-spacing:.06em}
-.caption{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);max-width:1720px;width:max-content;text-align:center;
-  font:600 44px/1.25 var(--body);color:var(--ink);padding:14px 28px;border-radius:14px;background:rgba(7,14,22,.78)}
-.caption b{color:var(--cost);font-weight:600}
+.disclaimer{display:none}
+.caption{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);max-width:1640px;width:max-content;text-align:center;
+  font:800 60px/1.12 var(--display);color:var(--ink);
+  text-shadow:0 5px 0 rgba(0,0,0,.6),0 0 10px rgba(0,0,0,.95),0 0 34px rgba(0,0,0,.9),0 0 70px rgba(0,0,0,.7)}
+.caption b{color:var(--cost);font-weight:800}
 svg text{font-family:var(--mono)}
 .eyebrow{font:600 34px var(--mono);color:var(--accent);letter-spacing:.1em}
 .h1{font:800 110px/1.02 var(--display)}
@@ -27,3 +28,33 @@ svg text{font-family:var(--mono)}
 .card{background:rgba(18,38,58,.92);border:3px solid var(--line);border-radius:22px;padding:30px 40px}
 #flash{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0}
 .layer.top{justify-content:flex-start;padding:110px 120px 0;align-items:stretch}
+
+/* Hintergrund-Varianten: <div id="stage" data-bg="..."> */
+#stage[data-bg=dots]{background:#110f22}
+#stage[data-bg=dots] #bg{opacity:.8;background:
+  radial-gradient(1000px 700px at var(--gx,30%) var(--gy,30%), rgba(150,110,255,.22), transparent 70%),
+  radial-gradient(#2c2852 2.5px, transparent 3px) var(--go,0px) 0/46px 46px}
+#stage[data-bg=lines]{background:#08171a}
+#stage[data-bg=lines] #bg{opacity:.8;background:
+  radial-gradient(1000px 700px at var(--gx,30%) var(--gy,30%), rgba(40,200,180,.18), transparent 70%),
+  repeating-linear-gradient(115deg, transparent 0 58px, #14343a 58px 60px)}
+#stage[data-bg=warm]{background:#16110a}
+#stage[data-bg=warm] #bg{opacity:.85;background:
+  radial-gradient(1000px 700px at var(--gx,30%) var(--gy,30%), rgba(255,178,63,.17), transparent 70%),
+  repeating-linear-gradient(65deg, transparent 0 70px, #2b2114 70px 72px)}
+#stage[data-bg=glow]{background:#090d1a}
+#stage[data-bg=glow] #bg{opacity:1;background:
+  radial-gradient(900px 700px at var(--gx,30%) var(--gy,30%), rgba(58,160,255,.26), transparent 70%),
+  radial-gradient(900px 700px at calc(100% - var(--gx,30%)) calc(100% - var(--gy,30%)), rgba(190,80,255,.16), transparent 70%)}
+#stage[data-bg=violet] #bg{background:
+  radial-gradient(900px 600px at var(--gx,30%) var(--gy,30%), rgba(160,110,255,.2), transparent 70%),
+  linear-gradient(var(--line) 1px, transparent 1px) 0 var(--go,0px)/80px 80px,
+  linear-gradient(90deg, var(--line) 1px, transparent 1px) var(--go,0px) 0/80px 80px}
+#stage[data-bg=teal] #bg{background:
+  radial-gradient(900px 600px at var(--gx,30%) var(--gy,30%), rgba(40,200,180,.18), transparent 70%),
+  linear-gradient(var(--line) 1px, transparent 1px) 0 var(--go,0px)/120px 120px,
+  linear-gradient(90deg, var(--line) 1px, transparent 1px) var(--go,0px) 0/120px 120px}
+/* Fortschritt: Tag x von 7 */
+.days{position:absolute;right:56px;top:36px;display:flex;gap:10px;align-items:center;font:600 22px var(--mono);color:var(--muted)}
+.days i{width:34px;height:10px;border-radius:5px;background:var(--line)}
+.days i.done{background:var(--gross)} .days i.now{background:var(--accent);box-shadow:0 0 14px var(--accent)}

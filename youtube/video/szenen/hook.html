@@ -16,7 +16,7 @@
 #q{font:800 560px/1 var(--display);color:var(--cost);text-shadow:0 0 90px rgba(255,178,63,.35)}
 #blurnum{font:600 120px var(--mono);filter:blur(22px);color:var(--ink);margin-top:-30px}
 </style>
-<div id="stage">
+<div id="stage" data-bg="glow">
   <div id="bg"></div>
   <div class="layer" id="a"><div class="k">KONTOSTAND</div><div id="num">1.000,00 $</div><div id="delta"></div>
     <div class="tags"><span class="chip">1.000 $</span><span class="chip">7 Tage</span><span class="chip">strenge Regeln</span></div></div>
@@ -33,10 +33,9 @@
 <script src="basis.js"></script>
 <script>
 const noise=i=>{const x=Math.sin(i*12.9898)*43758.5453;return (x-Math.floor(x))*2-1;};
-const caps=[[.4,3,"Tausend Dollar. Sieben Tage an der Börse."],[3.2,7.8,"Und Regeln, die strenger sind als bei den meisten Profis."],
- [8.3,10.4,"Kein Bauchgefühl, kein Zocken."],[10.6,13.2,"Jeder Trade wird vorher zehntausendmal simuliert."],
- [13.5,15.6,"Kann man so Geld verdienen?"],[15.8,19,"Oder fressen die versteckten Kosten am Ende alles auf?"],
- [19.3,24,"Ich habe es ausprobiert. Und das Ergebnis hat mich selbst überrascht."]];
+const caps=[[.4,3,"1.000 $. 7 Tage an der Börse."],[3.2,7.8,"Regeln strenger als bei den meisten Profis"],
+ [8.3,10.4,"Kein Bauchgefühl. Kein Zocken."],[10.6,13.2,"Jeder Trade: <b>10.000-mal</b> simuliert"],
+ [13.5,15.6,"Kann man so Geld verdienen?"],[15.8,19,"Oder fressen die <b>Kosten</b> alles auf?"],[19.3,24,"Das Ergebnis hat mich überrascht."]];
 window.render=function(t){
   background(t);
   phase($("#a"),t,0,8.2);

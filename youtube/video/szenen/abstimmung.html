@@ -1,0 +1,43 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css">
+<style>
+#opts{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px}
+.o{display:flex;align-items:center;gap:30px;padding:26px 34px;border-radius:22px;border:5px solid var(--line);background:rgba(18,38,58,.92)}
+.o i{font:800 110px/1 var(--display);font-style:normal;min-width:100px;text-align:center}
+.o b{font:800 58px/1.05 var(--display);display:block} .o span{font:500 32px/1.3 var(--body);color:var(--muted)}
+#cta{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;white-space:nowrap}
+#cta .big{font:800 150px/1.02 var(--display)} #cta .big em{font-style:normal;color:var(--cost)}
+#cta .sub{margin-top:36px;display:inline-block;font:600 50px var(--body);color:#0b1622;background:var(--accent);padding:18px 36px;border-radius:16px}
+#fin .big{font:800 280px/1 var(--display);color:var(--gain);text-shadow:0 0 60px rgba(52,199,123,.35)}
+#fin .sub{font:800 84px var(--display);margin-top:10px}
+</style>
+<div id="stage" data-bg="glow">
+  <div id="bg"></div>
+  <div class="layer top" id="a"><div class="eyebrow">TEIL 2? DU ENTSCHEIDEST.</div><div class="h1">Wie geht es weiter?</div>
+    <div id="opts">
+      <div class="o"><i style="color:var(--gain)">A</i><div><b>Echtgeld</b><span>dieselben Regeln, kleines echtes Konto</span></div></div>
+      <div class="o"><i style="color:var(--loss)">B</i><div><b>Shorts dazu</b><span>auch auf fallende Kurse setzen</span></div></div>
+      <div class="o"><i style="color:var(--cost)">C</i><div><b>Mit Hebel</b><span>mehr Chance, mehr Risiko</span></div></div>
+      <div class="o"><i style="color:var(--accent)">D</i><div><b>Regeln schärfen</b><span>Mindestschwelle, Limit-Orders, mehr Tage</span></div></div>
+    </div></div>
+  <div id="cta"><div class="big">Schreib <em>A, B, C</em> oder <em>D</em><br>in die Kommentare</div><div class="sub">Die Mehrheit entscheidet über Teil 2</div></div>
+  <div class="layer" id="fin"><div class="big">+0,80 $</div><div class="sub">Wenig. Aber ehrlich.</div></div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script>
+const T=[3.2,6.4,9.6,12.8];
+const caps=[[.4,3,"Wie geht es weiter? <b>Du</b> entscheidest."],[3.2,6.2,"A: dasselbe mit <b>echtem Geld</b>"],[6.4,9.4,"B: <b>Shorts</b> mit ins Depot"],
+ [9.6,12.6,"C: ein Versuch mit <b>Hebel</b>"],[12.8,16,"D: erst die <b>Regeln schärfen</b>"],[22.6,27.5,"80 Cent. Wenig, aber ehrlich. Bis zum nächsten Mal."]];
+window.render=function(t){
+  background(t);
+  phase($("#a"),t,.1,16.6);
+  [...document.querySelectorAll(".o")].forEach((o,i)=>{const act=t>=T[i]&&t<(T[i+1]||16.6);popIn(o,t,T[i]);if(t>=T[i])o.style.opacity=act?1:.5;o.style.borderColor=act?"var(--accent)":"var(--line)";});
+  const c=outBack(seg(t,16.8,17.4)),co=1-seg(t,21.8,22.2);$("#cta").style.opacity=clamp(c)*co;$("#cta").style.transform=`translate(-50%,-50%) scale(${.7+.3*c})`;
+  popIn($("#cta .sub"),t,18.4);
+  phase($("#fin"),t,22.2,99);popIn($("#fin .big"),t,22.4);popIn($("#fin .sub"),t,23.4);
+  captions(t,caps);
+};
+window.SFX=[[.1,"whoosh"],[.1,"sub"]].concat(T.map(x=>[x,"pop"])).concat([[15.7,"riser"],[16.8,"win"],[18.4,"pop"],[22.2,"whoosh"],[22.4,"cash"]]);
+window.render(0);
+</script>

@@ -15,7 +15,7 @@
 #rule em{font-style:normal;color:var(--cost)}
 #mrk{margin-top:30px;font:600 44px var(--mono);color:var(--muted)} #mrk b{color:var(--loss)}
 </style>
-<div id="stage">
+<div id="stage" data-bg="warm">
   <div id="bg"></div>
   <div class="layer" id="a"><div id="q">Was hätte ein <em>echter Trader</em> dafür bezahlt?</div></div>
   <div class="layer" id="b"><div class="eyebrow">JEDER KAUF UND VERKAUF KOSTET</div>
@@ -33,11 +33,9 @@
 </div>
 <script src="basis.js"></script>
 <script>
-const caps=[[.4,3,"Nach vier Tagen habe ich mir eine Frage gestellt:"],[3.2,6.2,"Was hätte ein echter Trader dafür bezahlt?"],
- [6.6,12.6,"Der Abstand zwischen Kauf- und Verkaufskurs. Schlechtere Ausführung. Kleine Gebühren."],
- [12.8,16.6,"Pro Trade nur etwa sechs Hundertstel Prozent. Aber bei kleinen Gewinnen ist das viel."],
- [17,20.6,"Bei Merck gingen 56 Cent vom Gewinn ab."],[21,24.8,"Ab Tag fünf gilt: Gekauft wird nur, wenn es sich auch nach Kosten lohnt."],
- [25,29.5,"Merck von Tag zwei hätte ich nach dieser Regel gar nicht gekauft."]];
+const caps=[[.4,3,"Nach vier Tagen kam eine Frage auf"],[3.2,6.2,"Was hätte das <b>in echt</b> gekostet?"],
+ [6.6,12.6,"Spread. Slippage. Gebühren."],[12.8,16.6,"Nur 0,06 % pro Trade. Klingt nach nichts."],
+ [17,20.6,"Bei Merck: <b>56 Cent</b> weniger Gewinn"],[21,24.8,"Neue Regel: Es muss sich <b>nach Kosten</b> lohnen"],[25,29.5,"Merck hätte ich so nie gekauft."]];
 window.render=function(t){
   background(t);
   phase($("#a"),t,.2,6.5);const q=outBack(seg(t,3.1,3.7));$("#q").style.transform=`scale(${.9+.1*q})`;$("#q em").style.opacity=.35+.65*seg(t,3.1,3.5);

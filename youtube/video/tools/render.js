@@ -20,8 +20,16 @@ const path = require('path');
   page.on('pageerror', e => console.error('Fehler in der Szene:', e.message));
   await page.goto('file://' + path.resolve(scene));
   await page.evaluate(() => document.fonts.ready);
+  // Wisch-Übergang: WIPE=in,out (Standard beide), z. B. WIPE=out für die erste Szene
+  const wipe = (process.env.WIPE || 'in,out').split(','), WD = .32;
+  await page.addStyleTag({ content: '#wipe{position:fixed;top:-10%;left:0;width:140%;height:120%;z-index:99;pointer-events:none;background:linear-gradient(90deg,#0b1622 0,#0b1622 86%,#3aa0ff);transform:translateX(-170%) skewX(-12deg)}' });
+  await page.evaluate(() => { const d = document.createElement('div'); d.id = 'wipe'; document.body.appendChild(d); });
+  const wipeX = t => { const e = p => p * p * (3 - 2 * p);
+    if (wipe.includes('in') && t < WD) return -20 + 150 * e(t / WD);
+    if (wipe.includes('out') && t > secs - WD) return -170 + 150 * e((t - (secs - WD)) / WD);
+    return -170; };
   for (let i = 0; i < frames; i++) {
-    await page.evaluate(t => window.render(t), i / fps);
+    await page.evaluate(([t, x]) => { window.render(t); document.getElementById('wipe').style.transform = `translateX(${x}%) skewX(-12deg)`; }, [i / fps, wipeX(i / fps)]);
     const buf = await page.screenshot({ type: 'jpeg', quality: 92 });
     if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
     if (i % 90 === 0) process.stdout.write(`\r${scene}: ${i}/${frames}`);
@@ -30,6 +38,7 @@ const path = require('path');
   await new Promise(r => ff.on('close', r));
   // Ohne eigene Tonspur: Soundeffekte aus window.SFX erzeugen und unterlegen
   const cues = audio ? null : await page.evaluate(() => window.SFX || null);
+  if (cues && wipe.includes('out')) cues.push([secs - WD - .05, 'swish']);
   await browser.close();
   if (cues && cues.length) {
     const tmp = out.replace(/\.mp4$/, '');
