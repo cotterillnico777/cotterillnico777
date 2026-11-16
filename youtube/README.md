@@ -97,5 +97,6 @@ Trades, Gewinn/Verlust und Kontostand für das Video.
 
 **Endstand 1.003,78 $ brutto, 1.000,80 $ netto.** 9 Trades, brutto +3,78 $,
 Kosten 2,98 $, netto **+0,80 $ (+0,08 %)**. Die Kosten haben fast 80 % des
-Bruttogewinns aufgezehrt. Ausführlich mit Lehren in
+Bruttogewinns aufgezehrt. Kompletter Bericht mit allen Trades und Video-Ablauf:
+[abschlussbericht.md](abschlussbericht.md). Ausführlich mit Lehren in
 [Tag 7](tag-07-2026-11-11.md#abschlussbilanz-7-tage-1000--spielgeld).
