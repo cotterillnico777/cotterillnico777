@@ -1,0 +1,23 @@
+@import url("../fonts/fonts.css");
+/* Look: dunkles Studio-Blau, eine kräftige Akzentfarbe, Zahlen in Mono, Titel in Bricolage */
+:root{
+  --bg:#0b1622; --bg2:#12263a; --ink:#f3f7fb; --muted:#8ea3b8; --line:#22384e;
+  --accent:#3aa0ff; --gross:#7f9bb6; --gain:#34c77b; --loss:#ff5a5a; --cost:#ffb23f;
+  --display:"Bricolage Grotesque", "Arial Black", sans-serif;
+  --body:"IBM Plex Sans", Arial, sans-serif;
+  --mono:"IBM Plex Mono", "DejaVu Sans Mono", monospace;
+}
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--body)}
+#stage{position:absolute;inset:0;overflow:hidden}
+#bg{position:absolute;inset:-200px;background:
+  radial-gradient(900px 600px at var(--gx,30%) var(--gy,30%), rgba(58,160,255,.18), transparent 70%),
+  linear-gradient(var(--line) 1px, transparent 1px) 0 var(--go,0px)/80px 80px,
+  linear-gradient(90deg, var(--line) 1px, transparent 1px) var(--go,0px) 0/80px 80px;
+  opacity:.55}
+.layer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.disclaimer{position:absolute;right:48px;top:36px;font:500 20px var(--mono);color:var(--muted);letter-spacing:.06em}
+.caption{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);max-width:1720px;width:max-content;text-align:center;
+  font:600 44px/1.25 var(--body);color:var(--ink);padding:14px 28px;border-radius:14px;background:rgba(7,14,22,.78)}
+.caption b{color:var(--cost);font-weight:600}
+svg text{font-family:var(--mono)}

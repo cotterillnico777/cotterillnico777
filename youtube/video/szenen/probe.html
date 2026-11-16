@@ -1,0 +1,79 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css">
+<style>
+#hook .big{font:800 300px/1 var(--display);letter-spacing:-.02em;color:var(--gain);text-shadow:0 0 60px rgba(52,199,123,.35)}
+#hook .tags{display:flex;gap:28px;margin-top:30px}
+#hook .tags span{font:600 54px var(--mono);padding:10px 26px;border:3px solid var(--line);border-radius:14px;background:var(--bg2)}
+#flash{position:absolute;inset:0;background:#fff;pointer-events:none}
+#curve{padding:80px 120px 220px}
+#curve .top{display:flex;justify-content:space-between;align-items:flex-end;width:100%;margin-bottom:24px}
+#curve h2{font:800 76px var(--display)}
+#curve h2 em{font-style:normal;color:var(--cost)}
+#cam{width:100%;flex:1;min-height:0;transform-origin:70% 60%}
+#cam svg{width:100%;height:100%}
+.callout{position:absolute;left:230px;top:680px;font:600 46px var(--body);background:var(--cost);color:#1a1205;padding:16px 26px;border-radius:14px}
+.legend{display:flex;padding-bottom:14px;gap:36px;font:600 30px var(--body);color:var(--muted)}
+.legend i{display:inline-block;width:34px;height:8px;border-radius:4px;margin-right:12px;vertical-align:middle}
+</style>
+<div id="stage">
+  <div id="bg"></div>
+  <div class="layer" id="hook">
+    <div class="big" id="count">+0,00 $</div>
+    <div class="tags"><span>7 Tage</span><span>9 Trades</span><span>1.000 $</span></div>
+  </div>
+  <div class="layer" id="curve">
+    <div class="top"><h2>Brutto gegen <em>netto</em></h2>
+    <div class="legend"><span><i style="background:var(--gross)"></i>vor Kosten</span><span><i style="background:var(--accent)"></i>nach Kosten</span><span><i style="background:var(--cost)"></i>Kosten</span></div></div>
+    <div id="cam"><svg id="svg" viewBox="0 0 1680 640"></svg></div>
+    <div class="callout" id="callout">Kosten fressen fast 80 % des Gewinns</div>
+  </div>
+  <div id="flash"></div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const mk=(tag,a,p,txt)=>{const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e;};
+const days=[["Start",1000,1000],["Tag 1",1000,1000],["Tag 2",1007.98,1007.42],["Tag 3",999.34,998.21],["Tag 4",998.19,996.50],["Tag 5",1008.37,1006.20],["Tag 6",1001.79,999.26],["Tag 7",1003.78,1000.80]];
+const svg=$('#svg'),W=1680,H=640,L=110,R=300,T=20,B=60,lo=994,hi=1010;
+const X=i=>L+i*(W-L-R)/(days.length-1),Y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+const axis=mk('g',{},svg);
+for(let v=lo;v<=hi;v+=4){mk('line',{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:'var(--line)','stroke-width':v===1000?3:2},axis);mk('text',{x:L-16,y:Y(v)+9,'text-anchor':'end','font-size':26,fill:'var(--muted)'},axis,de(v,0));}
+days.forEach((d,i)=>mk('text',{x:X(i),y:H-14,'text-anchor':'middle','font-size':26,fill:'var(--muted)'},axis,d[0]));
+const area=mk('polygon',{points:days.map((d,i)=>`${X(i)},${Y(d[1])}`).concat(days.map((d,i)=>`${X(i)},${Y(d[2])}`).reverse()).join(' '),fill:'var(--cost)'},svg);
+const lines=[[1,'var(--gross)',6],[2,'var(--accent)',9]].map(([k,c,w])=>{
+  const p=mk('polyline',{points:days.map((d,i)=>`${X(i)},${Y(d[k])}`).join(' '),fill:'none',stroke:c,'stroke-width':w,'stroke-linejoin':'round','stroke-linecap':'round'},svg);
+  const len=p.getTotalLength();p.style.strokeDasharray=len;return {p,len,k,c};});
+const n=days.length-1;
+const lab1=mk('text',{x:X(n)+22,y:Y(days[n][1])-6,'font-size':34,'font-weight':600,fill:'var(--gross)'},svg,'1.003,78 $');
+const lab2=mk('text',{x:X(n)+22,y:Y(days[n][2])+32,'font-size':40,'font-weight':600,fill:'var(--accent)'},svg,'1.000,80 $');
+
+const caps=[[0.5,3.4,'Sieben Tage. Neun Trades. Tausend Dollar Spielgeld.'],[3.6,6.4,'Am Ende stehen achtzig Cent Gewinn.'],
+ [6.6,10.2,'Die obere Linie: vor Kosten, <b>plus 3,78 Dollar</b>.'],[10.4,14.6,'Die orange Fläche sind die Kosten: fast <b>80 Prozent</b> des Gewinns.']];
+
+window.render=function(t){
+  background(t);
+  // Hook
+  const hk=$('#hook'),pop=outBack(seg(t,.35,.95));
+  $('#count').textContent='+'+de(.8*outCubic(seg(t,.35,1.5)))+' $';
+  $('#count').style.transform=`scale(${1.6-.6*pop})`;$('#count').style.opacity=seg(t,.35,.55);
+  $('#count').style.filter=`blur(${(1-seg(t,.35,.75))*14}px)`;
+  [...document.querySelectorAll('#hook .tags span')].forEach((s,i)=>{const p=outBack(seg(t,1.6+i*.35,2.05+i*.35));s.style.opacity=clamp(p);s.style.transform=`translateY(${(1-p)*60}px) scale(${.8+.2*p})`;});
+  const out=inOut(seg(t,3.5,4.1));
+  hk.style.transform=`translateY(${-out*700}px) scale(${1-.2*out})`;hk.style.filter=`blur(${out*20}px)`;hk.style.opacity=1-out;
+  $('#flash').style.opacity=.55*(1-seg(t,.4,.75))*(t>.4?1:0);
+  // Kurve
+  const cv=$('#curve'),inn=outCubic(seg(t,3.7,4.4));
+  cv.style.opacity=inn;cv.style.transform=`translateY(${(1-inn)*500}px)`;
+  axis.style.opacity=seg(t,4.2,4.8);
+  lines.forEach((l,j)=>{const p=inOut(seg(t,4.8+j*.6,7.6+j*.6));l.p.style.strokeDashoffset=l.len*(1-p);});
+  area.style.opacity=.42*seg(t,8.3,9.3);
+  [[lab1,7.6],[lab2,8.2]].forEach(([e,s])=>{const p=outBack(seg(t,s,s+.45));e.style.opacity=clamp(p);e.setAttribute('transform',`translate(0 ${(1-p)*20})`);});
+  const z=inOut(seg(t,10.2,13));$('#cam').style.transform=`scale(${1+.07*z})`;
+  const co=outBack(seg(t,10.6,11.1));$('#callout').style.opacity=clamp(co);$('#callout').style.transform=`scale(${.6+.4*co}) rotate(${-2*co}deg)`;
+  $('.legend').style.opacity=seg(t,5,5.6);
+  captions(t,caps);
+};
+window.render(0);
+</script>
