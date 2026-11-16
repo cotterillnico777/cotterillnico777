@@ -1,6 +1,7 @@
 # Sprecherskript: „7 Tage, 9 Trades, 1.000 Dollar“
 
-Das Video dauert etwa 9 Minuten. Die Länge der Szenen kommt später aus deiner
+Das Video dauert etwa 9 Minuten. Das Ergebnis wird erst in Abschnitt 09
+verraten. Die Länge der Szenen kommt später aus deiner
 Aufnahme.
 
 ## So nimmst du auf
@@ -27,13 +28,17 @@ gesprochen.
 
 ## 01 – Hook (ca. 25 s)
 
-[Schwarzes Bild, dann groß: „+0,80 $“. Darunter: „7 Tage · 9 Trades · 1.000 $“]
+[Schwarzes Bild. Ein Kontostand „1.000,00 $“ flackert, Zahlen springen
+hoch und runter. Dann groß: „7 Tage · 9 Trades · 1.000 $“ und ein Fragezeichen.
+Das Ergebnis wird NICHT gezeigt.]
 
-Sieben Tage. Neun Trades. Tausend Dollar Spielgeld.
-Am Ende stehen achtzig Cent Gewinn.
-Klingt nach nichts. Aber genau diese achtzig Cent erzählen mehr über das
-Traden als jeder Screenshot mit tausend Prozent.
-Ich zeige dir heute, warum.
+Tausend Dollar. Sieben Tage an der Börse. Und Regeln, die strenger sind als
+bei den meisten Profis.
+Kein Bauchgefühl, kein Zocken. Jeder Trade wird vorher zehntausendmal
+simuliert.
+Kann man so Geld verdienen?
+Oder fressen die versteckten Kosten am Ende alles auf?
+Ich habe es ausprobiert. Und das Ergebnis hat mich selbst überrascht.
 
 ## 02 – Das Experiment (ca. 55 s)
 
@@ -156,7 +161,14 @@ ohne Stop und ohne Ziel.
 Und Cboe zeigt das ganze Experiment im Kleinen:
 brutto plus achtzehn Cent, netto minus fünf Cent.
 
-Hier ist die Bilanz.
+Und jetzt die Auflösung. Nach sieben Tagen und neun Trades steht mein
+Konto bei …
+tausend Dollar und achtzig Cent.
+Achtzig Cent Gewinn.
+
+[Großes „+0,80 $“ erscheint erst hier.]
+
+Und so sieht das aus.
 Die obere Linie ist der Kontostand vor Kosten: plus drei Dollar
 achtundsiebzig.
 Die untere Linie ist das, was wirklich übrig bleibt: plus achtzig Cent.
