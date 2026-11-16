@@ -21,3 +21,9 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:
   font:600 44px/1.25 var(--body);color:var(--ink);padding:14px 28px;border-radius:14px;background:rgba(7,14,22,.78)}
 .caption b{color:var(--cost);font-weight:600}
 svg text{font-family:var(--mono)}
+.eyebrow{font:600 34px var(--mono);color:var(--accent);letter-spacing:.1em}
+.h1{font:800 110px/1.02 var(--display)}
+.chip{font:600 46px var(--mono);padding:12px 26px;border:3px solid var(--line);border-radius:14px;background:var(--bg2);white-space:nowrap}
+.card{background:rgba(18,38,58,.92);border:3px solid var(--line);border-radius:22px;padding:30px 40px}
+#flash{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0}
+.layer.top{justify-content:flex-start;padding:110px 120px 0;align-items:stretch}

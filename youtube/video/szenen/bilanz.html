@@ -1,0 +1,86 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css">
+<style>
+#a .k{font:600 36px var(--mono);color:var(--muted);letter-spacing:.1em}
+#num{font:600 250px/1.1 var(--mono);letter-spacing:-.03em}
+#gain{font:800 190px/1 var(--display);color:var(--gain);text-shadow:0 0 60px rgba(52,199,123,.35)}
+#b{padding:80px 120px 220px}
+#b .top{display:flex;justify-content:space-between;align-items:flex-end;width:100%;margin-bottom:24px}
+#b h2{font:800 76px var(--display)} #b h2 em{font-style:normal;color:var(--cost)}
+.legend{display:flex;gap:36px;font:600 30px var(--body);color:var(--muted);padding-bottom:14px}
+.legend i{display:inline-block;width:34px;height:8px;border-radius:4px;margin-right:12px;vertical-align:middle}
+#cam{width:100%;flex:1;min-height:0;transform-origin:70% 60%} #cam svg{width:100%;height:100%}
+.callout{position:absolute;left:230px;top:680px;font:600 46px var(--body);background:var(--cost);color:#1a1205;padding:16px 26px;border-radius:14px}
+#c{flex-direction:row;gap:60px;padding:0 110px 150px;align-items:center}
+#bars{width:1060px;height:740px}
+#cnt{display:grid;gap:22px;flex:1}
+#cnt .card{display:flex;align-items:center;gap:28px;font:600 44px var(--body)} #cnt .card b{font:800 110px/1 var(--display);min-width:90px;text-align:center}
+#wl{font:800 50px var(--display);text-align:center;margin-top:10px;white-space:nowrap}
+</style>
+<div id="stage">
+  <div id="bg"></div>
+  <div class="layer" id="a"><div class="k">KONTOSTAND NACH 7 TAGEN UND 9 TRADES</div><div id="num">1.000,00 $</div><div id="gain">+0,80 $</div></div>
+  <div class="layer" id="b">
+    <div class="top"><h2>Brutto gegen <em>netto</em></h2>
+    <div class="legend"><span><i style="background:var(--gross)"></i>vor Kosten</span><span><i style="background:var(--accent)"></i>nach Kosten</span><span><i style="background:var(--cost)"></i>Kosten</span></div></div>
+    <div id="cam"><svg id="svg" viewBox="0 0 1680 640"></svg></div>
+    <div class="callout" id="callout">Kosten fressen fast 80 % des Gewinns</div>
+  </div>
+  <div class="layer" id="c"><svg id="bars" viewBox="0 0 1060 740"></svg>
+    <div id="cnt"><div class="card" style="border-color:var(--gain)"><b style="color:var(--gain)">2</b>Ziel erreicht</div>
+      <div class="card" style="border-color:var(--loss)"><b style="color:var(--loss)">2</b>Stop</div>
+      <div class="card"><b>5</b>glattgestellt zum Handelsschluss</div>
+      <div id="wl"><span style="color:var(--gain)">4 Gewinner</span> · <span style="color:var(--loss)">5 Verlierer</span></div></div></div>
+  <div id="flash"></div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script>
+const noise=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x);};
+// Kurve
+const days=[["Start",1000,1000],["Tag 1",1000,1000],["Tag 2",1007.98,1007.42],["Tag 3",999.34,998.21],["Tag 4",998.19,996.50],["Tag 5",1008.37,1006.20],["Tag 6",1001.79,999.26],["Tag 7",1003.78,1000.80]];
+const svg=$('#svg'),W=1680,H=640,L=110,R=300,T=20,B=60,lo=994,hi=1010;
+const X=i=>L+i*(W-L-R)/(days.length-1),Y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+const axis=svgEl('g',{},svg);
+for(let v=lo;v<=hi;v+=4){svgEl('line',{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:'var(--line)','stroke-width':v===1000?3:2},axis);svgEl('text',{x:L-16,y:Y(v)+9,'text-anchor':'end','font-size':26,fill:'var(--muted)'},axis,de(v,0));}
+days.forEach((d,i)=>svgEl('text',{x:X(i),y:H-14,'text-anchor':'middle','font-size':26,fill:'var(--muted)'},axis,d[0]));
+const area=svgEl('polygon',{points:days.map((d,i)=>`${X(i)},${Y(d[1])}`).concat(days.map((d,i)=>`${X(i)},${Y(d[2])}`).reverse()).join(' '),fill:'var(--cost)'},svg);
+const lines=[[1,'var(--gross)',6],[2,'var(--accent)',9]].map(([k,c,w])=>{const p=svgEl('polyline',{points:days.map((d,i)=>`${X(i)},${Y(d[k])}`).join(' '),fill:'none',stroke:c,'stroke-width':w,'stroke-linejoin':'round','stroke-linecap':'round'},svg);const len=p.getTotalLength();p.style.strokeDasharray=len;return {p,len};});
+const n=days.length-1;
+const lab1=svgEl('text',{x:X(n)+22,y:Y(days[n][1])-6,'font-size':34,'font-weight':600,fill:'var(--gross)'},svg,'1.003,78 $');
+const lab2=svgEl('text',{x:X(n)+22,y:Y(days[n][2])+32,'font-size':40,'font-weight':600,fill:'var(--accent)'},svg,'1.000,80 $');
+// Balken der 9 Trades (netto)
+const TR=[["MRK",7.42,"Ziel"],["KDP",-9.21,"Stop"],["NKE",-1.71,""],["MRNA",11.89,"Ziel"],["FTNT",-2.19,""],["NXPI",1.17,""],["PANW",-8.11,"Stop"],["CBOE",-.05,""],["AAPL",1.59,""]];
+const bs=$('#bars'),bx=v=>170+(v+11)*560/23,rh=740/9;
+svgEl('line',{x1:bx(0),x2:bx(0),y1:6,y2:734,stroke:'var(--line)','stroke-width':3},bs);
+const rows=TR.map(([s,v,x],i)=>{const g=svgEl('g',{},bs),cy=i*rh+rh/2,col=v>=0?'var(--gain)':'var(--loss)';
+  svgEl('text',{x:0,y:cy+12,'font-size':36,'font-weight':600,fill:'var(--ink)'},g,s);
+  const r=svgEl('rect',{x:bx(Math.min(0,v)),y:cy-24,width:Math.max(4,Math.abs(bx(v)-bx(0))),height:48,rx:6,fill:col},g);
+  svgEl('text',{x:(v>=0?bx(v):bx(0))+14,y:cy+12,'text-anchor':'start','font-size':32,'font-weight':600,fill:col},g,(v>=0?'+':'−')+de(Math.abs(v))+' $'+(x?' · '+x:''));
+  return {g,r,v,x0:bx(0),w:Math.max(4,Math.abs(bx(v)-bx(0)))};});
+const caps=[[.4,3.8,"Und jetzt die Auflösung. Nach sieben Tagen steht mein Konto bei …"],[4.1,5.4,"… tausend Dollar und achtzig Cent."],[5.5,7.5,"Achtzig Cent Gewinn."],
+ [8,11.8,"Die obere Linie: der Kontostand vor Kosten, <b>plus 3,78 Dollar</b>."],[12,14.4,"Die untere Linie: was wirklich übrig bleibt."],
+ [14.6,18.8,"Die orange Fläche sind die Kosten: fast <b>80 Prozent</b> des Gewinns."],
+ [19.4,25.5,"Neun Trades: zwei im Ziel, zwei im Stop, fünf bis zum Handelsschluss."],[25.8,31,"Vier Gewinner, fünf Verlierer."]];
+window.render=function(t){
+  background(t);
+  phase($("#a"),t,.2,7.6);
+  const rolling=t<4, d=k=>Math.floor(noise(Math.floor(t/.07)*7+k)*10);
+  $("#num").textContent=rolling?`1.0${d(1)}${d(2)},${d(3)}${d(4)} $`:"1.000,80 $";
+  const land=outBack(seg(t,4,4.5));$("#num").style.transform=`scale(${rolling?1:1.25-.25*land})`;$("#num").style.filter=`blur(${rolling?3:0}px)`;
+  popIn($("#gain"),t,5.5);$("#flash").style.opacity=t>4?.6*(1-seg(t,4,4.4)):0;
+  phase($("#b"),t,7.6,19.2);
+  axis.style.opacity=seg(t,8,8.5);
+  lines.forEach((l,j)=>l.p.style.strokeDashoffset=l.len*(1-inOut(seg(t,8.4+j*3.4,11.4+j*2.8))));
+  [[lab1,11.4],[lab2,14.2]].forEach(([e,s])=>{const p=outBack(seg(t,s,s+.45));e.style.opacity=clamp(p);e.setAttribute('transform',`translate(0 ${(1-p)*20})`);});
+  area.style.opacity=.42*seg(t,14.6,15.6);$('#cam').style.transform=`scale(${1+.07*inOut(seg(t,15,18.5))})`;popIn($('#callout'),t,15.6,1e9,'rotate(-2deg)');
+  phase($("#c"),t,19.2,99);
+  rows.forEach((r,i)=>{const p=outCubic(seg(t,19.5+i*.25,20.1+i*.25));r.g.style.opacity=p;r.r.setAttribute('width',r.w*p);if(r.v<0)r.r.setAttribute('x',r.x0-r.w*p);});
+  [...document.querySelectorAll('#cnt .card')].forEach((c,i)=>popIn(c,t,[21.6,22.6,23.6][i]));popIn($('#wl'),t,25.8);
+  captions(t,caps);
+};
+window.SFX=[[.2,"whoosh"]].concat(Array.from({length:18},(_,i)=>[.5+i*.19,"tick"])).concat([[4,"win"],[5.5,"pop"],[7.6,"whoosh"],[11.4,"pop"],[14.2,"pop"],[15.6,"alert"],[19.2,"whoosh"]])
+ .concat(TR.map((_,i)=>[19.5+i*.25,"tick"])).concat([[21.6,"pop"],[22.6,"pop"],[23.6,"pop"],[25.8,"flat"]]);
+window.render(0);
+</script>

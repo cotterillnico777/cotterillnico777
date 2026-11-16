@@ -23,3 +23,17 @@ function captions(t, list) {
   const p = Math.min(seg(t, c[0], c[0] + .18), 1 - seg(t, c[1] - .12, c[1]));
   el.style.opacity = p; el.style.transform = `translateX(-50%) translateY(${(1 - p) * 14}px)`;
 }
+
+// Element springt ins Bild (ab Zeit a) und kann ab Zeit b wieder verschwinden.
+function popIn(el, t, a, b = 1e9, extra = '') {
+  const p = outBack(seg(t, a, a + .45)), o = 1 - seg(t, b, b + .35);
+  el.style.opacity = clamp(p) * o; el.style.transform = `${extra} scale(${.6 + .4 * p})`;
+}
+// Ganze Ebene ein- und ausblenden (Phase von a bis b).
+function phase(el, t, a, b) {
+  const i = outCubic(seg(t, a, a + .5)), o = inOut(seg(t, b - .4, b));
+  el.style.opacity = i * (1 - o); el.style.transform = `translateY(${(1 - i) * 70 - o * 70}px)`;
+  el.style.filter = `blur(${o * 10}px)`;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, a, p, txt) { const e = document.createElementNS(SVGNS, tag); for (const k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; p.appendChild(e); return e; }

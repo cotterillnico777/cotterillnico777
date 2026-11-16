@@ -1,0 +1,61 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css">
+<style>
+#wrap{display:grid;grid-template-columns:1000px 1fr;gap:50px;margin-top:40px;align-items:start}
+#sk{width:1000px;height:500px}
+.h1{white-space:nowrap}
+#rules{display:grid;gap:16px}
+.r{display:flex;align-items:center;gap:24px;font:600 32px var(--body);padding:16px 28px;white-space:nowrap}
+.r b{font:600 48px var(--mono);color:var(--accent);min-width:190px;text-align:right}
+#head{display:flex;justify-content:space-between;align-items:flex-end}
+</style>
+<div id="stage">
+  <div id="bg"></div>
+  <div class="layer top">
+    <div id="head"><div><div class="eyebrow">DAS EXPERIMENT</div><div class="h1">7 Handelstage. 1.000 $.</div></div>
+      <span class="chip" id="paper">Spielgeld · echte Kurse</span></div>
+    <div id="wrap"><svg id="sk" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="rules">
+        <div class="card r"><b>10 $</b>max. Verlust je Trade</div>
+        <div class="card r"><b>3</b>Trades pro Tag, höchstens</div>
+        <div class="card r"><b>21:55</b>alles verkauft (15:55 NY)</div>
+        <div class="card r" style="border-color:var(--gain)"><b style="color:var(--gain)">Long</b>kein Hebel, keine Optionen</div>
+      </div></div>
+  </div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script>
+// Schema eines Ausbruchs aus der Eröffnungsspanne (gezeichnet, keine echten Kurse)
+const s=$("#sk"), pts=[[40,330],[70,290],[100,350],[130,300],[160,330],[190,310],[230,335],[280,300],[330,320],[380,285],[420,300],[455,262],[490,240],[540,255],[590,215],[650,230],[710,180],[770,195],[830,150],[900,120],[960,100]];
+const hi=270, lo=360, mid=315, tgt=110, ex=455;
+const box=svgEl("g",{},s);
+svgEl("rect",{x:30,y:hi,width:180,height:lo-hi,fill:"var(--accent)","fill-opacity":.16,stroke:"var(--accent)","stroke-width":3,"stroke-dasharray":"8 8"},box);
+svgEl("text",{x:30,y:lo+38,"font-size":26,fill:"var(--accent)"},box,"erste 15 Minuten");
+const hiL=svgEl("line",{x1:30,x2:980,y1:hi,y2:hi,stroke:"var(--accent)","stroke-width":2,"stroke-dasharray":"4 10"},s);
+const line=svgEl("polyline",{points:pts.map(p=>p.join(",")).join(" "),fill:"none",stroke:"var(--ink)","stroke-width":6,"stroke-linejoin":"round","stroke-linecap":"round"},s);
+const len=line.getTotalLength();line.style.strokeDasharray=len;
+const mkL=(y,c,l)=>{const g=svgEl("g",{},s);svgEl("line",{x1:ex,x2:980,y1:y,y2:y,stroke:c,"stroke-width":5},g);svgEl("rect",{x:800,y:y-24,width:180,height:48,rx:8,fill:c},g);svgEl("text",{x:890,y:y+9,"text-anchor":"middle","font-size":26,"font-weight":600,fill:"#0b1622"},g,l);return g;};
+const gT=mkL(tgt,"var(--gain)","Ziel 1–2×"), gS=mkL(mid,"var(--loss)","Stop");
+const dot=svgEl("circle",{cx:ex,cy:262,r:14,fill:"var(--ink)",stroke:"var(--bg)","stroke-width":5},s);
+const buy=svgEl("text",{x:ex-16,y:232,"text-anchor":"end","font-size":34,"font-weight":600,fill:"var(--ink)"},s,"Kauf");
+const frac=ex=> { let acc=0,tot=0;for(let i=1;i<pts.length;i++)tot+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);for(let i=1;i<pts.length;i++){acc+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(pts[i][0]>=ex)return acc/tot;}return 1;};
+const fE=frac(ex);
+const caps=[[.4,4.4,"Sieben Handelstage an der US-Börse, mit tausend Dollar."],[4.6,8,"Kein echtes Geld, alles auf dem Papier. Aber zu echten Kursen."],
+ [8.4,12,"Die Strategie: der Ausbruch aus der Eröffnungsspanne."],[12.2,16.4,"Schließt die Aktie über dem Hoch der ersten Viertelstunde, kaufe ich."],
+ [16.6,20.6,"Stop in der Mitte der Spanne. Ziel: das Ein- oder Zweifache des Risikos."],
+ [21,24.4,"Höchstens zehn Dollar Verlust pro Trade, höchstens drei Trades am Tag."],[24.6,28.5,"Und spätestens um fünf vor zehn bei uns ist alles verkauft."]];
+window.render=function(t){
+  background(t);
+  popIn($("#head .eyebrow"),t,.1);popIn($("#head .h1"),t,.3);popIn($("#paper"),t,4.6);
+  s.style.opacity=seg(t,8,8.6);box.style.opacity=seg(t,8.6,9.2);hiL.style.opacity=seg(t,9.4,10);
+  const p=t<12.2?fE*inOut(seg(t,9.2,12.2)):fE+(1-fE)*inOut(seg(t,17,20.4));line.style.strokeDashoffset=len*(1-p);
+  const b=outBack(seg(t,12.3,12.8));dot.setAttribute("opacity",clamp(b));dot.setAttribute("r",14+16*(1-clamp(b)));buy.setAttribute("opacity",clamp(b));
+  gS.style.opacity=seg(t,16.6,17);gT.style.opacity=seg(t,18.4,18.8);
+  [...document.querySelectorAll(".r")].forEach((r,i)=>{const a=[21,22.8,24.6,26.2][i],q=outBack(seg(t,a,a+.45));r.style.opacity=clamp(q);r.style.transform=`translateX(${(1-q)*160}px)`;});
+  captions(t,caps);
+};
+window.SFX=[[.1,"whoosh"],[4.6,"pop"],[8,"swish"],[12.3,"pop"],[16.6,"tick"],[18.4,"tick"],[21,"pop"],[22.8,"pop"],[24.6,"pop"],[26.2,"pop"]];
+window.render(0);
+</script>

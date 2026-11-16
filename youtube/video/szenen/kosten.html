@@ -1,0 +1,53 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css">
+<style>
+#q{font:800 130px/1.05 var(--display);text-align:center;max-width:1500px}
+#q em{font-style:normal;color:var(--cost)}
+#items{display:flex;gap:30px;margin-top:50px}
+#items .card{width:480px;display:grid;gap:10px}
+#items b{font:800 60px var(--display);color:var(--cost)} #items span{font:500 32px/1.3 var(--body);color:var(--muted)}
+#sum{margin-top:44px;font:600 60px var(--mono)} #sum b{color:var(--cost)}
+#bar{width:1500px;margin-top:50px}
+#bar .row{display:flex;height:130px;border-radius:18px;font:600 46px var(--mono)}
+#bar .row div{display:flex;align-items:center;justify-content:center;white-space:nowrap}
+#bar .lab{display:flex;justify-content:space-between;font:600 36px var(--body);color:var(--muted);margin-bottom:16px}
+#rule{margin-top:50px;font:800 76px var(--display);border-color:var(--gain);border-width:5px;text-align:center}
+#rule em{font-style:normal;color:var(--cost)}
+#mrk{margin-top:30px;font:600 44px var(--mono);color:var(--muted)} #mrk b{color:var(--loss)}
+</style>
+<div id="stage">
+  <div id="bg"></div>
+  <div class="layer" id="a"><div id="q">Was hätte ein <em>echter Trader</em> dafür bezahlt?</div></div>
+  <div class="layer" id="b"><div class="eyebrow">JEDER KAUF UND VERKAUF KOSTET</div>
+    <div id="items"><div class="card"><b>Spread</b><span>Abstand zwischen Kauf- und Verkaufskurs</span></div>
+      <div class="card"><b>Slippage</b><span>ein paar Cent schlechtere Ausführung</span></div>
+      <div class="card"><b>Gebühren</b><span>kleine Abgaben an SEC und FINRA</span></div></div>
+    <div id="sum">zusammen etwa <b>0,06 %</b> pro Trade</div></div>
+  <div class="layer" id="c"><div class="eyebrow">BEISPIEL: MERCK, TAG 2</div>
+    <div id="bar"><div class="lab"><span>Gewinn vor Kosten: 7,98 $</span><span id="netlab">davon bleiben: 7,42 $</span></div>
+      <div class="row"><div id="net" style="flex:7.42;background:var(--gain);color:#0b1622;border-radius:18px 0 0 18px">+7,42 $</div><div id="cost" style="flex:.56;background:var(--cost);color:#1a1205;border-radius:0 18px 18px 0;font-size:22px">0,56 $</div></div></div>
+    <div class="card" id="rule">Ab Tag 5: Erwartungswert <em>nach Kosten</em> &gt; 0</div>
+    <div id="mrk">Merck: +0,039 R − 0,070 R Kosten = <b>−0,031 R → kein Kauf</b></div></div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script>
+const caps=[[.4,3,"Nach vier Tagen habe ich mir eine Frage gestellt:"],[3.2,6.2,"Was hätte ein echter Trader dafür bezahlt?"],
+ [6.6,12.6,"Der Abstand zwischen Kauf- und Verkaufskurs. Schlechtere Ausführung. Kleine Gebühren."],
+ [12.8,16.6,"Pro Trade nur etwa sechs Hundertstel Prozent. Aber bei kleinen Gewinnen ist das viel."],
+ [17,20.6,"Bei Merck gingen 56 Cent vom Gewinn ab."],[21,24.8,"Ab Tag fünf gilt: Gekauft wird nur, wenn es sich auch nach Kosten lohnt."],
+ [25,29.5,"Merck von Tag zwei hätte ich nach dieser Regel gar nicht gekauft."]];
+window.render=function(t){
+  background(t);
+  phase($("#a"),t,.2,6.5);const q=outBack(seg(t,3.1,3.7));$("#q").style.transform=`scale(${.9+.1*q})`;$("#q em").style.opacity=.35+.65*seg(t,3.1,3.5);
+  phase($("#b"),t,6.5,16.8);[...document.querySelectorAll("#items .card")].forEach((c,i)=>popIn(c,t,[6.8,8.8,10.6][i]));popIn($("#sum"),t,12.8);
+  phase($("#c"),t,16.8,99);
+  const cut=inOut(seg(t,18,19.2));$("#cost").style.transform=`translate(${cut*30}px,${-cut*22}px) rotate(${cut*6}deg)`;
+  $("#netlab").style.opacity=seg(t,19,19.4);
+  popIn($("#rule"),t,21);popIn($("#mrk"),t,25);
+  captions(t,caps);
+};
+window.SFX=[[.2,"whoosh"],[3.1,"alert"],[6.5,"whoosh"],[6.8,"pop"],[8.8,"pop"],[10.6,"pop"],[12.8,"tick"],[16.8,"whoosh"],[18,"swish"],[21,"win"],[25,"alert"]];
+window.render(0);
+</script>

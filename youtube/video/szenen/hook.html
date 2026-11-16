@@ -1,0 +1,60 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css">
+<style>
+#a .k{font:600 34px var(--mono);color:var(--muted);letter-spacing:.1em}
+#num{font:600 230px/1.05 var(--mono);letter-spacing:-.03em}
+#delta{font:600 60px var(--mono);height:76px}
+.tags{display:flex;gap:28px;margin-top:36px}
+#b .no{font:800 120px/1.15 var(--display);color:var(--muted);position:relative;display:inline-block;margin:0 30px}
+#b .no i{position:absolute;left:-12px;right:-12px;top:52%;height:12px;background:var(--loss);border-radius:6px;transform-origin:0 50%}
+#sim{font:800 210px/1 var(--display);color:var(--accent);margin-top:30px}
+#sim small{display:block;font:600 48px var(--body);color:var(--ink);margin-top:14px;text-align:center}
+#c{flex-direction:row;gap:50px}
+#c .card{width:760px;height:380px;display:flex;flex-direction:column;justify-content:center;gap:16px;border-width:5px}
+#c .card b{font:800 80px/1.05 var(--display)}
+#c .card span{font:600 40px var(--body);color:var(--muted)}
+#q{font:800 560px/1 var(--display);color:var(--cost);text-shadow:0 0 90px rgba(255,178,63,.35)}
+#blurnum{font:600 120px var(--mono);filter:blur(22px);color:var(--ink);margin-top:-30px}
+</style>
+<div id="stage">
+  <div id="bg"></div>
+  <div class="layer" id="a"><div class="k">KONTOSTAND</div><div id="num">1.000,00 $</div><div id="delta"></div>
+    <div class="tags"><span class="chip">1.000 $</span><span class="chip">7 Tage</span><span class="chip">strenge Regeln</span></div></div>
+  <div class="layer" id="b"><div><span class="no">Bauchgefühl<i></i></span><span class="no">Zocken<i></i></span></div>
+    <div id="sim"><span id="simn">0</span>×<small>jeder Trade vorher simuliert</small></div></div>
+  <div class="layer" id="c">
+    <div class="card" style="border-color:var(--gain)"><b style="color:var(--gain)">Geld verdienen?</b><span>mit Regeln statt Bauchgefühl</span></div>
+    <div class="card" style="border-color:var(--cost)"><b style="color:var(--cost)">Oder fressen die Kosten alles?</b><span>Spread · Slippage · Gebühren</span></div></div>
+  <div class="layer" id="d"><div id="q">?</div><div id="blurnum">1.0▒▒,▒▒ $</div></div>
+  <div id="flash"></div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script>
+const noise=i=>{const x=Math.sin(i*12.9898)*43758.5453;return (x-Math.floor(x))*2-1;};
+const caps=[[.4,3,"Tausend Dollar. Sieben Tage an der Börse."],[3.2,7.8,"Und Regeln, die strenger sind als bei den meisten Profis."],
+ [8.3,10.4,"Kein Bauchgefühl, kein Zocken."],[10.6,13.2,"Jeder Trade wird vorher zehntausendmal simuliert."],
+ [13.5,15.6,"Kann man so Geld verdienen?"],[15.8,19,"Oder fressen die versteckten Kosten am Ende alles auf?"],
+ [19.3,24,"Ich habe es ausprobiert. Und das Ergebnis hat mich selbst überrascht."]];
+window.render=function(t){
+  background(t);
+  phase($("#a"),t,0,8.2);
+  const live=t>1.4&&t<8.2, v=live?1000+noise(Math.floor(t/.13))*11:1000, dl=v-1000;
+  $("#num").textContent=de(v)+" $"; const pn=outBack(seg(t,.2,.8)); $("#num").style.transform=`scale(${1.5-.5*pn})`;
+  $("#num").style.color=!live?"var(--ink)":dl>=0?"var(--gain)":"var(--loss)";
+  $("#delta").textContent=live?(dl>=0?"▲ +":"▼ −")+de(Math.abs(dl))+" $":""; $("#delta").style.color=dl>=0?"var(--gain)":"var(--loss)";
+  [...document.querySelectorAll("#a .chip")].forEach((c,i)=>popIn(c,t,[.5,1.6,3.3][i]));
+  phase($("#b"),t,8.2,13.4);
+  [...document.querySelectorAll("#b .no i")].forEach((s,i)=>s.style.transform=`scaleX(${outCubic(seg(t,8.7+i*.6,9+i*.6))})`);
+  popIn($("#sim"),t,10.5); $("#simn").textContent=Math.round(10000*outCubic(seg(t,10.5,12.4))).toLocaleString("de-DE");
+  phase($("#c"),t,13.4,19.2);
+  [...document.querySelectorAll("#c .card")].forEach((c,i)=>popIn(c,t,[13.5,15.8][i]));
+  phase($("#d"),t,19.2,99); const q=outBack(seg(t,19.3,19.9)); $("#q").style.transform=`scale(${.4+.6*q}) rotate(${6*Math.sin(t*1.4)}deg)`;
+  $("#flash").style.opacity=t>.2?.5*(1-seg(t,.2,.55)):0;
+  captions(t,caps);
+};
+window.SFX=[[.2,"win"],[1.6,"pop"],[3.3,"pop"],[8.2,"whoosh"],[8.7,"swish"],[9.3,"swish"],[10.5,"pop"]]
+ .concat(Array.from({length:9},(_,i)=>[10.6+i*.2,"tick"])).concat([[13.4,"whoosh"],[13.5,"pop"],[15.8,"alert"],[19.2,"loss"]]);
+window.render(0);
+</script>

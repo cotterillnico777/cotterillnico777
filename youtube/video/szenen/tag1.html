@@ -1,0 +1,46 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="basis.css">
+<style>
+#grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:44px}
+.s{border:4px solid var(--line);border-radius:20px;background:rgba(18,38,58,.92);padding:22px 26px;display:grid;gap:6px;height:230px;align-content:center}
+.s b{font:800 64px/1 var(--display)} .s span{font:500 26px var(--body);color:var(--muted)}
+.s em{font:600 34px var(--mono);font-style:normal} .s u{font:600 26px var(--body);text-decoration:none}
+#stamp{position:absolute;left:50%;top:50%;font:800 190px/1 var(--display);padding:26px 70px;border:12px solid var(--ink);border-radius:30px;background:rgba(11,22,34,.93);white-space:nowrap}
+#konto{position:absolute;left:50%;top:73%;font:600 52px var(--mono);color:var(--muted);white-space:nowrap}
+</style>
+<div id="stage">
+  <div id="bg"></div>
+  <div class="layer top">
+    <div class="eyebrow">TAG 1 · DI, 03.11. · 12:01 UHR NEW YORK</div><div class="h1">Die 8 frischesten Ausbrüche</div>
+    <div id="grid"></div>
+  </div>
+  <div id="stamp">KEIN TRADE</div><div id="konto">Kontostand: 1.000,00 $</div>
+  <div class="disclaimer">PAPIERHANDEL · KEINE ANLAGEBERATUNG</div>
+  <div class="caption"></div>
+</div>
+<script src="basis.js"></script>
+<script>
+// Werte aus dem Logbuch Tag 1: Abstand zur Ausbruchsmarke um 12:01 Uhr
+const L=[["DE","John Deere",-.22,0],["VLO","Valero",.83,1],["CMG","Chipotle",.38,1],["MO","Altria",-.15,0],["CME","CME Group",-.28,0],["CVS","CVS Health",.49,1],["V","Visa",-.37,0],["ACN","Accenture",-.29,0]];
+const g=$("#grid");let f=0;
+const cards=L.map(([s,n,p,ok],i)=>{const d=document.createElement("div");d.className="s";
+  d.innerHTML=`<b>${s}</b><span>${n}</span><em>${p>0?"+":"−"}${de(Math.abs(p))} %</em><u></u>`;g.appendChild(d);
+  return {d,ok,at:ok?null:6+(f++)*.55,p};});
+const caps=[[.4,3.4,"Tag eins. Ich war spät dran, erst gegen Mittag New Yorker Zeit."],[5.6,9.6,"Von den acht frischesten Ausbrüchen waren fünf schon wieder gescheitert."],
+ [10,13.6,"Bei den übrigen zeigte die Time Machine keinen echten Vorteil."],[14,15.8,"Also: kein Trade."],
+ [16.2,21.5,"Nichts tun ist auch eine Entscheidung. Und an Tag eins die richtige."]];
+window.render=function(t){
+  background(t);
+  popIn(document.querySelector(".eyebrow"),t,.1);popIn(document.querySelector(".h1"),t,.3);
+  cards.forEach((c,i)=>{popIn(c.d,t,1.2+i*.22,1e9,c.at&&t>c.at&&t<c.at+.3?`translateX(${Math.sin(t*80)*7}px)`:"");
+    const u=c.d.querySelector("u"),em=c.d.querySelector("em");
+    if(!c.ok){const on=t>=c.at;c.d.style.borderColor=on?"var(--loss)":"var(--line)";em.style.color=on?"var(--loss)":"var(--ink)";u.textContent=on?"✕ zurückgefallen":"";u.style.color="var(--loss)";c.d.style.background=on?"rgba(255,90,90,.14)":"";}
+    else{const on=t>=10.2;em.style.color="var(--gain)";u.textContent=on?"hält, aber kein Vorteil":"hält";u.style.color=on?"var(--muted)":"var(--gain)";c.d.style.borderColor=on?"var(--line)":"var(--gain)";}
+    if(t>14)c.d.style.opacity=1-.65*seg(t,14,14.4);});
+  const st=outBack(seg(t,14.1,14.6));$("#stamp").style.opacity=clamp(st);$("#stamp").style.transform=`translate(-50%,-50%) scale(${2.2-1.2*st}) rotate(-4deg)`;
+  const k=seg(t,16.2,16.7);$("#konto").style.opacity=k;$("#konto").style.transform="translateX(-50%)";
+  captions(t,caps);
+};
+window.SFX=[[.1,"whoosh"]].concat(L.map((_,i)=>[1.2+i*.22,"tick"])).concat(cards.filter(c=>c.at).map(c=>[c.at,"alert"])).concat([[10.2,"swish"],[14.1,"flat"]]);
+window.render(0);
+</script>
