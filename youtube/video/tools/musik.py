@@ -5,7 +5,7 @@ Aufruf: python3 tools/musik.py            → ausgabe/musik.wav und ausgabe/prob
 Stil: ruhiger Elektro-Beat, 100 BPM, a-Moll (Am – F – C – G).
 Die Energie wechselt mit den Szenen: Spannung im Hook, Beat bei den Trades,
 Stille vor der Auflösung, Höhepunkt bei der Abstimmung."""
-import os, subprocess, wave
+import json, os, subprocess, sys, wave
 import numpy as np
 
 SR = 48000
@@ -71,6 +71,11 @@ def pad_chord(notes, sec):
     return .055 * y * env
 
 def main():
+    global SZENEN
+    # Für das fertige Video: Szenenlängen mit Stimme aus ausgabe/szenen-laengen.json
+    lp = os.path.join(OUT, "szenen-laengen.json")
+    if "--nur-musik" in sys.argv and os.path.exists(lp):
+        L = json.load(open(lp)); SZENEN = [(n, L.get(n, d), e) for n, d, e in SZENEN]
     total = sum(d for _, d, _ in SZENEN)
     N = int(total * SR) + SR * 3
     pad, bass, arp, drums = (np.zeros(N) for _ in range(4))
@@ -154,6 +159,8 @@ def main():
         w.writeframes((np.clip(st, -1, 1) * 32767).astype("<i2").tobytes())
 
     # Unter das Probevideo mischen: Musik leise (−12 dB, ohne Stimme), Effekte bleiben vorne
+    if "--nur-musik" in sys.argv:
+        print("Musik:", wav); return
     src = os.path.join(OUT, "probevideo.mp4"); dst = os.path.join(OUT, "probevideo-musik.mp4")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-i", wav, "-filter_complex",
                     "[1:a]volume=-12dB[m];[0:a][m]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95[a]",
