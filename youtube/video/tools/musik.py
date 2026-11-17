@@ -134,7 +134,7 @@ def main():
     mix[i2:] *= np.minimum(1, (np.arange(N - i2) / SR) / .05)
 
     # Showdown-Pausen aus den Szenen (ausgabe/<szene>.meta.json): Musik bricht weg
-    import json
+
     for name, _, _ in SZENEN:
         mp = os.path.join(OUT, name + ".meta.json")
         if not os.path.exists(mp): continue

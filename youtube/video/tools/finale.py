@@ -61,7 +61,7 @@ def main():
     inp, flt = [], []
     for i, (f, start) in enumerate(stimmen):
         inp += ["-i", f]
-        flt.append(f"[{i}:a]aresample=48000,highpass=f=80,acompressor=threshold=-20dB:ratio=3:attack=5:release=80,"
+        flt.append(f"[{i}:a]aresample=48000,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.15,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.3,areverse,afftdn=nf=-28,highpass=f=80,acompressor=threshold=-20dB:ratio=3:attack=5:release=80,"
                    f"loudnorm=I=-16:TP=-1.5,adelay={int(start * 1000)}|{int(start * 1000)}[v{i}]")
     flt.append("".join(f"[v{i}]" for i in range(len(stimmen))) + f"amix=inputs={len(stimmen)}:normalize=0[s]")
     stimme = os.path.join(tmp, "stimme.wav")
