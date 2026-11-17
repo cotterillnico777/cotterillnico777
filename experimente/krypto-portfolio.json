@@ -1,7 +1,15 @@
 {
   "start": 1000.0,
-  "cash": 992.96,
-  "positions": [],
+  "cash": 99.3,
+  "positions": [
+    {
+      "symbol": "ETH-USD",
+      "side": "short",
+      "qty": 0.493821,
+      "entry": 1809.69,
+      "time": "09:55"
+    }
+  ],
   "trades": [
     {
       "date": "2026-11-10",
@@ -23,6 +31,15 @@
       "gross": -6.23,
       "costs": 0.81,
       "pnl": -7.04
+    },
+    {
+      "date": "2026-11-17",
+      "time": "09:55",
+      "symbol": "ETH-USD",
+      "side": "sell",
+      "qty": 0.493821,
+      "price": 1809.69,
+      "action": "open short"
     }
   ]
 }
