@@ -67,8 +67,39 @@
   // Momente (Tiefpunkt, Ziel o. Ä.) mit Markierung im Chart
   const marks = (C.moments || []).map(m => { const i = idx(m.bar); return { ...m, i, dot: mk("circle", { cx: X(i), cy: Y(m.price), r: 16, fill: "none", stroke: m.color, "stroke-width": 5, opacity: 0 }, svg) }; });
 
+  // ---- Spannung: Showdown-Pause vor der Entscheidung und Kontostand danach ----
+  const D = C.showdown ? 2.4 : 0, F = Math.min(C.tExit - .3, tAt(iExit - 1) - .04);   // Pause, bevor die Ausstiegskerze erscheint
+  const stage = $("#stage");
+  const css = document.createElement("style"); css.textContent = `
+    #vig{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 50%,transparent 35%,rgba(0,0,0,.82) 100%)}
+    #sd{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;white-space:nowrap;pointer-events:none;background:rgba(7,13,24,.82);border:5px solid var(--cost);border-radius:30px;padding:30px 70px 10px}
+    #sd .q{font:800 120px/1 var(--display);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.6),0 0 40px rgba(0,0,0,.9)}
+    #sd .n{font:800 220px/1 var(--display);color:var(--cost);text-shadow:0 0 50px rgba(255,178,63,.5),0 6px 0 rgba(0,0,0,.6)}
+    #konto{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);opacity:0;text-align:center;padding:28px 56px;border-radius:26px;
+      background:rgba(11,22,34,.94);border:5px solid var(--line);white-space:nowrap}
+    #konto .k{font:600 30px var(--mono);color:var(--muted);letter-spacing:.1em}
+    #konto .v{font:600 120px/1.05 var(--mono)} #konto .d{font:800 44px var(--display)}`;
+  document.head.appendChild(css);
+  stage.insertAdjacentHTML("beforeend", `<div id="vig"></div><div id="sd"><div class="q">${C.showdown || ""}</div><div class="n"></div></div>`);
+  if (C.konto != null) {
+    const hid = C.konto === "?", dv = hid ? 0 : C.konto - 1000;
+    stage.insertAdjacentHTML("beforeend", `<div id="konto"><div class="k">KONTOSTAND NACH KOSTEN</div>
+      <div class="v" style="color:${hid ? "var(--cost)" : dv >= 0 ? "var(--gain)" : "var(--loss)"}">${hid ? "?.???,?? $" : de(C.konto) + " $"}</div>
+      <div class="d" style="color:${hid ? "var(--ink)" : dv >= 0 ? "var(--gain)" : "var(--loss)"}">${hid ? "Das zeigt erst die Auflösung" : (dv >= 0 ? "+" : "−") + de(Math.abs(dv)) + " $ seit Start"}</div></div>`);
+  }
+  // Zoom-Mittelpunkt: letzte Kerze vor der Pause
+  let zx = "70%", zy = "50%";
+  const zoomOrigin = () => { const iF = Math.max(0, Math.min(n - 1, iExit - 1)), pt = svg.createSVGPoint(); pt.x = X(iF); pt.y = Y(bars[iF][4]);
+    const sp = pt.matrixTransform(svg.getScreenCTM()), r = $("#chartwrap").getBoundingClientRect();
+    zx = (sp.x - r.left) + "px"; zy = (sp.y - r.top) + "px"; };
+  zoomOrigin();
+  window.META = { freeze: D ? [F, D] : null };
+
   window.render = function (t) {
     background(t);
+    const real = t;
+    if (D && t > F) t = t < F + D ? F : t - D;
+    const fr = D ? seg(real, F, F + .35) * (1 - seg(real, F + D - .25, F + D)) : 0;
     // Titelkarte, die danach nach oben links schrumpft
     const ti = $("#title"), a = outBack(seg(t, .1, .7)), s = inOut(seg(t, 1.5, 2.3));
     ti.style.opacity = clamp(a);
@@ -121,15 +152,37 @@
     $("#stamp").style.opacity = clamp(ps) * (1 - seg(t, C.tExit + 3.2, C.tExit + 3.8)); $("#stamp").style.transform = `translate(-50%,-50%) scale(${2.2 - 1.2 * ps}) rotate(-4deg)`;
     $("#flash").style.opacity = t > C.tExit ? .5 * (1 - seg(t, C.tExit, C.tExit + .4)) : 0;
     captions(t, C.captions);
+    // Showdown-Overlay
+    if (D) {
+      $("#vig").style.opacity = fr;
+      const sd = $("#sd"); sd.style.opacity = fr;
+      const k3 = Math.min(3, Math.max(1, 3 - Math.floor((real - F - .2) / .7)));
+      sd.querySelector(".n").textContent = real > F ? k3 : "";
+      const pul = 1 + .08 * Math.max(0, 1 - ((real - F - .2) % .7) / .25);
+      sd.querySelector(".n").style.transform = `scale(${pul})`;
+      $("#chartwrap").style.transformOrigin = `${zx} ${zy}`;
+      if (fr > 0) $("#chartwrap").style.transform = `scale(${1 + .2 * inOut(fr)})`;
+      if (fr > 0) $(".caption").style.opacity = 1 - fr;
+    }
+    // Kontostand nach dem Trade
+    if (C.konto != null) { const kp = outBack(seg(t, C.tExit + 3.6, C.tExit + 4.1)), ko = 1 - seg(t, C.tExit + 7, C.tExit + 7.4);
+      $("#konto").style.opacity = clamp(kp) * ko; $("#konto").style.transform = `translate(-50%,-50%) scale(${.6 + .4 * kp})`;
+      if (kp > 0) $(".caption").style.opacity = Math.min(+$(".caption").style.opacity || 0, 1 - clamp(kp) * ko); }
   };
   // Ton-Stichworte für tools/sfx.py
   const stop = !C.exitSfx && C.result < 0, win = !C.exitSfx && C.result >= 0;
-  window.SFX = [[.1, "whoosh"], [.1, "sub"], [1.5, "swish"], [C.tEntry, "pop"]]
+  let sfx = [[.1, "whoosh"], [.1, "sub"], [1.5, "swish"], [C.tEntry, "pop"]]
     .concat((C.moments || []).map(m => [m.t, m.sfx || "alert"]))
-    .concat([[Math.max(0, C.tExit - 1.1), "riser"], [C.tExit, C.exitSfx || (win ? "win" : "loss")]])
+    .concat([[C.tExit, C.exitSfx || (win ? "win" : "loss")]])
     .concat(win ? [[C.tExit + .3, "cash"]] : stop ? [[C.tExit + .25, "buzz"]] : []);
+  if (C.konto != null) sfx.push([C.tExit + 3.6, C.konto === "?" ? "alert" : "pop"]);
   // leises Ticken, während die Kerzen laufen
-  let last = -1; for (let i = 0; i < n; i++) { const tt = tAt(i); if (tt - last >= .1) { window.SFX.push([tt, "candle"]); last = tt; } }
+  let last = -1; for (let i = 0; i < n; i++) { const tt = tAt(i); if (tt - last >= .1 && tt < F) { sfx.push([tt, "candle"]); last = tt; } }
+  sfx = sfx.map(([t0, s]) => [D && t0 > F ? t0 + D : t0, s]);           // alles nach der Pause verschiebt sich
+  if (D) sfx.push([F, "sub"], [F + .1, "heart"], [F + .9, "heart"], [F + 1.6, "heart"], [F + .2, "tick"], [F + .9, "tick"], [F + 1.6, "tick"], [F + D - 1.05, "riser"]);
+  else sfx.push([Math.max(0, C.tExit - 1.1), "riser"]);
+  window.SFX = sfx;
+  for (let i = 0; i < n; i++) if (tAt(i) >= F && tAt(i) < C.tExit + 1) { const tt = tAt(i) + D; if (!sfx.some(x => Math.abs(x[0] - tt) < .09)) sfx.push([tt, "candle"]); }
   if (C.day) dayDots(C.day);
   window.render(0);
 })();

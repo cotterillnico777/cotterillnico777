@@ -19,9 +19,9 @@ rng = np.random.default_rng(3)
 # Szenenfolge (muss zu tools/alles.sh passen) und Energie je Szene:
 # 0 = nur Fläche, 1 = Fläche + Bass, 2 = + Arpeggio + Hi-Hats, 3 = voller Beat
 SZENEN = [("hook", 24, 1), ("regeln", 29, 2), ("timemachine", 22, 2), ("tag1", 22, 1),
-          ("merck", 24, 3), ("kdp", 22, 3), ("nke", 18, 3), ("kosten", 30, 1),
-          ("mrna", 22, 3), ("ftnt", 18, 2), ("nxpi", 18, 3), ("panw", 20, 3), ("gis", 20, 3),
-          ("cboe", 18, 2), ("aapl", 17, 2), ("bilanz", 31.5, 3), ("lehren", 27, 1), ("abstimmung", 28, 3)]
+          ("merck", 27.5, 3), ("kdp", 25, 3), ("nke", 20, 3), ("kosten", 30, 1),
+          ("mrna", 25, 3), ("ftnt", 20, 2), ("nxpi", 20, 3), ("panw", 23, 3), ("gis", 20, 3),
+          ("cboe", 20, 2), ("aapl", 22, 2), ("bilanz", 31.5, 3), ("lehren", 27, 1), ("abstimmung", 28, 3)]
 
 def hz(n):  # MIDI-Note → Frequenz
     return 440 * 2 ** ((n - 69) / 12)
@@ -127,6 +127,18 @@ def main():
     i1, i2 = int(stille[0] * SR), int(stille[1] * SR)
     fade = np.ones(N); fade[i1:i2] = np.linspace(.35, .0, i2 - i1); mix *= fade
     mix[i2:] *= np.minimum(1, (np.arange(N - i2) / SR) / .05)
+
+    # Showdown-Pausen aus den Szenen (ausgabe/<szene>.meta.json): Musik bricht weg
+    import json
+    for name, _, _ in SZENEN:
+        mp = os.path.join(OUT, name + ".meta.json")
+        if not os.path.exists(mp): continue
+        fz = json.load(open(mp)).get("freeze")
+        if not fz: continue
+        a = int((starts[name] + fz[0]) * SR); b = int((starts[name] + fz[0] + fz[1]) * SR)
+        ramp = int(.08 * SR)
+        mix[a:b] *= .18
+        mix[a - ramp:a] *= np.linspace(1, .18, ramp)
 
     # Schluss: ausklingen lassen
     tN = int(total * SR); out = int(3 * SR)

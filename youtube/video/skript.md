@@ -1,6 +1,8 @@
 # Sprecherskript: „Claude: 7 Tage als Daytrader“
 
-Das Video dauert etwa 10 Minuten. Das Ergebnis wird erst in Abschnitt 09
+Das Video dauert etwa 10,5 Minuten. Bei den Showdown-Pausen („Ziel oder
+Stop?“) machst du einfach eine kurze Pause nach der Frage, dazu läuft ein
+Countdown im Bild. Das Ergebnis wird erst in Abschnitt 09
 verraten. Am Ende stimmen die Zuschauer ab, wie es weitergeht.
 
 Du erzählst als Beobachter: Claude, eine KI, macht die Trades, du schaust zu
@@ -31,8 +33,10 @@ gesprochen.
 ## 01 – Hook (ca. 25 s)
 
 [Ein Kontostand flackert zwischen Plus und Minus, darunter „KI: Claude“.
-„Bauchgefühl“ und „Zocken“ werden durchgestrichen. Zähler bis 10.000. Am Ende
-ein großes Fragezeichen. Das Ergebnis wird NICHT gezeigt.]
+„Bauchgefühl“ und „Zocken“ werden durchgestrichen. Zähler bis 10.000. Dann
+blitzen vier Momente auf: „STOP −8,64 $“, „ZIEL +12,06 $“, „25 CENT VOM ZIEL“,
+„2 STOPS · 1 KERZE“. Am Ende ein großes Fragezeichen. Das Ergebnis wird
+NICHT gezeigt.]
 
 Ich hab einer KI tausend Dollar gegeben. Und einen Job: sieben Tage lang
 Daytrader an der Börse.
@@ -42,6 +46,9 @@ Kein Bauchgefühl, kein Zocken. Jeden einzelnen Trade rechnet Claude vorher
 zehntausendmal durch.
 Die Frage ist: Kann eine KI so wirklich Geld verdienen?
 Oder fressen die versteckten Kosten am Ende alles weg?
+Was dich erwartet: ein Stop nach fünfundvierzig Minuten. Ein Volltreffer in
+neunzig Minuten. Ein Trade, der sein Ziel um fünfundzwanzig Cent verpasst.
+Und zwei Stops in derselben Kerze.
 Ich hab's laufen lassen. Und ehrlich: Damit habe ich nicht gerechnet.
 
 ## 02 – Das Experiment (ca. 65 s)
@@ -95,7 +102,7 @@ Also macht Claude am ersten Tag … gar nichts.
 Ich war ehrlich gesagt enttäuscht. Aber nichts tun ist auch eine
 Entscheidung. Und hier war es die richtige.
 
-## 05 – Tag 2 bis 4: Achterbahn (ca. 90 s)
+## 05 – Tag 2 bis 4: Achterbahn (ca. 100 s)
 
 [Kerzenchart Merck: fällt Richtung Stop, dreht, trifft das Ziel. Dann
 Keurig Dr Pepper: Stop nach 45 Minuten. Dann Nike: knapp am Ziel vorbei,
@@ -107,12 +114,19 @@ zweiundsechzig.
 Erst läuft es ein bisschen ins Plus. Dann dreht die Aktie. Zwei Dollar im
 Minus, und der Stop ist keinen Dollar mehr weg.
 Und dann, in der letzten halben Stunde, zieht sie hoch.
-Ziel erreicht, zwanzig Minuten vor Schluss. Plus sieben Dollar achtundneunzig.
+[Showdown-Pause: „ZIEL ODER STOP?“ mit Countdown]
+Was glaubst du? Ziel oder Stop?
+… Ziel! Zwanzig Minuten vor Schluss. Plus sieben Dollar achtundneunzig.
+[Kontostand: 1.007,42 $]
 
 Tag drei: Keurig Dr Pepper.
 Diesmal sagt die Time Machine sogar: richtig guter Trade.
-Claude kauft kurz vor halb zwölf. Fünfundvierzig Minuten später: ausgestoppt.
-Minus acht Dollar vierundsechzig.
+Claude kauft kurz vor halb zwölf. Der Kurs bröckelt.
+[Showdown-Pause] Hält der Stop?
+Nein. Fünfundvierzig Minuten nach dem Kauf: ausgestoppt.
+Minus acht Dollar vierundsechzig. Und damit ist Claude zum ersten Mal unter
+tausend Dollar.
+[Kontostand: 998,21 $]
 
 Das war die erste Lektion. Ein guter Durchschnitt heißt nicht, dass es
 heute gut läuft. Auch nicht für eine KI.
@@ -123,6 +137,9 @@ Ziel. Fünfundzwanzig Cent!
 Dann dreht sie. Mittags ist sie nur noch dreizehn Cent über dem Stop.
 Am Ende passiert weder das eine noch das andere. Um fünf vor vier wird
 verkauft. Minus ein Dollar fünfzehn.
+Nach vier Tagen steht Claude bei neunhundertsechsundneunzig Dollar fünfzig.
+Im Minus.
+[Kontostand: 996,50 $]
 
 ## 06 – Der Wendepunkt: Kosten (ca. 55 s)
 
@@ -154,7 +171,10 @@ Das ist der stärkste Kandidat der ganzen Woche, auch nach Kosten klar im Plus.
 Claude kauft um fünf vor zehn, zu zweihundertvierundsechzig Dollar. Ziel:
 das Doppelte vom Risiko.
 Einmal kurz zurück auf den Einstand, und dann geht's nur noch nach oben.
-Neunzig Minuten später: Ziel. Plus elf Dollar neunundachtzig, nach Kosten.
+[Showdown-Pause] Schafft er das Doppelte?
+Ja! Neunzig Minuten nach dem Kauf: Ziel. Plus elf Dollar neunundachtzig, nach
+Kosten. Claude ist zurück im Plus.
+[Kontostand: 1.008,39 $]
 
 Am selben Tag noch Fortinet. Das war ein Kandidat, der nur ganz knapp über
 der Kostengrenze lag. Und genau so lief er auch: minus zwei Dollar neunzehn.
@@ -171,7 +191,9 @@ ein Dollar dreiunddreißig vor Kosten, ein Dollar siebzehn danach.
 
 Dann Palo Alto. Wieder so ein knapper Kandidat.
 Um zwanzig nach zwölf New Yorker Zeit zuckt der Markt einmal kurz.
-Stop. Minus acht Dollar elf.
+[Showdown-Pause] Ziel oder Stop?
+Stop. Minus acht Dollar elf. Und das Konto rutscht wieder unter tausend.
+[Kontostand: 999,26 $]
 
 Und jetzt das Verrückte: Claude hat nebenbei auch Shorts mitgerechnet, also
 Wetten auf fallende Kurse. Nur im Schatten, nicht im Depot.
@@ -179,15 +201,26 @@ Und in genau derselben Fünf-Minuten-Kerze wird auch dieser Short ausgestoppt.
 Long falsch und Short falsch, gleichzeitig. Das war kein Trend. Das war
 einfach Rauschen.
 
-## 09 – Das Finale und die Bilanz (ca. 80 s)
+Vor dem letzten Tag steht Claude also bei neunhundertneunundneunzig Dollar
+sechsundzwanzig. Vierundsiebzig Cent im Minus. Ein Tag noch.
+
+## 09 – Das Finale und die Bilanz (ca. 95 s)
 
 [Tag 7: Cboe und Apple. Dann rollen die Ziffern und landen auf 1.000,80 $.
 Großes „+0,80 $“. Danach die Kurve brutto gegen netto und die 9 Balken.]
 
-Tag sieben, der letzte. Zwei Trades: Cboe und Apple. Beide laufen bis zum
-Schluss durch, ohne Stop, ohne Ziel.
+Tag sieben, der letzte. Zuerst Cboe. Läuft bis zum Schluss, ohne Stop,
+ohne Ziel.
 Und Cboe ist eigentlich das ganze Experiment in einem Trade:
 vor Kosten achtzehn Cent Gewinn. Nach Kosten fünf Cent Verlust.
+Das Konto: immer noch im Minus.
+[Kontostand: 999,21 $]
+
+Damit hängt alles an einem einzigen Trade: Apple.
+Claude kauft um fünf vor zehn. Der Tag läuft, Kerze für Kerze.
+[Showdown-Pause: „RETTET APPLE DAS KONTO?“]
+Rettet Apple das Experiment?
+[Kontostand: ?.???,?? $]
 
 So. Und jetzt die Auflösung.
 Sieben Tage, neun Trades. Claudes Konto steht bei …

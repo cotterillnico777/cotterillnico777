@@ -38,6 +38,8 @@ const path = require('path');
   await new Promise(r => ff.on('close', r));
   // Ohne eigene Tonspur: Soundeffekte aus window.SFX erzeugen und unterlegen
   const cues = audio ? null : await page.evaluate(() => window.SFX || null);
+  const meta = await page.evaluate(() => window.META || null);
+  if (meta) fs.writeFileSync(out.replace(/\.mp4$/, '.meta.json'), JSON.stringify(meta));
   if (cues && wipe.includes('out')) cues.push([secs - WD - .05, 'swish']);
   await browser.close();
   if (cues && cues.length) {

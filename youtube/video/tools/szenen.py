@@ -15,7 +15,7 @@ FLACH = [[2.4, 0], [4.0, 6], [5.2, 6], [12.0, 77], [30, 77]]   # Einstieg 9:55, 
 SZENEN = [
  dict(name="merck", bg="grid", eyebrow="TAG 2 · MI, 04.11.", title="Merck", entrytag=("Kauf · 6 × 148,62 $", 930, 250),
       stamp=("ZIEL +7,98 $", "var(--gain)"), flash="#fff",
-      cfg=dict(key="MRK_2026-11-04", day=2, entryBar="12:35", exitBar="15:35", entry=148.62, stop=147.29, target=149.95, qty=6,
+      cfg=dict(key="MRK_2026-11-04", day=2, showdown="ZIEL ODER STOP?", konto=1007.42, entryBar="12:35", exitBar="15:35", entry=148.62, stop=147.29, target=149.95, qty=6,
                result=7.98, yMin=145.8, yMax=150.6, yStep=1,
                timeline=[[2.4, 0], [6.3, 38], [7.4, 38], [11.4, 60], [13.8, 60], [18.4, 74], [30, 74]], tEntry=6.4, tExit=18.5,
                moments=[dict(id="m0", bar="14:25", price=148.28, color="var(--loss)", t=11.5, hold=2.3, shake=True, rot=-2, sfx="heart")],
@@ -27,7 +27,7 @@ SZENEN = [
 
  dict(name="kdp", bg="violet", eyebrow="TAG 3 · DO, 05.11.", title="Keurig Dr Pepper", size=130, entrytag=("Kauf · 24 × 37,49 $", 520, 240),
       stamp=("STOP −8,64 $", "var(--loss)"), flash="var(--loss)",
-      cfg=dict(key="KDP_2026-11-05", day=3, entryBar="11:20", exitBar="12:10", entry=37.49, stop=37.13, target=38.21, qty=24,
+      cfg=dict(key="KDP_2026-11-05", day=3, showdown="ZIEL ODER STOP?", konto=998.21, entryBar="11:20", exitBar="12:10", entry=37.49, stop=37.13, target=38.21, qty=24,
                result=-8.64, yMin=36.6, yMax=38.4, yStep=.5, yDec=1, dimAfter=True,
                timeline=[[2.4, 0], [5.6, 23], [7, 23], [12.4, 33], [15, 33], [18.5, 78], [30, 78]], tEntry=5.7, tExit=12.5,
                moments=[dict(id="m0", bar="14:40", price=37.885, color="var(--muted)", t=18.6, hold=20, sfx="swish")],
@@ -38,7 +38,7 @@ SZENEN = [
 
  dict(name="nke", bg="teal", eyebrow="TAG 4 · FR, 06.11.", title="Nike", entrytag=("Kauf · 23 × 38,66 $", 330, 250),
       stamp=("GLATTGESTELLT −1,15 $", "var(--ink)"), flash=None,
-      cfg=dict(key="NKE_2026-11-06", day=4, entryBar="09:55", exitBar="15:50", entry=38.66, stop=38.28, target=39.42, qty=23,
+      cfg=dict(key="NKE_2026-11-06", day=4, konto=996.50, entryBar="09:55", exitBar="15:50", entry=38.66, stop=38.28, target=39.42, qty=23,
                result=-1.15, yMin=37.8, yMax=39.6, yStep=.5, yDec=1, timeline=FLACH, exitSfx="flat",
                moments=[dict(id="m0", bar="10:25", price=39.175, color="var(--gain)", hold=2.2, sfx="pop"),
                         dict(id="m1", bar="12:35", price=38.41, color="var(--loss)", hold=2.2, rot=-2, sfx="heart")],
@@ -49,7 +49,7 @@ SZENEN = [
 
  dict(name="mrna", bg="grid", eyebrow="TAG 5 · MO, 09.11.", title="Moderna", entrytag=("Kauf · 1 × 264,24 $", 330, 300),
       stamp=("ZIEL +12,06 $", "var(--gain)"), flash="#fff",
-      cfg=dict(key="MRNA_2026-11-09", day=5, entryBar="09:50", exitBar="11:20", entry=264.24, stop=258.21, target=276.30, qty=1,
+      cfg=dict(key="MRNA_2026-11-09", day=5, showdown="ZIEL ODER STOP?", konto=1008.39, entryBar="09:50", exitBar="11:20", entry=264.24, stop=258.21, target=276.30, qty=1,
                result=12.06, yMin=252, yMax=283, yStep=5, dimAfter=True,
                timeline=[[2.4, 0], [4.2, 5], [5.4, 5], [11.6, 23], [14.6, 23], [17.6, 78], [30, 78]], tEntry=4.3, tExit=11.7,
                moments=[dict(id="m0", bar="10:10", price=264.29, color="var(--ink)", t=7.7, hold=1.6, rot=-2, sfx="heart"),
@@ -62,7 +62,7 @@ SZENEN = [
 
  dict(name="ftnt", bg="violet", eyebrow="TAG 5 · MO, 09.11.", title="Fortinet", entrytag=("Kauf · 4 × 122,93 $", 330, 230),
       stamp=("GLATTGESTELLT −1,88 $", "var(--ink)"), flash=None,
-      cfg=dict(key="FTNT_2026-11-09", day=5, entryBar="09:55", exitBar="15:50", entry=122.93, stop=120.78, target=127.23, qty=4,
+      cfg=dict(key="FTNT_2026-11-09", day=5, konto=1006.20, entryBar="09:55", exitBar="15:50", entry=122.93, stop=120.78, target=127.23, qty=4,
                result=-1.88, yMin=119, yMax=128, yStep=2, timeline=FLACH, exitSfx="flat",
                moments=[dict(id="m0", bar="09:55", price=122.93, color="var(--cost)", hold=3, delay=1.2, rot=-2)],
                captions=[[.3, 2.4, "Gleicher Tag: <b>Fortinet</b>"], ["m0", 0, 3, "Nur hauchdünn über der Kostengrenze"],
@@ -71,7 +71,7 @@ SZENEN = [
 
  dict(name="nxpi", bg="teal", eyebrow="TAG 6 · DI, 10.11.", title="NXP Semiconductors", size=120,
       entrytag=("Kauf · 1 × 260,56 $", 330, 230), stamp=("GLATTGESTELLT +1,33 $", "var(--gain)"), flash=None,
-      cfg=dict(key="NXPI_2026-11-10", day=6, entryBar="09:55", exitBar="15:50", entry=260.56, stop=253.59, target=274.50, qty=1,
+      cfg=dict(key="NXPI_2026-11-10", day=6, konto=1007.37, entryBar="09:55", exitBar="15:50", entry=260.56, stop=253.59, target=274.50, qty=1,
                result=1.33, yMin=249, yMax=277, yStep=5, timeline=FLACH, exitSfx="flat",
                moments=[dict(id="m0", bar="12:00", price=255.73, color="var(--loss)", hold=2.4, rot=-2, sfx="heart")],
                captions=[[.3, 2.4, "Tag 6: <b>NXP</b>"], ["entry", 0, 2.8, "Claudes bester Kandidat des Tages"],
@@ -80,7 +80,7 @@ SZENEN = [
 
  dict(name="panw", bg="grid", eyebrow="TAG 6 · DI, 10.11.", title="Palo Alto Networks", size=120,
       entrytag=("Kauf · 1 × 328,92 $", 330, 210), stamp=("STOP −7,91 $", "var(--loss)"), flash="var(--loss)",
-      cfg=dict(key="PANW_2026-11-10", day=6, entryBar="09:55", exitBar="12:20", entry=328.92, stop=321.01, target=344.74, qty=1,
+      cfg=dict(key="PANW_2026-11-10", day=6, showdown="ZIEL ODER STOP?", konto=999.26, entryBar="09:55", exitBar="12:20", entry=328.92, stop=321.01, target=344.74, qty=1,
                result=-7.91, yMin=314, yMax=347, yStep=5, dimAfter=True,
                timeline=[[2.4, 0], [4.0, 6], [5.2, 6], [10.2, 35], [13.0, 35], [16.0, 78], [30, 78]],
                moments=[dict(id="m0", bar="12:20", price=320.93, color="var(--loss)", hold=2.6, delay=-.2, shake=True, rot=-2),
@@ -101,20 +101,20 @@ SZENEN = [
 
  dict(name="cboe", bg="teal", eyebrow="TAG 7 · MI, 11.11.", title="Cboe Global Markets", size=120,
       entrytag=("Kauf · 1 × 369,46 $", 330, 230), stamp=("BRUTTO +0,18 $ · NETTO −0,05 $", "var(--cost)", 76), flash=None,
-      cfg=dict(key="CBOE_2026-11-11", day=7, entryBar="09:50", exitBar="15:50", entry=369.46, stop=363.92, target=375.00, qty=1,
+      cfg=dict(key="CBOE_2026-11-11", day=7, konto=999.21, entryBar="09:50", exitBar="15:50", entry=369.46, stop=363.92, target=375.00, qty=1,
                result=0.18, yMin=358, yMax=377, yStep=5, exitSfx="flat",
                timeline=[[2.4, 0], [4.0, 5], [5.2, 5], [12.0, 77], [30, 77]],
                moments=[dict(id="m0", bar="10:45", price=365.28, color="var(--loss)", hold=2.2, rot=-2, sfx="heart")],
                captions=[[.3, 2.4, "Tag 7: <b>Cboe</b>"], ["entry", 0, 3, "Ziel: einmal das Risiko"],
-                         ["m0", 0, 2.4, "Erst Minus, dann seitwärts"], ["exit", 0, 4.5, "Brutto +18 Cent, netto <b>−5 Cent</b>"]]),
+                         ["m0", 0, 2.4, "Erst Minus, dann seitwärts"], ["exit", 0, 3.5, "Brutto +18 Cent, netto <b>−5 Cent</b>"]]),
       pops=[pop("m0", "Vormittags −4,18 $", 700, 660, ROT)], dur=18),
 
  dict(name="aapl", bg="grid", eyebrow="TAG 7 · MI, 11.11.", title="Apple",
       entrytag=("Kauf · 1 × 353,65 $", 330, 250), stamp=("GLATTGESTELLT +1,81 $", "var(--gain)"), flash=None,
-      cfg=dict(key="AAPL_2026-11-11", day=7, entryBar="09:50", exitBar="15:50", entry=353.65, stop=351.38, target=358.19, qty=1,
+      cfg=dict(key="AAPL_2026-11-11", day=7, showdown="RETTET APPLE DAS KONTO?", konto="?", entryBar="09:50", exitBar="15:50", entry=353.65, stop=351.38, target=358.19, qty=1,
                result=1.81, yMin=349, yMax=359, yStep=2, exitSfx="flat",
                timeline=[[2.4, 0], [4.0, 5], [5.2, 5], [12.0, 77], [30, 77]], moments=[],
-               captions=[[.3, 2.4, "Und <b>Apple</b>"], ["entry", 0, 3, "Claude kauft zu <b>353,65 $</b>"],
+               captions=[[.3, 2.4, "Letzter Trade: <b>Apple</b>"], ["entry", 0, 3, "Konto im Minus. Alles hängt an Apple."],
                          ["exit", -3, 2.8, "Kein Stop, kein Ziel …"], ["exit", 0, 4.5, "… am Ende <b>+1,59 $</b> netto"]]),
       pops=[], dur=17),
 ]

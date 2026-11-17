@@ -1,8 +1,9 @@
 #!/bin/bash
-# Rendert alle Szenen neu und setzt das Probevideo zusammen.
+# Rendert alle Szenen neu, setzt das Probevideo zusammen und legt die Musik darunter.
 cd "$(dirname "$0")/.."
-for s in hook:24 regeln:29 timemachine:22 tag1:22 merck:24 kdp:22 nke:18 kosten:30 mrna:22 ftnt:18 nxpi:18 panw:20 gis:20 cboe:18 aapl:17 bilanz:31.5 lehren:27 abstimmung:28; do
+python3 tools/szenen.py >/dev/null
+for s in hook:24 regeln:29 timemachine:22 tag1:22 merck:27.5 kdp:25 nke:20 kosten:30 mrna:25 ftnt:20 nxpi:20 panw:23 gis:20 cboe:20 aapl:22 bilanz:31.5 lehren:27 abstimmung:28; do
   n=${s%%:*}; w=in,out; [ $n = hook ] && w=out; [ $n = abstimmung ] && w=in
   WIPE=$w node tools/render.js szenen/$n.html ${s##*:} ausgabe/$n.mp4 >/dev/null 2>&1 || echo "FEHLER $n"
 done
-tools/zusammenbau.sh
+tools/zusammenbau.sh && python3 tools/musik.py
