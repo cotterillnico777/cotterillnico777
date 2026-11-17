@@ -10,7 +10,7 @@ import glob, json, os, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.join(HERE, "..")
 AUS = os.path.join(BASE, "ausgabe")
-TON = os.path.join(BASE, "ton")
+TON = os.environ.get("TON") or os.path.join(BASE, "ton")
 
 # Abschnitt des Skripts → Szenen (Reihenfolge wie im Video)
 ABSCHNITTE = [
