@@ -19,7 +19,7 @@ rng = np.random.default_rng(3)
 # Szenenfolge (muss zu tools/alles.sh passen) und Energie je Szene:
 # 0 = nur Fläche, 1 = Fläche + Bass, 2 = + Arpeggio + Hi-Hats, 3 = voller Beat
 SZENEN = [("hook", 24, 1), ("regeln", 29, 2), ("timemachine", 22, 2), ("tag1", 22, 1),
-          ("merck", 27.5, 3), ("kdp", 25, 3), ("nke", 20, 3), ("kosten", 30, 1),
+          ("merck", 29.5, 3), ("kdp", 25, 3), ("nke", 22.5, 3), ("kosten", 30, 1),
           ("mrna", 25, 3), ("ftnt", 20, 2), ("nxpi", 20, 3), ("panw", 23, 3), ("gis", 20, 3),
           ("cboe", 20, 2), ("aapl", 22, 2), ("bilanz", 31.5, 3), ("lehren", 27, 1), ("abstimmung", 28, 3)]
 

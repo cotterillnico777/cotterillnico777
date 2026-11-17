@@ -85,7 +85,8 @@
     const hid = C.konto === "?", dv = hid ? 0 : C.konto - 1000;
     stage.insertAdjacentHTML("beforeend", `<div id="konto"><div class="k">KONTOSTAND NACH KOSTEN</div>
       <div class="v" style="color:${hid ? "var(--cost)" : dv >= 0 ? "var(--gain)" : "var(--loss)"}">${hid ? "?.???,?? $" : de(C.konto) + " $"}</div>
-      <div class="d" style="color:${hid ? "var(--ink)" : dv >= 0 ? "var(--gain)" : "var(--loss)"}">${hid ? "Das zeigt erst die Auflösung" : (dv >= 0 ? "+" : "−") + de(Math.abs(dv)) + " $ seit Start"}</div></div>`);
+      <div class="d" style="color:${hid ? "var(--ink)" : dv >= 0 ? "var(--gain)" : "var(--loss)"}">${hid ? "Das zeigt erst die Auflösung" : (dv >= 0 ? "+" : "−") + de(Math.abs(dv)) + " $ seit Start"}</div>
+      ${C.prog != null && C.outcome ? `<div style="font:600 30px var(--mono);color:var(--muted);margin-top:12px">Prognose: ${C.prog >= .12 ? "STARK" : C.prog >= .05 ? "SOLIDE" : "KNAPP"} → Ergebnis: ${C.outcome}</div>` : ""}</div>`);
   }
   // Zoom-Mittelpunkt: letzte Kerze vor der Pause
   let zx = "70%", zy = "50%";
@@ -94,6 +95,43 @@
     zx = (sp.x - r.left) + "px"; zy = (sp.y - r.top) + "px"; };
   zoomOrigin();
   window.META = { freeze: D ? [F, D] : null };
+
+  // ---- Konto-Lebensbalken (oben Mitte) ----
+  const css2 = document.createElement("style"); css2.textContent = `
+    #hp{position:absolute;left:50%;top:26px;width:640px;margin-left:-320px;opacity:0}
+    #hp .lab{display:flex;justify-content:space-between;font:600 22px var(--mono);color:var(--muted);letter-spacing:.08em;margin-bottom:6px}
+    #hp .lab b{font:600 30px var(--mono);color:var(--ink)}
+    #hp .bar{position:relative;height:26px;border-radius:13px;background:#0a1422;border:3px solid var(--line);overflow:hidden}
+    #hp .fill{position:absolute;top:0;bottom:0}
+    #hp .mid{position:absolute;left:50%;top:-6px;bottom:-6px;width:4px;margin-left:-2px;background:var(--ink)}
+    #hp.low .bar{border-color:var(--loss);box-shadow:0 0 22px rgba(255,90,90,.55)}
+    #redvig{position:absolute;inset:0;pointer-events:none;opacity:0;box-shadow:inset 0 0 220px 40px rgba(255,40,40,.55)}
+    #prog{position:absolute;left:50%;top:150px;width:760px;margin-left:-380px;opacity:0;padding:18px 30px;border-radius:20px;background:rgba(9,15,27,.94);border:4px solid var(--accent)}
+    #prog .k{font:600 24px var(--mono);color:var(--accent);letter-spacing:.1em}
+    #prog .row{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px}
+    #prog .v{font:800 64px/1 var(--display)} #prog .w{font:800 46px var(--display)}
+    #prog .g{position:relative;height:16px;border-radius:8px;margin-top:14px;background:linear-gradient(90deg,var(--loss),#33415a 30%,var(--cost) 55%,var(--gain))}
+    #prog .nd{position:absolute;top:-10px;width:8px;height:36px;margin-left:-4px;border-radius:4px;background:#fff;box-shadow:0 0 14px #fff}
+    #prog .pp{font:600 26px var(--mono);color:var(--muted);margin-top:10px}
+    #slow{position:absolute;left:50%;top:150px;transform:translateX(-50%);opacity:0;text-align:center;white-space:nowrap}
+    #slow .t{display:inline-block;font:800 40px var(--mono);letter-spacing:.3em;color:#0b1622;background:var(--cost);padding:6px 18px;border-radius:8px}
+    #slow .l{font:600 34px var(--body);color:var(--ink);margin-top:14px;text-shadow:0 3px 0 rgba(0,0,0,.6)}
+    #slow .d{font:600 150px/1 var(--mono);color:var(--cost);text-shadow:0 0 40px rgba(255,178,63,.5),0 6px 0 rgba(0,0,0,.6)}`;
+  document.head.appendChild(css2);
+  const HPL = 990, HPH = 1010, hpx = v => clamp((v - HPL) / (HPH - HPL)) * 100;
+  if (C.kontoVor != null) stage.insertAdjacentHTML("beforeend", `<div id="redvig"></div><div id="hp"><div class="lab"><span>KONTO</span><b></b><span>START 1.000 $</span></div>
+    <div class="bar"><div class="fill"></div><div class="mid"></div></div></div>`);
+  const progWort = e => e >= .12 ? "STARK" : e >= .05 ? "SOLIDE" : "KNAPP";
+  const progFarbe = e => e >= .12 ? "var(--gain)" : e >= .05 ? "var(--cost)" : "var(--loss)";
+  if (C.prog != null) stage.insertAdjacentHTML("beforeend", `<div id="prog"><div class="k">CLAUDES PROGNOSE${C.progBrutto ? " (VOR KOSTEN)" : " (NACH KOSTEN)"}</div>
+    <div class="row"><span class="v" style="color:${progFarbe(C.prog)}">+${de(C.prog, 3)} R</span><span class="w" style="color:${progFarbe(C.prog)}">${progWort(C.prog)}</span></div>
+    <div class="g"><div class="nd"></div></div>${C.progPct ? `<div class="pp">Ziel zuerst ${C.progPct[0]} · Stop zuerst ${C.progPct[1]}</div>` : ""}</div>`);
+  const S = C.slow ? { ...C.slow, i: idx(C.slow.bar) } : null;
+  if (S) stage.insertAdjacentHTML("beforeend", `<div id="slow"><div class="t">ZEITLUPE</div><div class="l">${S.label}</div><div class="d"></div></div>`);
+  const originFor = (i, price) => { const pt = svg.createSVGPoint(); pt.x = X(i); pt.y = Y(price);
+    const sp = pt.matrixTransform(svg.getScreenCTM()), r = $("#chartwrap").getBoundingClientRect(); return `${sp.x - r.left}px ${sp.y - r.top}px`; };
+  const slowOrigin = S ? originFor(S.i, S.level) : "";
+  if (S) { S.t0 = tAt(S.i - 1); S.t1 = tAt(S.i); }
 
   window.render = function (t) {
     background(t);
@@ -109,7 +147,9 @@
     orBox.style.opacity = seg(t, 2.6, 3.2);
 
     const k = shown(t);
-    candles.forEach((g, i) => { const p = clamp(k - i); g.setAttribute("opacity", p * (C.dimAfter && i > iExit ? .32 : 1)); g.setAttribute("transform", `translate(0 ${(1 - p) * 18})`); });
+    candles.forEach((g, i) => { const p = clamp(k - i), y0 = Y(bars[i][1]);
+      g.setAttribute("opacity", Math.min(1, p * 4) * (C.dimAfter && i > iExit ? .32 : 1));
+      g.setAttribute("transform", `translate(0 ${y0}) scale(1 ${Math.max(.02, p)}) translate(0 ${-y0})`); });
 
     // Uhr: Zeit der letzten sichtbaren Kerze (Schlusszeit) in New York und bei uns
     const lastI = Math.max(0, Math.min(n - 1, Math.ceil(k) - 1));
@@ -164,6 +204,40 @@
       if (fr > 0) $("#chartwrap").style.transform = `scale(${1 + .2 * inOut(fr)})`;
       if (fr > 0) $(".caption").style.opacity = 1 - fr;
     }
+    // Konto-Lebensbalken
+    if (C.kontoVor != null) {
+      const hp = $("#hp"); hp.style.opacity = seg(t, 2.2, 2.8);
+      const hid = C.konto === "?", tgt = hid ? C.kontoVor : C.konto, m = inOut(seg(t, C.tExit + .2, C.tExit + 1.4));
+      const v = C.kontoVor + (tgt - C.kontoVor) * m, glitch = hid && t > C.tExit + .3;
+      const f = hp.querySelector(".fill"), a = hpx(1000), b = hpx(v);
+      f.style.left = Math.min(a, b) + "%"; f.style.width = Math.abs(b - a) + "%";
+      f.style.background = glitch ? "var(--cost)" : v >= 1000 ? "var(--gain)" : "var(--loss)";
+      if (glitch) { const j = Math.floor(t * 14) % 5; f.style.left = (20 + j * 9) + "%"; f.style.width = (8 + (j * 7) % 25) + "%"; }
+      hp.querySelector("b").textContent = glitch ? "?.???,?? $" : de(v) + " $";
+      hp.querySelector("b").style.color = glitch ? "var(--cost)" : v >= 1000 ? "var(--gain)" : "var(--loss)";
+      const low = !glitch && v < 1000; hp.classList.toggle("low", low);
+      const blink = low && t > C.tExit + .2 && t < C.tExit + 4 ? .5 + .5 * Math.sin(t * 14) : 0;
+      $("#redvig").style.opacity = blink * .9;
+    }
+    // Claudes Prognose beim Einstieg
+    if (C.prog != null) {
+      const pp = outBack(seg(t, C.tEntry + .7, C.tEntry + 1.2)), po = (1 - seg(t, C.tEntry + 4.6, C.tEntry + 5)) * (S ? 1 - seg(t, S.t0 - .4, S.t0) : 1);
+      $("#prog").style.opacity = clamp(pp) * po; $("#prog").style.transform = `scale(${.7 + .3 * pp})`;
+      const nv = clamp((C.prog + .1) / .4), sw = inOut(seg(t, C.tEntry + 1, C.tEntry + 2.2));
+      $("#prog .nd").style.left = (nv * sw * 100 + Math.sin(t * 25) * 1.5 * (1 - sw) * (sw > 0)) + "%";
+      if (pp > 0 && po > 0) $("#entrytag").style.opacity = 0;
+    }
+    // Zeitlupe bei Beinahe-Treffern
+    if (S) {
+      const on = seg(t, S.t0, S.t0 + .3) * (1 - seg(t, S.t1 + .6, S.t1 + 1));
+      $("#slow").style.opacity = on; $("#vig").style.opacity = Math.max(+$("#vig").style.opacity || 0, on * .9);
+      if (on > 0) { $("#chartwrap").style.transformOrigin = slowOrigin; $("#chartwrap").style.transform = `scale(${1 + .28 * inOut(on)})`;
+        $("#chartwrap").style.filter = `saturate(${1 - .5 * on})`; $(".caption").style.opacity = 1 - on; }
+      else $("#chartwrap").style.filter = "";
+      const p = clamp(k - S.i), [, o, h, l] = bars[S.i], ext = S.up ? o + (h - o) * p : o - (o - l) * p;
+      const dist = Math.max(0, S.up ? S.level - ext : ext - S.level);
+      $("#slow .d").textContent = de(t < S.t0 ? Math.abs(S.level - o) : dist) + " $";
+    }
     // Kontostand nach dem Trade
     if (C.konto != null) { const kp = outBack(seg(t, C.tExit + 3.6, C.tExit + 4.1)), ko = 1 - seg(t, C.tExit + 7, C.tExit + 7.4);
       $("#konto").style.opacity = clamp(kp) * ko; $("#konto").style.transform = `translate(-50%,-50%) scale(${.6 + .4 * kp})`;
@@ -178,6 +252,11 @@
   if (C.konto != null) sfx.push([C.tExit + 3.6, C.konto === "?" ? "alert" : "pop"]);
   // leises Ticken, während die Kerzen laufen
   let last = -1; for (let i = 0; i < n; i++) { const tt = tAt(i); if (tt - last >= .1 && tt < F) { sfx.push([tt, "candle"]); last = tt; } }
+  if (C.prog != null) sfx.push([C.tEntry + .7, "scan"], [C.tEntry + 2.2, "lock"]);
+  if (C.kontoVor != null && C.konto !== "?" && C.konto < 1000 && C.kontoVor >= 1000) sfx.push([C.tExit + .4, "alarm"]);
+  if (C.konto === "?") sfx.push([C.tExit + .3, "glitch"]);
+  if (S) { const t0 = tAt(S.i - 1); sfx = sfx.filter(([tt, s]) => !(s === "candle" && tt > t0 && tt < tAt(S.i) + .5));
+    sfx.push([t0, "slowdown"], [t0 + .2, "drone"], [t0 + .5, "heartslow"], [t0 + 1.6, "heartslow"], [tAt(S.i) + .1, "alert"]); }
   sfx = sfx.map(([t0, s]) => [D && t0 > F ? t0 + D : t0, s]);           // alles nach der Pause verschiebt sich
   if (D) sfx.push([F, "sub"], [F + .1, "heart"], [F + .9, "heart"], [F + 1.6, "heart"], [F + .2, "tick"], [F + .9, "tick"], [F + 1.6, "tick"], [F + D - 1.05, "riser"]);
   else sfx.push([Math.max(0, C.tExit - 1.1), "riser"]);

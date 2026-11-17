@@ -110,7 +110,47 @@ def sub():
     t = t_(.7); f = 95 * (35 / 95) ** (t / .7)
     return .8 * np.sin(2 * np.pi * np.cumsum(f) / SR) * env(len(t), .01, .4)
 
-LIB = {"riser": riser, "candle": candle, "heart": heart, "cash": cash, "buzz": buzz, "sub": sub, "flat": flat, "whoosh": lambda: whoosh(), "swish": lambda: .6 * whoosh(.35, 800, 6000), "pop": pop,
+def scan():
+    t = t_(1.3); f = 500 + 1800 * (t / 1.3)
+    y = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * (np.sin(2 * np.pi * 18 * t) > 0)
+    return .07 * lowpass(y, 3000) * env(len(t), .02, .2)
+
+def lock():
+    out = np.zeros(int(.5 * SR))
+    for k, f in enumerate((1318.5, 1975.5)):
+        t = t_(.12); b = np.sin(2 * np.pi * f * t) * np.exp(-t * 30); s = int(k * .08 * SR); out[s:s + len(b)] += .3 * b
+    return out
+
+def alarm():
+    out = np.zeros(int(1.6 * SR))
+    for k in range(3):
+        for j, f in enumerate((880, 660)):
+            t = t_(.22); b = np.sign(np.sin(2 * np.pi * f * t)); s = int((k * .5 + j * .23) * SR)
+            out[s:s + len(b)] += .16 * lowpass(b, 2500) * env(len(b), .01, .05)
+    return out
+
+def glitch():
+    out = np.zeros(int(.9 * SR)); g = rng.standard_normal(len(out))
+    gate = (np.sin(2 * np.pi * 23 * t_(.9)) > .3) * (np.sin(2 * np.pi * 7 * t_(.9)) > -.2)
+    return .3 * (g - lowpass(g, 2000)) * gate * env(len(out), .005, .2)
+
+def slowdown():
+    t = t_(1.0); f = 420 * np.exp(-t * 2.6)
+    tone = np.sin(2 * np.pi * np.cumsum(f) / SR) + .5 * np.sin(2 * np.pi * np.cumsum(2 * f) / SR)
+    return .45 * tone * env(len(t), .01, .3) + .5 * whoosh(1.0, 2500, 200) * np.linspace(1, .2, len(t))
+
+def drone(sec=3.2):
+    t = t_(sec); y = np.sin(2 * np.pi * 41 * t) + .6 * np.sin(2 * np.pi * 61.5 * t + 1) + .3 * np.sin(2 * np.pi * 82.3 * t)
+    return .35 * y * (1 + .3 * np.sin(2 * np.pi * .9 * t)) * env(len(t), .4, .8)
+
+def heartslow():
+    out = np.zeros(int(1.0 * SR))
+    for k, a in ((0, 1.0), (.32, .65)):
+        t = t_(.35); b = np.sin(2 * np.pi * 46 * t * (1 + .5 * np.exp(-t * 22))) * np.exp(-t * 12)
+        s = int(k * SR); out[s:s + len(b)] += a * b
+    return out
+
+LIB = {"scan": scan, "lock": lock, "alarm": alarm, "glitch": glitch, "slowdown": slowdown, "drone": drone, "heartslow": heartslow, "riser": riser, "candle": candle, "heart": heart, "cash": cash, "buzz": buzz, "sub": sub, "flat": flat, "whoosh": lambda: whoosh(), "swish": lambda: .6 * whoosh(.35, 800, 6000), "pop": pop,
        "alert": alert, "win": win, "loss": loss, "tick": tick}
 
 def main(cues_path, dur, out_path):
