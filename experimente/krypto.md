@@ -66,6 +66,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | 9 | So, 15.11.2026 | 0 (ruhiger Sonntag: bis 10:46 NY nur ein LTC-Short, sofort zurückgefallen; um 11:25–11:30 kurze Ausbrüche bei BTC, ETH, BNB, LTC, BCH in beide Richtungen, alle wieder in der Spanne. Kein Signal mit Kostenrechnung übrig) | 0,00 $ | 992,96 $ |
 | 10 | Mo, 16.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:05 brachen alle 8 Coins nach unten aus, nach Kosten überall negativ. Bestes Signal: AVAX Short 2R netto −0,017 / Rückblick +0,287 R um 10:46; bis 11:45 fielen 5 Coins zurück in die Spanne) | 0,00 $ | 992,96 $ |
 | 11 | Di, 17.11.2026 | 1 (ETH Short 2R um 9:55 NY, netto knapp positiv +0,014 / +0,100 R; Ziel um 10:40 NY erreicht) | +10,93 $ | 1.003,89 $ |
+| 12 | Mi, 18.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:40 brachen alle 8 Coins nach unten aus und fielen weiter, nach Kosten aber überall negativ. Bestes Signal: AVAX Short 2R netto −0,015 / Rückblick +0,260 R um 10:46) | 0,00 $ | 1.003,89 $ |
 
 ## Trades
 
