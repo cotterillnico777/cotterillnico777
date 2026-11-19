@@ -67,6 +67,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | 10 | Mo, 16.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:05 brachen alle 8 Coins nach unten aus, nach Kosten überall negativ. Bestes Signal: AVAX Short 2R netto −0,017 / Rückblick +0,287 R um 10:46; bis 11:45 fielen 5 Coins zurück in die Spanne) | 0,00 $ | 992,96 $ |
 | 11 | Di, 17.11.2026 | 1 (ETH Short 2R um 9:55 NY, netto knapp positiv +0,014 / +0,100 R; Ziel um 10:40 NY erreicht) | +10,93 $ | 1.003,89 $ |
 | 12 | Mi, 18.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:40 brachen alle 8 Coins nach unten aus und fielen weiter, nach Kosten aber überall negativ. Bestes Signal: AVAX Short 2R netto −0,015 / Rückblick +0,260 R um 10:46) | 0,00 $ | 1.003,89 $ |
+| 13 | Do, 19.11.2026 | 1 (ab 9:55 NY brachen alle 8 Coins nach unten aus; AVAX Short 2R um 10:45 netto knapp positiv +0,060 / +0,351 R; weder Stop noch Ziel, glattgestellt um 15:55) | −2,06 $ | 1.001,83 $ |
 
 ## Trades
 
@@ -74,3 +75,4 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 10.11.2026 | AVAX | Short | 10:46 | 42,971422 | 8,14 $ | 8,35 $ | 7,71 $ | +0,002 / +0,121 | 15:55 (Glattstellen) | 8,285 $ | −6,23 $ | 0,81 $ | −7,04 $ |
 | 17.11.2026 | ETH | Short | 9:55 | 0,493821 | 1.809,69 $ | 1.822,28 $ | 1.784,51 $ | +0,014 / +0,100 | 10:45 (Ziel, Kerze 10:40) | 1.784,51 $ | +12,43 $ | 1,51 $ | +10,93 $ |
+| 19.11.2026 | AVAX | Short | 10:45 | 43,872272 | 6,93 $ | 7,14 $ | 6,50 $ | +0,060 / +0,351 | 15:55 (Glattstellen) | 6,961 $ | −1,36 $ | 0,70 $ | −2,06 $ |
