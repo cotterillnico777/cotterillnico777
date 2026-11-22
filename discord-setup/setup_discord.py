@@ -301,12 +301,12 @@ def main():
     # ----- Kategorien und Kanäle -----
     print("\nKanäle")
     alle = api.request("GET", f"/guilds/{sid}/channels")
-    nach_name = {(k["name"], art(k)): k for k in alle}
+    nach_name = {(k["name"].lower(), art(k)): k for k in alle}
     kanal_ids = {}
     position = 0
     for kat_name, zugang, alter, kanaele in STRUKTUR:
         kat_rechte = rechte_fuer(zugang, False, sid, rollen)
-        kat = nach_name.get((kat_name, "kategorie"))
+        kat = nach_name.get((kat_name.lower(), "kategorie"))
         if kat:
             api.request("PATCH", f"/channels/{kat['id']}",
                         {"permission_overwrites": kat_rechte, "position": position})
@@ -318,6 +318,7 @@ def main():
         position += 1
         for name, typ, nur_lesen, thema in kanaele:
             daten = {
+                "name": name,
                 "parent_id": kat["id"],
                 "permission_overwrites": rechte_fuer(zugang, nur_lesen, sid, rollen),
                 "nsfw": alter,
@@ -326,21 +327,21 @@ def main():
             if typ == "text":
                 daten["topic"] = thema
             position += 1
-            k = nach_name.get((name, typ))
+            k = nach_name.get((name.lower(), typ))
             if k:
                 api.request("PATCH", f"/channels/{k['id']}", daten)
                 print(f"      = {name}")
             else:
                 k = api.request("POST", f"/guilds/{sid}/channels",
-                                {"name": name, "type": 2 if typ == "voice" else 0, **daten})
+                                {"type": 2 if typ == "voice" else 0, **daten})
                 print(f"      + {name}")
             kanal_ids[name] = k["id"]
 
     if not args.standardkanaele_behalten:
-        geplant = {k[0] for _, _, _, ks in STRUKTUR for k in ks}
+        uebernommen = set(kanal_ids.values())
         for k in alle:
             weg = (art(k) == "kategorie" and k["name"].lower() in STANDARD_KATEGORIEN) or \
-                  (art(k) == "voice" and k["name"].lower() in STANDARD_VOICE and k["name"] not in geplant)
+                  (art(k) == "voice" and k["name"].lower() in STANDARD_VOICE and k["id"] not in uebernommen)
             if weg:
                 api.request("DELETE", f"/channels/{k['id']}")
                 print(f"  - {k['name']} (Discord-Standard entfernt)")
