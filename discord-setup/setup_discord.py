@@ -19,7 +19,7 @@ import time
 import urllib.error
 import urllib.request
 
-API = "https://discord.com/api/v10"
+API = os.environ.get("DISCORD_API", "https://discord.com/api/v10")
 
 # ===== Anpassen =====
 KANALNAME = "SlotEntdecker"
