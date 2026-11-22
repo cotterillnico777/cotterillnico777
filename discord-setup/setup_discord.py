@@ -22,10 +22,20 @@ import urllib.request
 API = "https://discord.com/api/v10"
 
 # ===== Anpassen =====
-KANALNAME = "DEIN NAME"
-STREAM_URL = "https://kick.com/DEINKANAL"
-LINKSEITE_URL = "https://DEINE-LINKSEITE"
+KANALNAME = "SlotEntdecker"
+STREAM_URL = ""        # z. B. https://kick.com/DEINKANAL – leer lassen, solange es keinen gibt
+LINKSEITE_URL = ""     # Adresse der Linkseite, sobald sie online ist
+TELEGRAM_URL = "https://t.me/slotentdecker"
+EMAIL = "slotentdecker@gmail.com"
 STREAMZEITEN = "Mo · Mi · Fr ab 21 Uhr"
+
+# Leere Angaben werden in den Texten einfach weggelassen
+STREAM_AUF = f" auf {STREAM_URL}" if STREAM_URL else ""
+LINK_ZEILEN = "\n".join(z for z, wert in [
+    (f"🔗 **Alle Links:** {LINKSEITE_URL}", LINKSEITE_URL),
+    (f"✈️ **Telegram:** {TELEGRAM_URL}", TELEGRAM_URL),
+    (f"✉️ **Kooperationen:** {EMAIL}", EMAIL),
+] if wert)
 
 # ===== Berechtigungs-Bits =====
 ADD_REACTIONS = 1 << 6
@@ -119,8 +129,8 @@ Hier triffst du alle, die gern bei Slots, Big Wins und Bonus-Hunts zuschauen.
 2️⃣ Bestätige in <#18-plus-bestätigen>, dass du volljährig bist
 3️⃣ Hol dir in <#rollen-wählen> den 🔔 **Live-Ping**, damit du keinen Stream verpasst
 
-🔴 **Live:** {STREAMZEITEN} auf {STREAM_URL}
-🔗 **Alle Links:** {LINKSEITE_URL}
+🔴 **Live:** {STREAMZEITEN}{STREAM_AUF}
+{LINK_ZEILEN}
 
 🔞 Nur ab 18 · Glücksspiel kann süchtig machen · Hilfe: <#verantwortungsvoll-spielen>""",
 
@@ -150,8 +160,7 @@ Mit Klick auf ✅ bestätigst du, dass du **mindestens 18 Jahre alt** bist und d
 Einfach auf das passende Emoji klicken. Nochmal klicken schaltet es wieder ab.""",
 
     "stream-plan": f"""📅 **Stream-Plan**
-🔴 {STREAMZEITEN}
-📺 {STREAM_URL}
+🔴 {STREAMZEITEN}{STREAM_AUF}
 
 Änderungen kündigen wir in <#ankündigungen> an.""",
 
