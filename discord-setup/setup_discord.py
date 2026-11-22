@@ -297,6 +297,9 @@ def main():
         })
         rollen[name] = rolle["id"]
         print(f"  + {name}")
+    # Neue Rollen landen alle auf Position 1 – Hierarchie direkt unter dem Bot festlegen
+    api.request("PATCH", f"/guilds/{sid}/roles", [
+        {"id": rollen[name], "position": len(ROLLEN) - i} for i, (name, *_) in enumerate(ROLLEN)])
 
     # ----- Kategorien und Kanäle -----
     print("\nKanäle")
