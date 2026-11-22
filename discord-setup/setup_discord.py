@@ -237,6 +237,8 @@ class Probelauf:
             return []
         if pfad.endswith("/invites"):
             return {"code": "PROBELAUF"}
+        if isinstance(body, list):
+            return body
         self.zaehler += 1
         return {"id": str(self.zaehler), **(body or {})}
 
