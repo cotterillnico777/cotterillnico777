@@ -70,6 +70,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | 13 | Do, 19.11.2026 | 1 (ab 9:55 NY brachen alle 8 Coins nach unten aus; AVAX Short 2R um 10:45 netto knapp positiv +0,060 / +0,351 R; weder Stop noch Ziel, glattgestellt um 15:55) | −2,06 $ | 1.001,83 $ |
 | 14 | Fr, 20.11.2026 | 1 (AVAX Short 2R um 9:53 NY, netto knapp positiv +0,057 / +0,268 R; Ziel in der Kerze 10:15 NY erreicht) | +14,57 $ | 1.016,40 $ |
 | 15 | Sa, 21.11.2026 | 0 (um 9:53 NY nur SOL und LTC Long, Kosten 0,68 bis 0,93 R; ab 10:20 Shorts bei BTC, LINK, LTC, nach Kosten überall negativ. Bestes Signal: LTC Short 2R netto −0,187 / Rückblick −0,272 R um 11:46) | 0,00 $ | 1.016,40 $ |
+| 16 | So, 22.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:30 Long-Ausbrüche, bis 11:45 bei 7 Coins, nach Kosten überall negativ. Bestes Signal: LINK Long 2R netto −0,151 / Rückblick −0,105 R um 11:45) | 0,00 $ | 1.016,40 $ |
 
 ## Trades
 
