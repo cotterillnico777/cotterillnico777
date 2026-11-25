@@ -73,6 +73,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | 16 | So, 22.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:30 Long-Ausbrüche, bis 11:45 bei 7 Coins, nach Kosten überall negativ. Bestes Signal: LINK Long 2R netto −0,151 / Rückblick −0,105 R um 11:45) | 0,00 $ | 1.016,40 $ |
 | 17 | Mo, 23.11.2026 | 1 (5 Coins brachen um 9:50 NY nach unten aus, alle netto positiv; AVAX Short 2R am besten, +0,160 / +0,344 R. Weder Stop noch Ziel, um 15:55 glattgestellt. Überwachung fiel durch einen Neustart aus; Ausstieg nachträglich aus den 5-Minuten-Kerzen ermittelt) | +11,61 $ | 1.028,01 $ |
 | 18 | Di, 24.11.2026 | 1 (um 9:53 NY kein Ausbruch; ab 10:10 brachen alle 8 Coins nach unten aus, AVAX Short 2R am besten, +0,079 / +0,264 R; Stop in der Kerze 12:30 NY) | −9,73 $ | 1.018,28 $ |
+| 19 | Mi, 25.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:00 Long-Ausbrüche bei allen 8 Coins, nach Kosten überall negativ. Bestes Signal: LINK Long 1R netto −0,155 / Rückblick −0,277 R um 11:46) | 0,00 $ | 1.018,28 $ |
 
 ## Trades
 
