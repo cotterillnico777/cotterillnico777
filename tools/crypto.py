@@ -78,6 +78,9 @@ def tm(sym, day, entry, stop, target, at, now=None, side="buy"):
     if now:
         cmd += ["--now", now.strftime("%Y-%m-%d %H:%M")]
     p = subprocess.run(cmd, capture_output=True, text=True)
+    if "early close" in p.stdout + p.stderr:          # NYSE-Halbtag: Time Machine endet um 13:00
+        cmd[cmd.index("--until") + 1] = "12:55"
+        p = subprocess.run(cmd, capture_output=True, text=True)
     try:
         d = json.loads(p.stdout)
     except ValueError:
