@@ -76,6 +76,7 @@ Werkzeug: `python3 tools/crypto.py scan`, Buchungen in
 | 19 | Mi, 25.11.2026 | 0 (um 9:53 NY kein Ausbruch; ab 10:00 Long-Ausbrüche bei allen 8 Coins, nach Kosten überall negativ. Bestes Signal: LINK Long 1R netto −0,155 / Rückblick −0,277 R um 11:46) | 0,00 $ | 1.018,28 $ |
 | 20 | Do, 26.11.2026 | 0 (ab 9:50 NY brachen alle 8 Coins nach unten aus, nach Kosten überall negativ; Kurse liefen kaum weiter. Bestes Signal: ETH Short 2R netto −0,022 / Rückblick +0,299 R um 10:46) | 0,00 $ | 1.018,28 $ |
 | 21 | Fr, 27.11.2026 | 1 (NYSE-Halbtag: Time Machine nur bis 12:55 simuliert, Werkzeug angepasst; alle 7 gelisteten Coins Short JA, bestes Signal AVAX Short 2R netto +0,118 / Rückblick +0,292 R; seitwärts knapp unter dem Stop, um 15:55 glattgestellt) | −6,86 $ | 1.011,42 $ |
+| 22 | Sa, 28.11.2026 | 0 (enge Spannen, Ausbrüche fielen zurück oder waren nach Kosten negativ; Kosten 0,37–0,79 R. Bestes Signal: AVAX Short 2R netto −0,389 / Rückblick +0,165 R um 11:46) | 0,00 $ | 1.011,42 $ |
 
 ## Trades
 
